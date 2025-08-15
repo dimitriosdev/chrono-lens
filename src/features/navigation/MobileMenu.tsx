@@ -44,7 +44,7 @@ export default function MobileMenu({
             {/* Show other links and log out when signed in */}
             {isLoggedIn && (
               <>
-                <a href="#" className="text-white text-base">
+                <a href="/albums/new" className="text-white text-base">
                   Add new album
                 </a>
                 <div className="mt-auto">

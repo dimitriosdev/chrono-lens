@@ -19,9 +19,12 @@ export default function Sidebar({ onSignOut }: SidebarProps) {
       {/* Sidebar for desktop */}
       <aside className="hidden sm:flex flex-col h-screen w-20 bg-gray-900 text-white items-center py-4 space-y-8">
         <div className="relative group">
-          <button className="bg-gray-800 rounded-full p-3 hover:bg-gray-700">
+          <a
+            href="/albums/new"
+            className="bg-gray-800 rounded-full p-3 hover:bg-gray-700 block"
+          >
             <PlusIcon className="h-6 w-6" />
-          </button>
+          </a>
           <span className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 text-xs bg-gray-800 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
             Add new album
           </span>
