@@ -12,7 +12,7 @@ const AlbumsLayout: React.FC<AlbumsLayoutProps> = ({ children, onSignOut }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   // Add mobile hamburger and MobileMenu for mobile navigation
   return (
-    <div className="flex min-h-screen bg-gray-950">
+    <div className="flex min-h-screen bg-gray-950 w-full h-screen overflow-hidden">
       {/* Mobile hamburger */}
       <div className="sm:hidden fixed top-0 left-0 w-full h-14 bg-gray-950 z-40 flex items-center px-4 border-b border-gray-800">
         <button
@@ -47,8 +47,8 @@ const AlbumsLayout: React.FC<AlbumsLayoutProps> = ({ children, onSignOut }) => {
         navLinks={NAV_LINKS.map(({ href, label }) => ({ href, label }))}
         onSignOut={onSignOut}
       />
-      {/* Main content area - centered, reduced margins, enable scroll */}
-      <main className="flex-1 overflow-auto">{children}</main>
+      {/* Main content area - always scrollable */}
+      <main className="flex-1 h-full overflow-y-auto">{children}</main>
     </div>
   );
 };

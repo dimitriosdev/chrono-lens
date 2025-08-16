@@ -51,7 +51,7 @@ const placeholderAlbums: Album[] = [
 
 const AlbumGrid: React.FC = () => {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-4 sm:p-8 justify-center">
+  <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-4 sm:p-8 justify-center pt-16 pb-16 sm:pt-8 sm:pb-8">
       {placeholderAlbums.map((album, idx) => (
         <div
           key={idx}
