@@ -5,11 +5,20 @@ import { useRouter } from "next/navigation";
 import Navigation from "../components/Navigation";
 import Image from "next/image";
 import Layout from "../components/Layout";
+import { signInWithGoogle } from "../features/auth";
 
 export default function RootPage() {
   // Simulated auth state (replace with real logic)
   const [isSignedIn, setIsSignedIn] = useState(false);
 
+  // Sign in handler
+  const handleSignIn = async () => {
+    const user = await signInWithGoogle();
+    if (user) {
+      localStorage.setItem("isSignedIn", "true");
+      setIsSignedIn(true);
+    }
+  };
   // Sync with localStorage on mount
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -46,24 +55,15 @@ export default function RootPage() {
               Chrono Lens
             </h1>
             {!isSignedIn && (
-              <button
-                className="inline-block bg-cyan-400 text-gray-900 px-6 py-2 rounded font-semibold hover:bg-cyan-300 transition"
-                onClick={() => {
-                  if (typeof window !== "undefined") {
-                    localStorage.setItem("isSignedIn", "true");
-                    window.dispatchEvent(
-                      new StorageEvent("storage", {
-                        key: "isSignedIn",
-                        newValue: "true",
-                      })
-                    );
-                  }
-                  setIsSignedIn(true);
-                  router.push("/albums");
-                }}
-              >
-                Sign in
-              </button>
+              <div className=" w-40">
+                <button
+                  onClick={handleSignIn}
+                  className="w-full bg-white text-gray-900 font-semibold px-4 py-2 rounded shadow hover:bg-gray-100"
+                  aria-label="Sign in with Google"
+                >
+                  Sign in with Google
+                </button>
+              </div>
             )}
           </div>
         </main>

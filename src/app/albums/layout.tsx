@@ -6,14 +6,9 @@ import MobileMenu from "../../features/navigation/MobileMenu";
 type AlbumsLayoutProps = {
   children: React.ReactNode;
   onSignOut?: () => void;
-  isLoggedIn?: boolean;
 };
 
-const AlbumsLayout: React.FC<AlbumsLayoutProps> = ({
-  children,
-  onSignOut,
-  isLoggedIn,
-}) => {
+const AlbumsLayout: React.FC<AlbumsLayoutProps> = ({ children, onSignOut }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   // Add mobile hamburger and MobileMenu for mobile navigation
   return (
@@ -43,7 +38,7 @@ const AlbumsLayout: React.FC<AlbumsLayoutProps> = ({
       </div>
       {/* Sidebar for desktop */}
       <div className="hidden sm:fixed sm:inset-y-0 sm:left-0 sm:w-20 sm:block">
-        <Navigation onSignOut={onSignOut} />
+        <Navigation />
       </div>
       {/* Mobile menu overlay */}
       <MobileMenu
@@ -52,8 +47,8 @@ const AlbumsLayout: React.FC<AlbumsLayoutProps> = ({
         navLinks={NAV_LINKS.map(({ href, label }) => ({ href, label }))}
         onSignOut={onSignOut}
       />
-      {/* Main content area - centered, reduced margins */}
-      <main className="flex-1 sm:ml-20">{children}</main>
+      {/* Main content area - centered, reduced margins, enable scroll */}
+      <main className="flex-1 sm:ml-20 overflow-auto">{children}</main>
     </div>
   );
 };

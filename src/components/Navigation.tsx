@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "../features/navigation/Sidebar";
 import MobileMenu from "../features/navigation/MobileMenu";
+import { signOutUser } from "../features/auth";
 
 // Shared navigation links
 export const NAV_LINKS = [
@@ -89,16 +90,9 @@ export default function Navigation() {
     }
   }, []);
 
-  // Sign in handler
-  const handleSignIn = () => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("isSignedIn", "true");
-      setIsSignedIn(true);
-    }
-  };
-
   // Sign out handler
-  const handleSignOut = () => {
+  const handleSignOut = async () => {
+    await signOutUser();
     if (typeof window !== "undefined") {
       localStorage.removeItem("isSignedIn");
       setIsSignedIn(false);
@@ -149,6 +143,7 @@ export default function Navigation() {
           navLinks={visibleLinks.filter((link) => link !== undefined)}
           onSignOut={isSignedIn ? handleSignOut : undefined}
         />
+        {/* Google Sign-In button for desktop */}
       </div>
       {/* Mobile menu overlay */}
       <MobileMenu
