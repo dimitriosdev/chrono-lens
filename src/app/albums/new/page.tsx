@@ -96,7 +96,8 @@ const NewAlbumPage: React.FC = () => {
                   />
                   <button
                     type="button"
-                    className="absolute top-2 right-2 bg-gray-900 bg-opacity-80 text-white rounded-full p-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-7 h-7 flex items-center justify-center text-lg font-bold hover:bg-red-600 focus:outline-none transition"
+                    style={{ zIndex: 20 }}
                     onClick={() => removeImage(idx)}
                     aria-label="Remove image"
                   >
