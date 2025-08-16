@@ -1,45 +1,61 @@
 import { PlusIcon } from "@heroicons/react/24/solid";
-import { Bars3Icon } from "@heroicons/react/24/solid";
 import { UserCircleIcon } from "@heroicons/react/24/solid";
 
 interface SidebarProps {
+  navLinks: Array<{ href: string; label: string; icon?: React.ReactNode }>;
   onSignOut?: () => void;
 }
 
-export default function Sidebar({ onSignOut }: SidebarProps) {
+export default function Sidebar({ navLinks, onSignOut }: SidebarProps) {
+  // Separate About link from others
+  const aboutLink = navLinks.find((link) => link.label === "About");
+  const otherLinks = navLinks.filter((link) => link.label !== "About");
+
   return (
-    <>
-      {/* Hamburger for mobile */}
-      <button
-        className="sm:hidden fixed top-4 left-4 z-50 bg-gray-900 rounded-full p-2 shadow-lg"
-        aria-label="Open menu"
-      >
-        <Bars3Icon className="h-7 w-7 text-white" />
-      </button>
-      {/* Sidebar for desktop */}
-      <aside className="hidden sm:flex flex-col h-screen w-20 bg-gray-900 text-white items-center py-4 space-y-8">
-        <div className="relative group">
+    <aside className="hidden sm:flex flex-col h-screen w-20 bg-gray-900 text-white items-center py-4 space-y-8">
+      {otherLinks.map((link) => (
+        <div className="relative group" key={link.href}>
           <a
-            href="/albums/new"
+            href={link.href}
             className="bg-gray-800 rounded-full p-3 hover:bg-gray-700 block"
+            aria-label={link.label}
           >
-            <PlusIcon className="h-6 w-6" />
+            {link.icon ? link.icon : <PlusIcon className="h-6 w-6" />}
           </a>
           <span className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 text-xs bg-gray-800 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
-            Add new album
+            {link.label}
           </span>
         </div>
-        <div className="flex-1" />
+      ))}
+      <div className="flex-1" />
+      {/* About link at the bottom */}
+      {aboutLink && (
         <div className="relative group mb-4">
-          <button className="flex flex-col items-center" onClick={onSignOut}>
-            <UserCircleIcon className="h-8 w-8 text-cyan-400" />
-            <span className="text-xs mt-1 block text-cyan-400">Sign Out</span>
-          </button>
+          <a
+            href={aboutLink.href}
+            className="bg-gray-800 rounded-full p-3 hover:bg-gray-700 block"
+            aria-label={aboutLink.label}
+          >
+            {aboutLink.icon}
+          </a>
           <span className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 text-xs bg-gray-800 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
-            Sign out
+            {aboutLink.label}
           </span>
         </div>
-      </aside>
-    </>
+      )}
+      {/* Sign Out button only if signed in */}
+      {onSignOut && (
+        <div className="relative group mb-4">
+          <button
+            className="bg-cyan-500 hover:bg-cyan-400 text-gray-900 font-bold py-3 px-4 rounded-xl text-base flex items-center justify-center w-full transition shadow-lg focus:outline-none focus:ring-2 focus:ring-cyan-300"
+            onClick={onSignOut}
+            aria-label="Sign Out"
+          >
+            <UserCircleIcon className="h-6 w-6 mr-2 text-gray-900" />
+            <span className="font-semibold">Sign Out</span>
+          </button>
+        </div>
+      )}
+    </aside>
   );
 }

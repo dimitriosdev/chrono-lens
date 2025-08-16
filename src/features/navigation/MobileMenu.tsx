@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 interface MobileMenuProps {
   open: boolean;
   onClose: () => void;
+  navLinks: Array<{ href: string; label: string }>;
   isLoggedIn?: boolean;
   onSignOut?: () => void;
 }
@@ -14,9 +15,14 @@ interface MobileMenuProps {
 export default function MobileMenu({
   open,
   onClose,
+  navLinks,
   isLoggedIn,
   onSignOut,
 }: MobileMenuProps) {
+  // Separate About link from others
+  const aboutLink = navLinks.find((link) => link.label === "About");
+  const otherLinks = navLinks.filter((link) => link.label !== "About");
+
   return (
     <AnimatePresence>
       {open && (
@@ -34,28 +40,36 @@ export default function MobileMenu({
             </button>
           </div>
           <nav className="flex-1 flex flex-col gap-4 p-4">
-            {/* Show only About link when signed out */}
-            {!isLoggedIn && (
-              <a href="/about" className="text-white text-base">
-                About
+            {otherLinks.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                className="text-white text-base"
+              >
+                {link.label}
+              </a>
+            ))}
+            {/* About link at the bottom */}
+            {aboutLink && (
+              <a
+                key={aboutLink.href}
+                href={aboutLink.href}
+                className="text-white text-base mb-4"
+              >
+                {aboutLink.label}
               </a>
             )}
-
-            {/* Show other links and log out when signed in */}
-            {isLoggedIn && (
-              <>
-                <a href="/albums/new" className="text-white text-base">
-                  Add new album
-                </a>
-                <div className="mt-auto">
-                  <button
-                    className="w-full bg-cyan-400 text-gray-900 py-2 rounded font-semibold mb-2"
-                    onClick={onSignOut}
-                  >
-                    Sign Out
-                  </button>
-                </div>
-              </>
+            {/* Sign Out button only if signed in */}
+            {isLoggedIn && onSignOut && (
+              <div className="mt-auto">
+                <button
+                  className="w-full bg-cyan-500 hover:bg-cyan-400 text-gray-900 font-bold py-3 px-4 rounded-xl text-base flex items-center justify-center mb-2 shadow-lg transition"
+                  onClick={onSignOut}
+                  aria-label="Sign Out"
+                >
+                  Sign Out
+                </button>
+              </div>
             )}
           </nav>
         </motion.aside>

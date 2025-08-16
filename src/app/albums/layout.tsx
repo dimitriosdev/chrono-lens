@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from "react";
-import Sidebar from "../../features/navigation/Sidebar";
+import Navigation, { NAV_LINKS } from "../../components/Navigation";
 import MobileMenu from "../../features/navigation/MobileMenu";
 
 type AlbumsLayoutProps = {
@@ -15,9 +15,10 @@ const AlbumsLayout: React.FC<AlbumsLayoutProps> = ({
   isLoggedIn,
 }) => {
   const [menuOpen, setMenuOpen] = useState(false);
+  // Add mobile hamburger and MobileMenu for mobile navigation
   return (
     <div className="flex min-h-screen bg-gray-950">
-      {/* Sticky row for mobile nav icon */}
+      {/* Mobile hamburger */}
       <div className="sm:hidden fixed top-0 left-0 w-full h-14 bg-gray-950 z-40 flex items-center px-4 border-b border-gray-800">
         <button
           onClick={() => setMenuOpen(true)}
@@ -40,18 +41,19 @@ const AlbumsLayout: React.FC<AlbumsLayoutProps> = ({
           </svg>
         </button>
       </div>
+      {/* Sidebar for desktop */}
       <div className="hidden sm:fixed sm:inset-y-0 sm:left-0 sm:w-20 sm:block">
-        <Sidebar onSignOut={onSignOut} />
+        <Navigation onSignOut={onSignOut} />
       </div>
+      {/* Mobile menu overlay */}
       <MobileMenu
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
+        navLinks={NAV_LINKS.map(({ href, label }) => ({ href, label }))}
         onSignOut={onSignOut}
-        isLoggedIn={isLoggedIn}
       />
-      <main className="flex-1 px-2 sm:ml-20 sm:px-12 lg:px-32 xl:px-48 2xl:px-64 max-w-screen-2xl mx-auto pt-14 sm:pt-0">
-        {children}
-      </main>
+      {/* Main content area - centered, reduced margins */}
+      <main className="flex-1 sm:ml-20">{children}</main>
     </div>
   );
 };

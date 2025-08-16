@@ -48,72 +48,78 @@ const NewAlbumPage: React.FC = () => {
 
   return (
     <AlbumsLayout onSignOut={handleSignOut} isLoggedIn={true}>
-      <div className="flex flex-col items-center justify-center min-h-[60vh] p-4">
-        <h1 className="text-2xl font-bold mb-4">Create New Album</h1>
-        <input
-          type="text"
-          placeholder="Album name"
-          className="mb-4 w-full max-w-md px-4 py-2 rounded border border-gray-300 focus:outline-none focus:ring"
-          value={albumName}
-          onChange={(e) => setAlbumName(e.target.value)}
-          aria-label="Album name"
-        />
-        <div
-          className="w-full max-w-md border-2 border-dashed border-gray-700 rounded-lg p-8 flex flex-col items-center justify-center cursor-pointer bg-gray-900 mb-4"
-          onDrop={handleDrop}
-          onDragOver={(e) => e.preventDefault()}
-          onClick={() => document.getElementById("fileInput")?.click()}
-          role="button"
-          tabIndex={0}
-          aria-label="Upload images"
-        >
-          <p className="mb-2 text-gray-200">
-            Drag & drop images here, or click to select files
-          </p>
+      <div className="flex justify-center w-full mt-8 p-4">
+        <div className="w-full max-w-xl bg-gray-900 rounded-2xl shadow-2xl p-8 flex flex-col gap-6 border border-gray-800">
+          <h1 className="text-3xl font-bold mb-2 text-cyan-400 text-center">
+            Create New Album
+          </h1>
           <input
-            id="fileInput"
-            type="file"
-            multiple
-            accept="image/*"
-            className="hidden"
-            onChange={handleInput}
+            type="text"
+            placeholder="Album name"
+            className="mb-2 w-full px-4 py-2 rounded-lg border border-gray-700 bg-gray-950 text-white focus:outline-none focus:ring-2 focus:ring-cyan-400"
+            value={albumName}
+            onChange={(e) => setAlbumName(e.target.value)}
+            aria-label="Album name"
           />
-        </div>
-        <div className="grid grid-cols-3 gap-2 w-full max-w-md mb-4">
-          {images.map((img, idx) => (
-            <div key={idx} className="relative group">
-              <Image
-                src={URL.createObjectURL(img)}
-                alt="preview"
-                width={120}
-                height={96}
-                className="w-full h-24 object-cover rounded"
-                unoptimized
-              />
-              <button
-                type="button"
-                className="absolute top-1 right-1 bg-gray-900 bg-opacity-70 text-white rounded-full p-1 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={() => removeImage(idx)}
-                aria-label="Remove image"
-              >
-                &times;
-              </button>
-            </div>
-          ))}
-        </div>
-        <button
-          className="w-full max-w-md bg-cyan-500 text-white font-bold py-3 rounded-lg text-lg disabled:opacity-50 mb-2"
-          onClick={handleSave}
-          disabled={!albumName || images.length === 0 || loading}
-          aria-label="Save album"
-        >
-          {loading ? "Saving..." : "Save Album"}
-        </button>
-        {success && (
-          <div className="w-full max-w-md bg-green-100 text-green-800 text-center py-2 rounded mb-2">
-            Album created! Redirecting...
+          <div
+            className="w-full border-2 border-dashed border-cyan-700 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer bg-gray-950 hover:bg-gray-900 transition mb-2"
+            onDrop={handleDrop}
+            onDragOver={(e) => e.preventDefault()}
+            onClick={() => document.getElementById("fileInput")?.click()}
+            role="button"
+            tabIndex={0}
+            aria-label="Upload images"
+          >
+            <p className="mb-2 text-cyan-300 text-lg font-medium">
+              Drag & drop images here, or click to select files
+            </p>
+            <input
+              id="fileInput"
+              type="file"
+              multiple
+              accept="image/*"
+              className="hidden"
+              onChange={handleInput}
+            />
           </div>
-        )}
+          {images.length > 0 && (
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 w-full mb-2">
+              {images.map((img, idx) => (
+                <div key={idx} className="relative group">
+                  <Image
+                    src={URL.createObjectURL(img)}
+                    alt="preview"
+                    width={140}
+                    height={110}
+                    className="w-full h-28 object-cover rounded-xl border border-gray-800"
+                    unoptimized
+                  />
+                  <button
+                    type="button"
+                    className="absolute top-2 right-2 bg-gray-900 bg-opacity-80 text-white rounded-full p-2 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => removeImage(idx)}
+                    aria-label="Remove image"
+                  >
+                    &times;
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          <button
+            className="w-full bg-cyan-500 hover:bg-cyan-400 text-white font-bold py-3 rounded-xl text-lg disabled:opacity-50 shadow-lg transition"
+            onClick={handleSave}
+            disabled={!albumName || images.length === 0 || loading}
+            aria-label="Save album"
+          >
+            {loading ? "Saving..." : "Save Album"}
+          </button>
+          {success && (
+            <div className="w-full bg-green-100 text-green-800 text-center py-2 rounded-xl mb-2">
+              Album created! Redirecting...
+            </div>
+          )}
+        </div>
       </div>
     </AlbumsLayout>
   );
