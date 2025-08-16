@@ -48,8 +48,8 @@ const NewAlbumPage: React.FC = () => {
 
   return (
     <AlbumsLayout onSignOut={handleSignOut} isLoggedIn={true}>
-      <div className="flex justify-center w-full mt-8 p-4">
-        <div className="w-full max-w-xl bg-gray-900 rounded-2xl shadow-2xl p-8 flex flex-col gap-6 border border-gray-800">
+      <div className="flex justify-center w-full pt-8 pb-8">
+        <div className="w-full max-w-xl bg-gray-900 rounded-2xl shadow-2xl mx-auto p-6 flex flex-col gap-6 border border-gray-800 text-center">
           <h1 className="text-3xl font-bold mb-2 text-cyan-400 text-center">
             Create New Album
           </h1>

@@ -1,5 +1,12 @@
 import AlbumGrid from "../../features/albums/AlbumGrid";
+import Navigation from "../../components/Navigation";
 
 export default function AlbumsPage() {
-  return <AlbumGrid />;
+  return (
+    <div className="relative min-h-screen w-full overflow-hidden">
+      <Navigation />
+
+      <AlbumGrid />
+    </div>
+  );
 }

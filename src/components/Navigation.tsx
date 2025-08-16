@@ -1,5 +1,6 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { useAuth } from "../context/AuthContext";
 import Sidebar from "../features/navigation/Sidebar";
 import MobileMenu from "../features/navigation/MobileMenu";
 import { signOutUser } from "../features/auth";
@@ -43,10 +44,29 @@ export const NAV_LINKS = [
         stroke="currentColor"
         className="h-6 w-6 text-white"
       >
+        <rect
+          x="3"
+          y="5"
+          width="18"
+          height="14"
+          rx="3"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          fill="none"
+        />
+        <circle
+          cx="8.5"
+          cy="10.5"
+          r="2"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          fill="none"
+        />
         <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M3 12l9-9 9 9M4.5 10.5V19a2.5 2.5 0 002.5 2.5h10a2.5 2.5 0 002.5-2.5V10.5"
+          d="M21 19l-5-5a2 2 0 0 0-2.8 0l-2.2 2.2"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          fill="none"
         />
       </svg>
     ),
@@ -63,11 +83,24 @@ export const NAV_LINKS = [
         stroke="currentColor"
         className="h-6 w-6 text-white"
       >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M12 6v6m0 6h.01M12 4.5a7.5 7.5 0 1 1 0 15 7.5 7.5 0 0 1 0-15z"
+        <circle
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          fill="none"
         />
+        <line
+          x1="12"
+          y1="16"
+          x2="12"
+          y2="12"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+        <circle cx="12" cy="8.5" r="1" fill="currentColor" />
       </svg>
     ),
   },
@@ -79,16 +112,8 @@ export const NAV_LINKS = [
 ];
 
 export default function Navigation() {
-  // Local sign-in state
   const [menuOpen, setMenuOpen] = useState(false);
-  const [isSignedIn, setIsSignedIn] = useState(false); // Always false on first render
-
-  // Sync sign-in state on mount
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      setIsSignedIn(localStorage.getItem("isSignedIn") === "true");
-    }
-  }, []);
+  const { isSignedIn, setIsSignedIn } = useAuth();
 
   // Sign out handler
   const handleSignOut = async () => {

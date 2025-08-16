@@ -7,26 +7,55 @@ type Album = {
 };
 
 const placeholderAlbums: Album[] = [
-  { title: "Hiking", image: "/placeholder1.jpg" },
-  { title: "Catskills", image: "/placeholder2.jpg" },
-  { title: "Japan", image: "/placeholder3.jpg" },
-  { title: "Dolomites", image: "/placeholder4.jpg" },
-  { title: "Sunset ", image: "/placeholder5.jpg" },
-  { title: "Namibia", image: "/placeholder6.jpg" },
+  {
+    title: "Hiking",
+    image:
+      "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80",
+  },
+  {
+    title: "Catskills",
+    image:
+      "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=400&q=80",
+  },
+  {
+    title: "Japan",
+    image:
+      "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80",
+  },
+  {
+    title: "Dolomites",
+    image:
+      "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80",
+  },
+  {
+    title: "Sunset",
+    image:
+      "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=400&q=80",
+  },
+  {
+    title: "Namibia",
+    image:
+      "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80",
+  },
   {
     title: "Arizona",
-    image: "/placeholder7.jpg",
+    image:
+      "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=400&q=80",
   },
-  { title: "Sweden", image: "/placeholder8.jpg" },
+  {
+    title: "Sweden",
+    image:
+      "https://images.unsplash.com/photo-1502086223501-7ea6ecd79368?auto=format&fit=crop&w=400&q=80",
+  },
 ];
 
 const AlbumGrid: React.FC = () => {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-4 sm:p-8">
+    <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-4 sm:p-8 justify-center">
       {placeholderAlbums.map((album, idx) => (
         <div
           key={idx}
-          className="bg-gray-800 rounded-xl overflow-hidden shadow-lg flex flex-col justify-end min-h-[220px] sm:min-h-[240px] lg:min-h-[260px] relative"
+          className="bg-gray-800 rounded-xl overflow-hidden shadow-lg flex flex-col justify-end min-h-[220px] sm:min-h-[240px] lg:min-h-[260px] relative max-w-[340px] w-full mx-auto"
         >
           <div className="absolute inset-0">
             <Image

@@ -48,7 +48,7 @@ const AlbumsLayout: React.FC<AlbumsLayoutProps> = ({ children, onSignOut }) => {
         onSignOut={onSignOut}
       />
       {/* Main content area - centered, reduced margins, enable scroll */}
-      <main className="flex-1 sm:ml-20 overflow-auto">{children}</main>
+      <main className="flex-1 overflow-auto">{children}</main>
     </div>
   );
 };

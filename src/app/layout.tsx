@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "../context/AuthContext";
+import Navigation from "../components/Navigation";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,17 +29,14 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {/* Global navigation layout for all pages */}
-        <div className="flex min-h-screen bg-gray-950">
-          {/* Sidebar for desktop */}
-          <div className="hidden sm:fixed sm:inset-y-0 sm:left-0 sm:w-20 sm:block">
-            {/* Navigation is now handled globally. Remove unused Sidebar reference. */}
+        <AuthProvider>
+          <div className="flex min-h-screen bg-gray-950">
+            <Navigation />
+            <main className="flex-1 px-2 sm:ml-20 sm:px-12 lg:px-32 xl:px-48 2xl:px-64 max-w-screen-2xl mx-auto pt-14 sm:pt-0">
+              {children}
+            </main>
           </div>
-          {/* Main content area */}
-          <main className="flex-1 px-2 sm:ml-20 sm:px-12 lg:px-32 xl:px-48 2xl:px-64 max-w-screen-2xl mx-auto pt-14 sm:pt-0">
-            {children}
-          </main>
-        </div>
+        </AuthProvider>
       </body>
     </html>
   );

@@ -2,6 +2,7 @@ import {
   ChevronLeftIcon,
   PresentationChartLineIcon,
 } from "@heroicons/react/24/solid";
+import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface MobileMenuProps {
@@ -12,7 +13,7 @@ interface MobileMenuProps {
   onSignOut?: () => void;
 }
 
-export default function MobileMenu({
+const MobileMenu = React.memo(function MobileMenu({
   open,
   onClose,
   navLinks,
@@ -22,6 +23,12 @@ export default function MobileMenu({
   // Separate About link from others
   const aboutLink = navLinks.find((link) => link.label === "About");
   const otherLinks = navLinks.filter((link) => link.label !== "About");
+
+  // SVG icons as constants
+  const presentationIcon = (
+    <PresentationChartLineIcon className="h-7 w-7 text-white mr-auto" />
+  );
+  const chevronIcon = <ChevronLeftIcon className="h-7 w-7 text-white" />;
 
   return (
     <AnimatePresence>
@@ -34,15 +41,15 @@ export default function MobileMenu({
           className="fixed top-0 left-0 h-full w-64 bg-gray-900 z-50 shadow-lg flex flex-col"
         >
           <div className="flex items-center p-4 border-b border-gray-800">
-            <PresentationChartLineIcon className="h-7 w-7 text-white mr-auto" />
+            {presentationIcon}
             <button onClick={onClose} className="ml-2">
-              <ChevronLeftIcon className="h-7 w-7 text-white" />
+              {chevronIcon}
             </button>
           </div>
           <nav className="flex-1 flex flex-col gap-4 p-4">
             {otherLinks.map((link) => (
               <a
-                key={link.href}
+                key={link.href + "-" + link.label}
                 href={link.href}
                 className="text-white text-base"
               >
@@ -52,7 +59,7 @@ export default function MobileMenu({
             {/* About link at the bottom */}
             {aboutLink && (
               <a
-                key={aboutLink.href}
+                key={aboutLink.href + "-" + aboutLink.label}
                 href={aboutLink.href}
                 className="text-white text-base mb-4"
               >
@@ -76,4 +83,6 @@ export default function MobileMenu({
       )}
     </AnimatePresence>
   );
-}
+});
+
+export default MobileMenu;
