@@ -2,6 +2,7 @@
 import React from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { PencilSquareIcon } from "@heroicons/react/24/solid";
 
 type Album = {
   title: string;
@@ -89,6 +90,10 @@ const AlbumGrid: React.FC = () => {
   const handleAlbumClick = (idx: number) => {
     router.push(`/albums/${idx}/play`);
   };
+  const handleEditClick = (e: React.MouseEvent, idx: number) => {
+    e.stopPropagation();
+    router.push(`/albums/${idx}/edit`);
+  };
   return (
     <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-4 sm:p-8 justify-center pt-16 pb-16 sm:pt-8 sm:pb-8">
       {placeholderAlbums.map((album, idx) => (
@@ -105,6 +110,19 @@ const AlbumGrid: React.FC = () => {
               className="object-cover w-full h-full opacity-80"
               unoptimized
             />
+          </div>
+          {/* Edit icon for mobile, top-right, large tap target */}
+          <div className="relative group">
+            <button
+              aria-label="Edit album"
+              className="absolute top-2 right-2 z-20 bg-gray-800 rounded-full p-3 hover:bg-gray-700 block focus:outline-none focus:ring-2 focus:ring-blue-500"
+              onClick={(e) => handleEditClick(e, idx)}
+            >
+              <PencilSquareIcon className="h-6 w-6 text-white mx-auto" />
+            </button>
+            <span className="absolute right-full top-1/2 -translate-y-1/2 mr-2 px-2 py-1 text-xs bg-gray-800 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-30 pointer-events-none">
+              Edit album
+            </span>
           </div>
           <div className="relative z-10 p-4 flex items-end h-full">
             <span className="text-white text-base font-semibold drop-shadow-lg text-shadow-md">
