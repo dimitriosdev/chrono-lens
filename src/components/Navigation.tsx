@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { HomeIcon } from "@heroicons/react/24/solid";
 import { useAuth } from "../context/AuthContext";
 import Sidebar from "../features/navigation/Sidebar";
 import MobileMenu from "../features/navigation/MobileMenu";
@@ -10,27 +11,7 @@ export const NAV_LINKS = [
   {
     href: "/",
     label: "Home",
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={1.5}
-        stroke="currentColor"
-        className="h-6 w-6 text-white"
-      >
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M4.5 12.75l7.5-7.5 7.5 7.5"
-        />
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          d="M19.5 10.5V19a2.5 2.5 0 01-2.5 2.5h-10A2.5 2.5 0 014.5 19v-8.5"
-        />
-      </svg>
-    ),
+    icon: <HomeIcon className="h-6 w-6 text-white" />,
   },
   {
     href: "/albums",
