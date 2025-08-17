@@ -1,5 +1,9 @@
 "use client";
 import React, { useState } from "react";
+import {
+  ALBUM_LAYOUTS,
+  AlbumLayout as AlbumLayoutType,
+} from "../../../features/albums/AlbumLayout";
 import { useRouter } from "next/navigation";
 import AlbumsLayout from "../layout";
 import Image from "next/image";
@@ -9,6 +13,9 @@ const NewAlbumPage: React.FC = () => {
   const [albumName, setAlbumName] = useState("");
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [selectedLayout, setSelectedLayout] = useState<AlbumLayoutType>(
+    ALBUM_LAYOUTS[0]
+  );
   const router = useRouter();
 
   const handleFiles = (files: FileList | null) => {
@@ -33,6 +40,8 @@ const NewAlbumPage: React.FC = () => {
   const handleSave = async () => {
     if (!albumName || images.length === 0) return;
     setLoading(true);
+    // Here you would save the album with its layout
+    // e.g., { name: albumName, images, layout: selectedLayout }
     await new Promise((res) => setTimeout(res, 1200));
     setLoading(false);
     setSuccess(true);
@@ -61,6 +70,34 @@ const NewAlbumPage: React.FC = () => {
             onChange={(e) => setAlbumName(e.target.value)}
             aria-label="Album name"
           />
+          <div className="mb-2 text-left">
+            <label
+              htmlFor="layout-select"
+              className="text-cyan-300 font-medium mr-2"
+            >
+              Album Layout:
+            </label>
+            <select
+              id="layout-select"
+              value={selectedLayout.name}
+              onChange={(e) => {
+                const layout = ALBUM_LAYOUTS.find(
+                  (l) => l.name === e.target.value
+                );
+                if (layout) setSelectedLayout(layout);
+              }}
+              className="bg-gray-800 text-white rounded px-3 py-2"
+            >
+              {ALBUM_LAYOUTS.map((layout) => (
+                <option key={layout.name} value={layout.name}>
+                  {layout.name}
+                </option>
+              ))}
+            </select>
+            <span className="ml-2 text-gray-400">
+              {selectedLayout.description}
+            </span>
+          </div>
           <div
             className="w-full border-2 border-dashed border-cyan-700 rounded-xl p-8 flex flex-col items-center justify-center cursor-pointer bg-gray-950 hover:bg-gray-900 transition mb-2"
             onDrop={handleDrop}

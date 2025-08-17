@@ -1,5 +1,9 @@
 "use client";
 import React, { useState } from "react";
+import {
+  ALBUM_LAYOUTS,
+  AlbumLayout as AlbumLayoutType,
+} from "../../../../features/albums/AlbumLayout";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import type { DragEndEvent } from "@dnd-kit/core";
@@ -35,6 +39,9 @@ export default function EditAlbumPage() {
 
   // Basic form state management
   const [form, setForm] = useState(album);
+  const [selectedLayout, setSelectedLayout] = useState<AlbumLayoutType>(
+    ALBUM_LAYOUTS[0]
+  );
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [media, setMedia] = useState<string[]>(album.images);
   const [error, setError] = useState<string>("");
@@ -160,7 +167,8 @@ export default function EditAlbumPage() {
       return;
     }
     setError("");
-    // TODO: Add API call to update album
+    // TODO: Add API call to update album with selected layout
+    // e.g., { ...form, images: media, layout: selectedLayout }
     alert("Album updated! (stub)");
     window.location.href = "/albums";
   };
@@ -255,6 +263,34 @@ export default function EditAlbumPage() {
             className="w-full px-3 py-2 border rounded bg-gray-900 text-white"
             required
           />
+        </div>
+        <div className="mb-2 text-left">
+          <label
+            htmlFor="layout-select"
+            className="text-blue-600 font-medium mr-2"
+          >
+            Album Layout:
+          </label>
+          <select
+            id="layout-select"
+            value={selectedLayout.name}
+            onChange={(e) => {
+              const layout = ALBUM_LAYOUTS.find(
+                (l) => l.name === e.target.value
+              );
+              if (layout) setSelectedLayout(layout);
+            }}
+            className="bg-gray-800 text-white rounded px-3 py-2"
+          >
+            {ALBUM_LAYOUTS.map((layout) => (
+              <option key={layout.name} value={layout.name}>
+                {layout.name}
+              </option>
+            ))}
+          </select>
+          <span className="ml-2 text-gray-400">
+            {selectedLayout.description}
+          </span>
         </div>
 
         <div>
