@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MatBoard, MatConfig } from "@/components/MatBoard";
 // alias: import * as MatBoardModule from "@/components/MatBoard";
 import {
@@ -7,26 +7,35 @@ import {
   AlbumLayout as AlbumLayoutType,
 } from "../../../features/albums/AlbumLayout";
 import { useRouter } from "next/navigation";
-import AlbumsLayout from "../layout";
 import Image from "next/image";
 import { addAlbum } from "@/lib/firestore";
 // alias: import * as FirestoreModule from "@/lib/firestore";
 import { uploadImage } from "@/lib/storage";
 // alias: import * as StorageModule from "@/lib/storage";
+import { useAuth } from "@/context/AuthContext";
 
 const NewAlbumPage: React.FC = () => {
+  const { isSignedIn, loading } = useAuth();
+  const router = useRouter();
   const [images, setImages] = useState<File[]>([]);
   const [albumName, setAlbumName] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [loadingAlbum, setLoadingAlbum] = useState(false);
   const [success, setSuccess] = useState(false);
   const [selectedLayout, setSelectedLayout] = useState<AlbumLayoutType>(
     ALBUM_LAYOUTS.find((l) => l.type === "slideshow") || ALBUM_LAYOUTS[0]
   );
   const [matConfig, setMatConfig] = useState<MatConfig>({
-    selected: 0,
     matWidth: 40,
+    matColor: "#000",
   });
-  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !isSignedIn) {
+      router.replace("/");
+    }
+  }, [isSignedIn, loading, router]);
+
+  if (loading || !isSignedIn) return null;
 
   const handleFiles = (files: FileList | null) => {
     if (!files) return;
@@ -49,7 +58,7 @@ const NewAlbumPage: React.FC = () => {
 
   const handleSave = async () => {
     if (!albumName || images.length === 0) return;
-    setLoading(true);
+    setLoadingAlbum(true);
 
     // Generate a temporary albumId for storage paths
     const tempAlbumId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -76,7 +85,7 @@ const NewAlbumPage: React.FC = () => {
     } catch (err) {
       setSuccess(false);
     }
-    setLoading(false);
+    setLoadingAlbum(false);
   };
 
   // Example sign out logic: redirect to login page
@@ -170,7 +179,11 @@ const NewAlbumPage: React.FC = () => {
             {selectedLayout.description}
           </span>
         </div>
-        <MatBoard config={matConfig} setConfig={setMatConfig} />
+        <MatBoard
+          config={matConfig}
+          setConfig={setMatConfig}
+          layout={selectedLayout}
+        />
         <div>
           <label className="block text-sm font-semibold text-gray-300 mb-2">
             Album Title
@@ -187,9 +200,9 @@ const NewAlbumPage: React.FC = () => {
         <button
           type="submit"
           className="w-full bg-cyan-600 text-white py-3 rounded-lg font-semibold shadow hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-500 transition"
-          disabled={!albumName || images.length === 0 || loading}
+          disabled={!albumName || images.length === 0 || loadingAlbum}
         >
-          {loading ? "Saving..." : "Save Album"}
+          {loadingAlbum ? "Saving..." : "Save Album"}
         </button>
       </form>
     </div>

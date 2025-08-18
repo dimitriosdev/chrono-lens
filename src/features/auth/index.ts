@@ -17,6 +17,10 @@ export async function signInWithGoogle(): Promise<User | null> {
   }
 }
 
-export async function signOutUser(): Promise<void> {
+export async function signOutUser(
+  setIsSignedIn?: (signedIn: boolean) => void
+): Promise<void> {
   await signOut(auth);
+  localStorage.setItem("isSignedIn", "false");
+  if (setIsSignedIn) setIsSignedIn(false);
 }

@@ -59,14 +59,15 @@ import {
 } from "@/features/albums/AlbumLayout";
 import { getAlbum, updateAlbum } from "@/lib/firestore";
 import { uploadImage } from "@/lib/storage";
+import { useAuth } from "@/context/AuthContext";
 
 const EditAlbumPage: React.FC = () => {
-  const params = useParams();
+  const { isSignedIn, loading } = useAuth();
   const router = useRouter();
+  const params = useParams();
   const albumId = params?.albumId as string;
-
   const [matConfig, setMatConfig] = useState<MatConfig | undefined>(undefined);
-  const [loading, setLoading] = useState(false);
+  const [loadingState, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [album, setAlbum] = useState<import("@/entities/Album").Album | null>(
@@ -81,6 +82,12 @@ const EditAlbumPage: React.FC = () => {
   );
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverUrl, setCoverUrl] = useState<string>("");
+
+  useEffect(() => {
+    if (!loading && !isSignedIn) {
+      router.replace("/");
+    }
+  }, [isSignedIn, loading, router]);
 
   useEffect(() => {
     async function fetchAlbum() {
@@ -100,16 +107,6 @@ const EditAlbumPage: React.FC = () => {
     }
     fetchAlbum();
   }, [albumId]);
-
-  const handleFiles = (files: FileList | null) => {
-    if (!files) return;
-    setImages((prev) => [...prev, ...Array.from(files)]);
-  };
-
-  const removeImage = (idx: number) => {
-    setImages((prev) => prev.filter((_, i) => i !== idx));
-    setImageUrls((prev) => prev.filter((_, i) => i !== idx));
-  };
 
   // Drag-and-drop reordering
   const moveMediaDnd = (from: number, to: number) => {
@@ -141,6 +138,18 @@ const EditAlbumPage: React.FC = () => {
       imageObjectUrls.forEach((url) => URL.revokeObjectURL(url));
     };
   }, [imageObjectUrls]);
+
+  if (loading || !isSignedIn) return null;
+
+  const handleFiles = (files: FileList | null) => {
+    if (!files) return;
+    setImages((prev) => [...prev, ...Array.from(files)]);
+  };
+
+  const removeImage = (idx: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== idx));
+    setImageUrls((prev) => prev.filter((_, i) => i !== idx));
+  };
 
   const handleCoverFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -186,7 +195,7 @@ const EditAlbumPage: React.FC = () => {
     setLoading(false);
   };
 
-  if (loading && !album) {
+  if (loadingState && !album) {
     return (
       <div className="max-w-2xl mx-auto py-12 px-4 bg-gray-950 rounded-xl shadow-xl text-center text-gray-300">
         Loading album...
@@ -328,9 +337,9 @@ const EditAlbumPage: React.FC = () => {
         <button
           type="submit"
           className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-          disabled={loading}
+          disabled={loadingState}
         >
-          {loading ? "Saving..." : "Save Changes"}
+          {loadingState ? "Saving..." : "Save Changes"}
         </button>
       </form>
     </div>

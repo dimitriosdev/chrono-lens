@@ -2,15 +2,27 @@
 import React from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { PencilSquareIcon, PlayIcon } from "@heroicons/react/24/solid";
+import {
+  PencilSquareIcon,
+  PlayIcon,
+  TrashIcon,
+} from "@heroicons/react/24/solid";
 import { Album } from "@/entities/Album";
-import { getAlbums } from "@/lib/firestore";
-
+import { getAlbums, deleteAlbum } from "@/lib/firestore";
 const AlbumGrid: React.FC = () => {
   const [albums, setAlbums] = React.useState<Album[]>([]);
   const [loading, setLoading] = React.useState(true);
   const dragAlbumIndex = React.useRef<number | null>(null);
   const router = useRouter();
+
+  const handleDeleteClick = async (e: React.MouseEvent, idx: number) => {
+    e.stopPropagation();
+    const albumId = albums[idx].id;
+    if (window.confirm("Are you sure you want to delete this album?")) {
+      await deleteAlbum(albumId);
+      setAlbums((prev: Album[]) => prev.filter((a: Album) => a.id !== albumId));
+    }
+  };
 
   React.useEffect(() => {
     async function fetchAlbums() {
@@ -99,18 +111,24 @@ const AlbumGrid: React.FC = () => {
                 aria-label={album.title}
               >
                 {renderCardBackground(album)}
-                <div className="absolute top-2 right-2 z-20 flex gap-4">
-                  <div className="relative group">
-                    <button
-                      aria-label="Edit album"
-                      className="bg-gray-800 rounded-full p-3 hover:bg-blue-600 transition-colors duration-150 block focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-md"
-                      onClick={(e) => handleEditClick(e, idx)}
-                      tabIndex={0}
-                      onMouseEnter={(e) => e.currentTarget.focus()}
-                    >
-                      <PencilSquareIcon className="h-6 w-6 text-white mx-auto" />
-                    </button>
-                  </div>
+                <div className="absolute top-2 right-2 z-20 flex gap-2">
+                  <button
+                    aria-label="Edit album"
+                    className="bg-gray-800 rounded-full p-3 hover:bg-blue-600 transition-colors duration-150 block focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-md"
+                    onClick={(e) => handleEditClick(e, idx)}
+                    tabIndex={0}
+                    onMouseEnter={(e) => e.currentTarget.focus()}
+                  >
+                    <PencilSquareIcon className="h-6 w-6 text-white mx-auto" />
+                  </button>
+                  <button
+                    aria-label="Delete album"
+                    className="bg-gray-800 rounded-full p-3 hover:bg-red-600 transition-colors duration-150 block focus:outline-none focus:ring-2 focus:ring-red-500 shadow-md"
+                    onClick={(e) => handleDeleteClick(e, idx)}
+                    tabIndex={0}
+                  >
+                    <TrashIcon className="h-6 w-6 text-white mx-auto" />
+                  </button>
                 </div>
                 <div className="absolute left-0 top-0 w-full z-10 p-4 flex items-start">
                   <span className="text-white text-lg font-semibold drop-shadow-lg text-shadow-md">

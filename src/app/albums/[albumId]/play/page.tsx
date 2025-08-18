@@ -1,12 +1,9 @@
 "use client";
-import React from "react";
+import React, { useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Album } from "@/entities/Album";
 import { getAlbum } from "@/lib/firestore";
-import { MatBoard } from "@/components/MatBoard";
-
-const frameWidth = 400;
-const frameHeight = 300;
+import { useAuth } from "@/context/AuthContext";
 
 function MatImage({
   src,
@@ -113,28 +110,37 @@ function MatImage({
 }
 
 const SlideshowPage: React.FC = () => {
-  const params = useParams();
+  const { isSignedIn, loading } = useAuth();
   const router = useRouter();
+  const params = useParams();
   const albumId = params?.albumId as string;
   const [album, setAlbum] = React.useState<Album | undefined>(undefined);
-  const [loading, setLoading] = React.useState(true);
+  const [loadingAlbum, setLoadingAlbum] = React.useState(true);
   const [current, setCurrent] = React.useState(0);
+
+  React.useEffect(() => {
+    if (!loading && !isSignedIn) {
+      router.replace("/");
+    }
+  }, [isSignedIn, loading, router]);
+
   React.useEffect(() => {
     async function fetchAlbum() {
-      setLoading(true);
+      setLoadingAlbum(true);
       try {
         const data = await getAlbum(albumId);
         setAlbum(data || undefined);
       } catch {
         setAlbum(undefined);
       }
-      setLoading(false);
+      setLoadingAlbum(false);
     }
     if (albumId) fetchAlbum();
   }, [albumId]);
 
   const images = album?.images || [];
   const matConfig = album?.matConfig;
+  const layout = album?.layout || { type: "slideshow" };
 
   React.useEffect(() => {
     if (images.length > 1) {
@@ -149,26 +155,11 @@ const SlideshowPage: React.FC = () => {
     router.push("/albums");
   }, [router]);
 
-  if (loading) {
-    return (
-      <div className="fixed inset-0 bg-black flex items-center justify-center z-50">
-        <div className="text-white text-lg font-semibold">Loading album...</div>
-      </div>
-    );
-  }
-  if (!album) {
-    return (
-      <div className="fixed inset-0 bg-black flex items-center justify-center z-50">
-        <div className="text-white text-lg font-semibold">Album not found.</div>
-      </div>
-    );
-  }
-
-  const layout = album?.layout || { type: "slideshow" };
+  if (loading || !isSignedIn) return null;
 
   // Grid layout: 3 Portraits
-  if (layout.type === "grid") {
-    const requiredCount = layout.grid?.cols || 3;
+  if (layout?.type === "grid") {
+    const requiredCount = layout?.grid?.cols || 3;
     const portraitImages = images.slice(0, requiredCount);
     const allPortrait = portraitImages.length === requiredCount;
     return (
@@ -217,7 +208,7 @@ const SlideshowPage: React.FC = () => {
         )}
         <div className="absolute bottom-4 w-full text-center z-40">
           <h1 className="text-base font-medium text-white opacity-70">
-            {album.title}
+            {album?.title || "Untitled Album"}
           </h1>
         </div>
         <button
@@ -248,7 +239,7 @@ const SlideshowPage: React.FC = () => {
       )}
       <div className="absolute bottom-4 w-full text-center z-40">
         <h1 className="text-base font-medium text-white opacity-70">
-          {album.title}
+          {album?.title || "Untitled Album"}
         </h1>
       </div>
       <button

@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import Navigation, { NAV_LINKS } from "../../components/Navigation";
 import MobileMenu from "../../features/navigation/MobileMenu";
+import { useAuth } from "@/context/AuthContext";
 
 type AlbumsLayoutProps = {
   children: React.ReactNode;
@@ -9,7 +10,12 @@ type AlbumsLayoutProps = {
 };
 
 const AlbumsLayout: React.FC<AlbumsLayoutProps> = ({ children, onSignOut }) => {
+  const { isSignedIn, loading } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
+
+  if (loading) return null;
+  if (!isSignedIn) return null;
+
   // Add mobile hamburger and MobileMenu for mobile navigation
   return (
     <div className="flex min-h-screen bg-gray-950 w-full h-screen overflow-hidden">

@@ -10,21 +10,24 @@ import React, {
 interface AuthContextType {
   isSignedIn: boolean;
   setIsSignedIn: (signedIn: boolean) => void;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isSignedIn, setIsSignedIn] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       setIsSignedIn(localStorage.getItem("isSignedIn") === "true");
+      setLoading(false);
     }
   }, []);
 
   return (
-    <AuthContext.Provider value={{ isSignedIn, setIsSignedIn }}>
+    <AuthContext.Provider value={{ isSignedIn, setIsSignedIn, loading }}>
       {children}
     </AuthContext.Provider>
   );
