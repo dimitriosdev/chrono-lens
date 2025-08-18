@@ -1,4 +1,5 @@
 import React from "react";
+import { AlbumLayout } from "@/features/albums/AlbumLayout";
 
 const matColors = [
   { name: "No Mat", color: "#000" },
@@ -16,13 +17,13 @@ export type MatConfig = {
 interface MatBoardProps {
   config: MatConfig;
   setConfig: (c: MatConfig) => void;
+  layout: AlbumLayout;
 }
 
-export function MatBoard({ config, setConfig }: MatBoardProps) {
+export function MatBoard({ config, setConfig, layout }: MatBoardProps) {
   const { matWidth, matColor } = config;
   const matOptions = matColors;
-  const colorObj =
-    matOptions.find((c) => c.color === matColor) || matOptions[0];
+  // colorObj removed (unused)
   const color = matColor;
   const frameWidth = 400;
   const frameHeight = 300;
@@ -33,6 +34,28 @@ export function MatBoard({ config, setConfig }: MatBoardProps) {
   const matPx = isNoMat
     ? 0
     : Math.floor((matPercent / 100) * Math.min(frameWidth, frameHeight));
+
+  // Layout grid
+  const { grid } = React.useMemo(
+    () => ({
+      grid: layout?.grid || { rows: 1, cols: 1 },
+    }),
+    [layout]
+  );
+
+  // Calculate artwork area size and aspect ratio
+  let artworkWidth = (frameWidth - matPx * 2) / grid.cols;
+  let artworkHeight = (frameHeight - matPx * 2) / grid.rows;
+  // If portrait orientation, make artwork taller than wide
+  if (layout?.orientation === "portrait") {
+    const portraitRatio = 4 / 5; // width/height for portrait
+    artworkHeight = artworkWidth / portraitRatio;
+    // Clamp height to available space
+    if (artworkHeight > frameHeight - matPx * 2) {
+      artworkHeight = frameHeight - matPx * 2;
+      artworkWidth = artworkHeight * portraitRatio;
+    }
+  }
 
   return (
     <div className="p-8 bg-gray-900 rounded-xl shadow-lg">
@@ -45,10 +68,7 @@ export function MatBoard({ config, setConfig }: MatBoardProps) {
           <select
             value={matColor}
             onChange={(e) => {
-              setConfig({
-                ...config,
-                matColor: e.target.value,
-              });
+              setConfig({ ...config, matColor: e.target.value });
             }}
             className="w-full bg-gray-800 text-white border border-gray-700 rounded px-2 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
@@ -90,28 +110,42 @@ export function MatBoard({ config, setConfig }: MatBoardProps) {
         {!isNoMat && (
           <div
             className="absolute top-0 left-0 w-full h-full rounded-lg"
-            style={{
-              background: color,
-              // border: `4px solid ${color.inner}`,
-              boxSizing: "border-box",
-            }}
+            style={{ background: color, boxSizing: "border-box" }}
           />
         )}
-        {/* Artwork area */}
+        {/* Artwork grid */}
         <div
-          className="absolute flex items-center justify-center rounded-lg"
+          className="absolute grid gap-2"
           style={{
             top: matPx,
             left: matPx,
             width: `calc(100% - ${matPx * 2}px)`,
             height: `calc(100% - ${matPx * 2}px)`,
+            display: "grid",
+            gridTemplateRows: `repeat(${grid.rows}, 1fr)`,
+            gridTemplateColumns: `repeat(${grid.cols}, 1fr)`,
             background: isNoMat ? "#000" : "#fff",
             boxShadow: !isNoMat ? "0 0 0 1px #ccc" : undefined,
-            fontSize: 18,
-            color: "#888",
+            borderRadius: "0.75rem",
+            overflow: "hidden",
           }}
         >
-          <span className="text-lg text-gray-500">Artwork</span>
+          {Array.from({ length: grid.rows * grid.cols }).map((_, i) => (
+            <div
+              key={i}
+              className="flex items-center justify-center rounded-xl border border-gray-300 bg-white shadow-md"
+              style={{
+                width: artworkWidth,
+                height: artworkHeight,
+                minHeight: 80,
+                minWidth: 40,
+                overflow: "hidden",
+              }}
+              aria-label={`Artwork placeholder ${i + 1}`}
+            >
+              <span className="text-lg text-gray-500">Artwork</span>
+            </div>
+          ))}
         </div>
       </div>
     </div>

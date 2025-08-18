@@ -71,7 +71,7 @@ const EditAlbumPage: React.FC = () => {
   const [success, setSuccess] = useState(false);
   const [album, setAlbum] = useState<import("@/entities/Album").Album | null>(
     null
-  ); // alias: import * as AlbumEntity from "@/entities/Album";
+  );
   const [images, setImages] = useState<File[]>([]);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
   const [albumName, setAlbumName] = useState("");
@@ -94,9 +94,7 @@ const EditAlbumPage: React.FC = () => {
         setImageUrls(data.images || []);
         setSelectedLayout(data.layout || ALBUM_LAYOUTS[0]);
         setCoverUrl(data.coverUrl || "");
-        setMatConfig(
-          data.matConfig || { selected: 0, matWidth: 40, matColor: "#000" }
-        );
+        setMatConfig(data.matConfig || { matWidth: 40, matColor: "#000" });
       }
       setLoading(false);
     }
@@ -284,7 +282,13 @@ const EditAlbumPage: React.FC = () => {
             {selectedLayout.description}
           </span>
         </div>
-        {matConfig && <MatBoard config={matConfig} setConfig={setMatConfig} />}
+        {matConfig && (
+          <MatBoard
+            config={matConfig}
+            setConfig={setMatConfig}
+            layout={selectedLayout}
+          />
+        )}
         <div>
           <label className="block text-sm font-semibold text-gray-300 mb-2">
             Album Title

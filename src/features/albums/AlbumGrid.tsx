@@ -55,6 +55,7 @@ const AlbumGrid: React.FC = () => {
         fill
         className="object-cover w-full h-full"
         unoptimized
+        priority
       />
       <div className="absolute inset-0 bg-black/30 transition-opacity duration-200 group-hover:opacity-60" />
       <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
