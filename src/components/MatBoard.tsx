@@ -1,16 +1,16 @@
 import React from "react";
 
 const matColors = [
-  { name: "Classic White", outer: "#f8f8f8", inner: "#4b306a" },
-  { name: "Soft Yellow", outer: "#ffe88a", inner: "#222" },
-  { name: "Modern Grey", outer: "#bfc2c3", inner: "#222" },
-  { name: "Blush Pink", outer: "#f8e1ea", inner: "#d16ba5" },
+  { name: "No Mat", color: "#000" },
+  { name: "Classic White", color: "#f8f8f8" },
+  { name: "Soft Yellow", color: "#ffe88a" },
+  { name: "Modern Grey", color: "#bfc2c3" },
+  { name: "Blush Pink", color: "#f8e1ea" },
 ];
 
 export type MatConfig = {
-  selected: number;
   matWidth: number;
-  doubleMat: boolean;
+  matColor: string;
 };
 
 interface MatBoardProps {
@@ -19,21 +19,21 @@ interface MatBoardProps {
 }
 
 export function MatBoard({ config, setConfig }: MatBoardProps) {
-  const { selected, matWidth } = config;
-  const matOptions = [
-    { name: "No Mat", outer: "#000", inner: "#000" },
-    ...matColors,
-  ];
-  const color = matOptions[selected];
+  const { matWidth, matColor } = config;
+  const matOptions = matColors;
+  const colorObj =
+    matOptions.find((c) => c.color === matColor) || matOptions[0];
+  const color = matColor;
   const frameWidth = 400;
   const frameHeight = 300;
   const minPercent = 5;
   const maxPercent = 40;
   const matPercent = matWidth || minPercent;
-  const matPx =
-    selected === 0
-      ? 0
-      : Math.floor((matPercent / 100) * Math.min(frameWidth, frameHeight));
+  const isNoMat = matColor === matOptions[0].color;
+  const matPx = isNoMat
+    ? 0
+    : Math.floor((matPercent / 100) * Math.min(frameWidth, frameHeight));
+
   return (
     <div className="p-8 bg-gray-900 rounded-xl shadow-lg">
       <h2 className="text-xl font-bold mb-4 text-gray-100">Mat Board</h2>
@@ -43,20 +43,27 @@ export function MatBoard({ config, setConfig }: MatBoardProps) {
             Mat Color
           </label>
           <select
-            value={selected}
-            onChange={(e) =>
-              setConfig({ ...config, selected: Number(e.target.value) })
-            }
+            value={matColor}
+            onChange={(e) => {
+              setConfig({
+                ...config,
+                matColor: e.target.value,
+              });
+            }}
             className="w-full bg-gray-800 text-white border border-gray-700 rounded px-2 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            {matOptions.map((c, i) => (
-              <option value={i} key={c.name} className="bg-gray-800 text-white">
+            {matOptions.map((c) => (
+              <option
+                value={c.color}
+                key={c.name}
+                className="bg-gray-800 text-white"
+              >
                 {c.name}
               </option>
             ))}
           </select>
         </div>
-        {selected !== 0 && (
+        {!isNoMat && (
           <div className="min-w-[120px] flex-1">
             <label className="block text-sm font-medium text-gray-300 mb-1">
               Mat Width
@@ -77,15 +84,15 @@ export function MatBoard({ config, setConfig }: MatBoardProps) {
       </div>
       <div
         className="relative w-full max-w-[400px] aspect-[4/3] mx-auto bg-white shadow-md border border-gray-700"
-        style={{ background: color.outer }}
+        style={{ background: color }}
       >
         {/* Outer mat (skip if No Mat) */}
-        {selected !== 0 && (
+        {!isNoMat && (
           <div
             className="absolute top-0 left-0 w-full h-full rounded-lg"
             style={{
-              background: color.outer,
-              border: `4px solid ${color.inner}`,
+              background: color,
+              // border: `4px solid ${color.inner}`,
               boxSizing: "border-box",
             }}
           />
@@ -98,8 +105,8 @@ export function MatBoard({ config, setConfig }: MatBoardProps) {
             left: matPx,
             width: `calc(100% - ${matPx * 2}px)`,
             height: `calc(100% - ${matPx * 2}px)`,
-            background: selected === 0 ? "#000" : "#fff",
-            boxShadow: selected !== 0 ? "0 0 0 1px #ccc" : undefined,
+            background: isNoMat ? "#000" : "#fff",
+            boxShadow: !isNoMat ? "0 0 0 1px #ccc" : undefined,
             fontSize: 18,
             color: "#888",
           }}

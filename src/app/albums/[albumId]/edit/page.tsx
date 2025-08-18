@@ -1,114 +1,229 @@
 "use client";
-import React, { useState } from "react";
+// Drag-and-drop logic for media
+let dragIndex: number | null = null;
+type DraggableMediaProps = {
+  idx: number;
+  img: string;
+  removeImage: (idx: number) => void;
+  moveMedia: (from: number, to: number) => void;
+};
+function DraggableMedia({
+  idx,
+  img,
+  removeImage,
+  moveMedia,
+}: DraggableMediaProps) {
+  return (
+    <div
+      className="relative group cursor-move"
+      draggable
+      onDragStart={() => {
+        dragIndex = idx;
+      }}
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={() => {
+        if (dragIndex !== null && dragIndex !== idx) {
+          moveMedia(dragIndex, idx);
+        }
+        dragIndex = null;
+      }}
+    >
+      <div className="w-32 h-32 relative rounded-lg overflow-hidden border border-gray-800 bg-gray-900">
+        <Image
+          src={img}
+          alt={`Media ${idx + 1}`}
+          fill
+          className="object-cover"
+          sizes="128px"
+        />
+      </div>
+      <button
+        type="button"
+        aria-label="Remove media"
+        className="absolute top-2 right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-lg font-bold shadow hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 transition"
+        style={{ zIndex: 20 }}
+        onClick={() => removeImage(idx)}
+      >
+        &times;
+      </button>
+    </div>
+  );
+}
+import React, { useState, useEffect, useMemo } from "react";
+import { MatBoard, MatConfig } from "@/components/MatBoard";
+// alias: import * as MatBoardModule from "@/components/MatBoard";
 import Image from "next/image";
-import { useParams } from "next/navigation";
+
+import { useParams, useRouter } from "next/navigation";
 import {
   ALBUM_LAYOUTS,
   AlbumLayout as AlbumLayoutType,
 } from "@/features/albums/AlbumLayout";
-import { MatBoard, MatConfig } from "@/components/MatBoard";
+// alias: import * as AlbumLayoutModule from "@/features/albums/AlbumLayout";
+import { getAlbum, updateAlbum } from "@/lib/firestore";
+// alias: import * as FirestoreModule from "@/lib/firestore";
+import { uploadImage } from "@/lib/storage";
+// alias: import * as StorageModule from "@/lib/storage";
 
-export default function EditAlbumPage() {
+const EditAlbumPage: React.FC = () => {
   const params = useParams();
-  const albumId = params?.albumId || "demo";
-  const album = {
-    title: "Sample Album",
-    description: "A description of the album.",
-    coverUrl: "/bg-img.jpg",
-    images: [
-      "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80",
-      "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80",
-      "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=400&q=80",
-    ],
-  };
+  const router = useRouter();
+  const albumId = params?.albumId as string;
 
-  const [matConfig, setMatConfig] = useState<MatConfig>({
-    selected: 0,
-    matWidth: 40,
-    doubleMat: true,
-  });
-  const [form, setForm] = useState(album);
+  const [matConfig, setMatConfig] = useState<MatConfig | undefined>(undefined);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState(false);
+  const [album, setAlbum] = useState<import("@/entities/Album").Album | null>(
+    null
+  ); // alias: import * as AlbumEntity from "@/entities/Album";
+  const [images, setImages] = useState<File[]>([]);
+  const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [albumName, setAlbumName] = useState("");
+  const [description, setDescription] = useState("");
   const [selectedLayout, setSelectedLayout] = useState<AlbumLayoutType>(
-    ALBUM_LAYOUTS.find((l) => l.name === "Slideshow") || ALBUM_LAYOUTS[0]
+    ALBUM_LAYOUTS.find((l) => l.type === "slideshow") || ALBUM_LAYOUTS[0]
   );
   const [coverFile, setCoverFile] = useState<File | null>(null);
-  const [media, setMedia] = useState<string[]>(album.images);
-  const [error, setError] = useState<string>("");
-  const [isClient, setIsClient] = useState(false);
+  const [coverUrl, setCoverUrl] = useState<string>("");
 
-  // Load matConfig from localStorage on client only
-  React.useEffect(() => {
-    setIsClient(true);
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem(`album-mat-config-${albumId}`);
-      if (saved) setMatConfig(JSON.parse(saved));
+  useEffect(() => {
+    async function fetchAlbum() {
+      if (!albumId) return;
+      setLoading(true);
+      const data = await getAlbum(albumId);
+      if (data) {
+        setAlbum(data);
+        setAlbumName(data.title || "");
+        setDescription(data.description || "");
+        setImageUrls(data.images || []);
+        setSelectedLayout(data.layout || ALBUM_LAYOUTS[0]);
+        setCoverUrl(data.coverUrl || "");
+        setMatConfig(
+          data.matConfig || { selected: 0, matWidth: 40, matColor: "#000" }
+        );
+      }
+      setLoading(false);
     }
+    fetchAlbum();
   }, [albumId]);
 
-  const handleRemoveMedia = (idx: number) => {
-    setMedia((prev) => prev.filter((_, i) => i !== idx));
+  const handleFiles = (files: FileList | null) => {
+    if (!files) return;
+    setImages((prev) => [...prev, ...Array.from(files)]);
   };
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+  const removeImage = (idx: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== idx));
+    setImageUrls((prev) => prev.filter((_, i) => i !== idx));
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Drag-and-drop reordering
+  const moveMediaDnd = (from: number, to: number) => {
+    const all = [...imageUrls, ...images];
+    if (from === to) return;
+    const item = all[from];
+    all.splice(from, 1);
+    all.splice(to, 0, item);
+    // Split back into imageUrls and images
+    const newImageUrls = all
+      .slice(0, imageUrls.length)
+      .map((x) => (typeof x === "string" ? x : ""))
+      .filter(Boolean);
+    const newImages = all
+      .slice(imageUrls.length)
+      .filter((x) => x instanceof File);
+    setImageUrls(newImageUrls);
+    setImages(newImages);
+  };
+
+  // Memoize object URLs for images and clean up on change
+  const imageObjectUrls = useMemo(() => {
+    const urls = images.map((img) => URL.createObjectURL(img));
+    return urls;
+  }, [images]);
+
+  useEffect(() => {
+    return () => {
+      imageObjectUrls.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [imageObjectUrls]);
+
+  const handleCoverFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setCoverFile(e.target.files[0]);
     }
   };
 
-  const handleAddMedia = (files: FileList | null) => {
-    if (!files) return;
-    if (isClient) {
-      const newImages = Array.from(files).map((file) =>
-        URL.createObjectURL(file)
-      );
-      setMedia((prev) => [...prev, ...newImages]);
+  const handleSave = async () => {
+    if (!albumName || (images.length === 0 && imageUrls.length === 0)) {
+      setError("Album title and at least one image are required.");
+      return;
     }
+    setLoading(true);
+    const uploadedImageUrls = [...imageUrls];
+    try {
+      // Upload new images
+      for (let i = 0; i < images.length; i++) {
+        const url = await uploadImage(images[i], albumId, i);
+        uploadedImageUrls.push(url);
+      }
+      // Upload cover image if changed
+      let newCoverUrl = coverUrl;
+      if (coverFile) {
+        newCoverUrl = await uploadImage(coverFile, albumId, 0);
+      }
+      await updateAlbum(albumId, {
+        title: albumName,
+        description,
+        images: uploadedImageUrls,
+        layout: selectedLayout,
+        coverUrl: newCoverUrl || uploadedImageUrls[0],
+        matConfig,
+        updatedAt: new Date(),
+      });
+      setSuccess(true);
+      setTimeout(() => {
+        router.push("/albums");
+      }, 1200);
+    } catch {
+      setError("Failed to update album.");
+      setSuccess(false);
+    }
+    setLoading(false);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.title.trim()) {
-      setError("Album title is required.");
-      return;
-    }
-    if (media.length === 0) {
-      setError("At least one media item is required.");
-      return;
-    }
-    setError("");
-    // Save mat config and album edits to localStorage
-    if (isClient) {
-      localStorage.setItem(
-        `album-mat-config-${albumId}`,
-        JSON.stringify(matConfig)
-      );
-      localStorage.setItem(
-        `album-edit-${albumId}`,
-        JSON.stringify({
-          title: form.title,
-          description: form.description,
-          coverUrl: coverFile
-            ? URL.createObjectURL(coverFile as Blob)
-            : album.coverUrl,
-          images: media,
-          layout: selectedLayout,
-        })
-      );
-      window.location.href = "/albums";
-    }
-  };
+  if (loading && !album) {
+    return (
+      <div className="max-w-2xl mx-auto py-12 px-4 bg-gray-950 rounded-xl shadow-xl text-center text-gray-300">
+        Loading album...
+      </div>
+    );
+  }
+
+  if (!album) {
+    return (
+      <div className="max-w-2xl mx-auto py-12 px-4 bg-gray-950 rounded-xl shadow-xl text-center text-red-400">
+        Album not found.
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto py-12 px-4 bg-gray-950 rounded-xl shadow-xl">
-      <h1 className="text-3xl font-bold mb-8 text-gray-100">Edit Album</h1>
-      <form className="space-y-8" onSubmit={handleSubmit}>
+      <h1 className="text-3xl font-bold mb-8 text-blue-400">Edit Album</h1>
+      <form
+        className="space-y-8"
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSave();
+        }}
+      >
+        {success && (
+          <div className="bg-green-100 text-green-800 px-4 py-2 rounded mb-2 text-center border border-green-300">
+            Album updated! Redirecting...
+          </div>
+        )}
         {error && (
           <div className="bg-red-100 text-red-700 px-4 py-2 rounded mb-2 text-center border border-red-300">
             {error}
@@ -125,37 +240,23 @@ export default function EditAlbumPage() {
             accept="image/*"
             className="block mb-3 w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
             onChange={(e) => {
-              handleAddMedia(e.target.files);
+              handleFiles(e.target.files);
               e.target.value = "";
             }}
           />
           <div className="grid grid-cols-3 gap-4 pb-2">
-            {media.map((img, idx) => (
-              <div key={img} className="relative group">
-                <div className="w-32 h-32 relative rounded-lg overflow-hidden border border-gray-800 bg-gray-900">
-                  {isClient && (
-                    <Image
-                      src={img}
-                      alt={`Media ${idx + 1}`}
-                      fill
-                      className="object-cover"
-                      sizes="128px"
-                    />
-                  )}
-                </div>
-                <button
-                  type="button"
-                  aria-label="Remove media"
-                  className="absolute top-2 right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-lg font-bold shadow hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 transition"
-                  style={{ zIndex: 20 }}
-                  onClick={() => handleRemoveMedia(idx)}
-                >
-                  &times;
-                </button>
-              </div>
+            {[...imageUrls, ...imageObjectUrls].map((img, idx) => (
+              <DraggableMedia
+                key={img + idx}
+                idx={idx}
+                img={img}
+                removeImage={removeImage}
+                moveMedia={moveMediaDnd}
+              />
             ))}
           </div>
         </div>
+        {/* Drag-and-drop logic for media */}
         <div className="mb-2 text-left">
           <label
             htmlFor="layout-select"
@@ -184,8 +285,11 @@ export default function EditAlbumPage() {
               </option>
             ))}
           </select>
+          <span className="ml-2 text-gray-400">
+            {selectedLayout.description}
+          </span>
         </div>
-        <MatBoard config={matConfig} setConfig={setMatConfig} />
+        {matConfig && <MatBoard config={matConfig} setConfig={setMatConfig} />}
         <div>
           <label className="block text-sm font-semibold text-gray-300 mb-2">
             Album Title
@@ -193,8 +297,8 @@ export default function EditAlbumPage() {
           <input
             type="text"
             name="title"
-            value={form.title}
-            onChange={handleChange}
+            value={albumName}
+            onChange={(e) => setAlbumName(e.target.value)}
             className="w-full p-3 border border-gray-700 rounded-lg bg-gray-900 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
             placeholder="Enter album title"
           />
@@ -208,12 +312,12 @@ export default function EditAlbumPage() {
             type="file"
             accept="image/*"
             className="block mb-3 w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-            onChange={handleFileChange}
+            onChange={handleCoverFile}
           />
-          {coverFile && (
+          {(coverFile || coverUrl) && (
             <div className="relative w-32 h-32 mb-2 rounded-lg overflow-hidden border border-gray-800 bg-gray-900">
               <Image
-                src={URL.createObjectURL(coverFile)}
+                src={coverFile ? URL.createObjectURL(coverFile) : coverUrl}
                 alt="Cover Image"
                 fill
                 className="object-cover"
@@ -225,10 +329,13 @@ export default function EditAlbumPage() {
         <button
           type="submit"
           className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+          disabled={loading}
         >
-          Save Changes
+          {loading ? "Saving..." : "Save Changes"}
         </button>
       </form>
     </div>
   );
-}
+};
+
+export default EditAlbumPage;

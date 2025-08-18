@@ -1,5 +1,7 @@
 "use client";
 import React, { useState } from "react";
+import { MatBoard, MatConfig } from "@/components/MatBoard";
+// alias: import * as MatBoardModule from "@/components/MatBoard";
 import {
   ALBUM_LAYOUTS,
   AlbumLayout as AlbumLayoutType,
@@ -8,7 +10,9 @@ import { useRouter } from "next/navigation";
 import AlbumsLayout from "../layout";
 import Image from "next/image";
 import { addAlbum } from "@/lib/firestore";
+// alias: import * as FirestoreModule from "@/lib/firestore";
 import { uploadImage } from "@/lib/storage";
+// alias: import * as StorageModule from "@/lib/storage";
 
 const NewAlbumPage: React.FC = () => {
   const [images, setImages] = useState<File[]>([]);
@@ -18,6 +22,10 @@ const NewAlbumPage: React.FC = () => {
   const [selectedLayout, setSelectedLayout] = useState<AlbumLayoutType>(
     ALBUM_LAYOUTS.find((l) => l.type === "slideshow") || ALBUM_LAYOUTS[0]
   );
+  const [matConfig, setMatConfig] = useState<MatConfig>({
+    selected: 0,
+    matWidth: 40,
+  });
   const router = useRouter();
 
   const handleFiles = (files: FileList | null) => {
@@ -55,6 +63,7 @@ const NewAlbumPage: React.FC = () => {
         title: albumName,
         images: imageUrls,
         layout: selectedLayout,
+        matConfig,
         description: "",
         coverUrl: imageUrls[0],
         createdAt: new Date(),
@@ -161,6 +170,7 @@ const NewAlbumPage: React.FC = () => {
             {selectedLayout.description}
           </span>
         </div>
+        <MatBoard config={matConfig} setConfig={setMatConfig} />
         <div>
           <label className="block text-sm font-semibold text-gray-300 mb-2">
             Album Title

@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import { PencilSquareIcon } from "@heroicons/react/24/solid";
 import { ALBUM_LAYOUTS } from "./AlbumLayout";
 import { Album } from "@/entities/Album";
+// alias: import * as AlbumEntity from "@/entities/Album";
 import { getAlbums } from "@/lib/firestore";
+// alias: import * as FirestoreModule from "@/lib/firestore";
 
 const AlbumGrid: React.FC = () => {
   const router = useRouter();
