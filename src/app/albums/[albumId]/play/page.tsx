@@ -2,9 +2,11 @@
 import React from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
+import { AlbumLayout } from "@/features/albums/AlbumLayout";
+import { Album } from "@/entities/Album";
+import { getAlbum } from "@/lib/firestore";
 
 // Temporary: import placeholderAlbums from AlbumGrid for demo
-import { placeholderAlbums } from "../../../../features/albums/AlbumGrid";
 
 const matColors = [
   { name: "Classic White", outer: "#f8f8f8", inner: "#4b306a" },
@@ -164,18 +166,30 @@ function MatImage({
 const SlideshowPage: React.FC = () => {
   const params = useParams();
   const router = useRouter();
-  const albumId = Number(params?.albumId);
-  const album = placeholderAlbums[albumId];
-
-  // Move all hooks to top before any returns
+  const albumId = params?.albumId as string;
+  const [album, setAlbum] = React.useState<Album | undefined>(undefined);
+  const [loading, setLoading] = React.useState(true);
   const [current, setCurrent] = React.useState(0);
   const [timerActive, setTimerActive] = React.useState(true);
-  const images = album?.images || [];
   const [matConfig, setMatConfig] = React.useState<MatConfig | undefined>(
     undefined
   );
 
-  // Get layout from album (simulate real data)
+  React.useEffect(() => {
+    async function fetchAlbum() {
+      setLoading(true);
+      try {
+        const data = await getAlbum(albumId);
+        setAlbum(data || undefined);
+      } catch (err) {
+        setAlbum(undefined);
+      }
+      setLoading(false);
+    }
+    if (albumId) fetchAlbum();
+  }, [albumId]);
+
+  const images = album?.images || [];
   const layout = album?.layout || { type: "slideshow" };
 
   React.useEffect(() => {
@@ -187,21 +201,18 @@ const SlideshowPage: React.FC = () => {
     }
   }, [images.length, timerActive, layout.type]);
 
-  React.useEffect(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem(
-        `album-mat-config-${params?.albumId || "demo"}`
-      );
-      if (saved) setMatConfig(JSON.parse(saved));
-      else setMatConfig(undefined);
-    }
-  }, [params?.albumId]);
-
   const handleBack = React.useCallback(() => {
     setTimerActive(false);
     router.push("/albums");
   }, [router]);
 
+  if (loading) {
+    return (
+      <div className="fixed inset-0 bg-black flex items-center justify-center z-50">
+        <div className="text-white text-lg font-semibold">Loading album...</div>
+      </div>
+    );
+  }
   if (!album) {
     return (
       <div className="fixed inset-0 bg-black flex items-center justify-center z-50">
@@ -228,7 +239,7 @@ const SlideshowPage: React.FC = () => {
             padding: "clamp(16px, 3vw, 40px)",
           }}
         >
-          {portraitImages.map((img, idx) => (
+          {portraitImages.map((img: string, idx: number) => (
             <div
               key={img}
               className="flex flex-col items-center justify-center"
