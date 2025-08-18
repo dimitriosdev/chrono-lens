@@ -13,6 +13,7 @@ const AlbumGrid: React.FC = () => {
   const router = useRouter();
   const [albums, setAlbums] = React.useState<Album[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const dragAlbumIndex = React.useRef<number | null>(null);
 
   React.useEffect(() => {
     async function fetchAlbums() {
@@ -34,6 +35,23 @@ const AlbumGrid: React.FC = () => {
   const handleEditClick = (e: React.MouseEvent, idx: number) => {
     e.stopPropagation();
     router.push(`/albums/${albums[idx].id}/edit`);
+  };
+
+  // Drag-and-drop sorting logic
+  const handleDragStart = (idx: number) => {
+    dragAlbumIndex.current = idx;
+  };
+
+  const handleDrop = (idx: number) => {
+    if (dragAlbumIndex.current === null || dragAlbumIndex.current === idx)
+      return;
+    setAlbums((prev) => {
+      const updated = [...prev];
+      const [removed] = updated.splice(dragAlbumIndex.current!, 1);
+      updated.splice(idx, 0, removed);
+      return updated;
+    });
+    dragAlbumIndex.current = null;
   };
 
   const renderCardBackground = (album: Album) => (
@@ -70,6 +88,10 @@ const AlbumGrid: React.FC = () => {
               key={album.id}
               className="bg-gray-800 rounded-xl overflow-hidden shadow-lg flex flex-col justify-end relative max-w-[340px] w-full mx-auto cursor-pointer min-h-[260px]"
               onClick={() => handleAlbumClick(idx)}
+              draggable
+              onDragStart={() => handleDragStart(idx)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={() => handleDrop(idx)}
             >
               {renderCardBackground(album)}
               <div className="absolute top-2 right-2 z-20">
