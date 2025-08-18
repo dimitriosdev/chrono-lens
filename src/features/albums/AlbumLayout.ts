@@ -9,13 +9,7 @@ export type AlbumLayout = {
 
 export const ALBUM_LAYOUTS: AlbumLayout[] = [
   {
-    name: "Grid 2x3",
-    description: "Six images in a 2x3 grid",
-    grid: { rows: 2, cols: 3 },
-    type: "grid",
-  },
-  {
-    name: "Three Portraits",
+    name: "3 Portraits",
     description: "Three images in portrait mode",
     grid: { rows: 1, cols: 3 },
     orientation: "portrait",

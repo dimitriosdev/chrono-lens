@@ -2,139 +2,15 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import { useParams } from "next/navigation";
-
-// Mat board mockup component
-const matColors = [
-  { name: "Classic White", outer: "#f8f8f8", inner: "#4b306a" },
-  { name: "Soft Yellow", outer: "#ffe88a", inner: "#222" },
-  { name: "Modern Grey", outer: "#bfc2c3", inner: "#222" },
-  { name: "Blush Pink", outer: "#f8e1ea", inner: "#d16ba5" },
-];
-
-function MatBoardMockup({
-  config,
-  setConfig,
-}: {
-  config: MatConfig;
-  setConfig: (c: MatConfig) => void;
-}) {
-  const { selected, matWidth } = config;
-  // Add 'No Mat' option
-  const matOptions = [
-    { name: "No Mat", outer: "#000", inner: "#000" },
-    ...matColors,
-  ];
-  const color = matOptions[selected];
-  const frameWidth = 400;
-  const frameHeight = 300;
-  const minPercent = 5;
-  const maxPercent = 40;
-  const matPercent = matWidth || minPercent;
-  const matPx =
-    selected === 0
-      ? 0
-      : Math.floor((matPercent / 100) * Math.min(frameWidth, frameHeight));
-  return (
-    <div style={{ padding: 32 }}>
-      <h2 className="text-lg font-semibold mb-2">Mat Board Frame Mockup</h2>
-      <div style={{ marginBottom: 16 }}>
-        <label>Mat Color: </label>
-        <select
-          value={selected}
-          onChange={(e) =>
-            setConfig({ ...config, selected: Number(e.target.value) })
-          }
-        >
-          {matOptions.map((c, i) => (
-            <option value={i} key={c.name}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-        {selected !== 0 && (
-          <>
-            <label style={{ marginLeft: 16 }}>Mat Width: </label>
-            <input
-              type="range"
-              min={minPercent}
-              max={maxPercent}
-              value={matPercent}
-              onChange={(e) =>
-                setConfig({ ...config, matWidth: Number(e.target.value) })
-              }
-            />
-            <span> {matPercent}%</span>
-          </>
-        )}
-      </div>
-      <div
-        style={{
-          position: "relative",
-          width: frameWidth,
-          height: frameHeight,
-          background: color.outer,
-          boxShadow: "0 2px 8px #aaa",
-        }}
-      >
-        {/* Outer mat (skip if No Mat) */}
-        {selected !== 0 && (
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              width: "100%",
-              height: "100%",
-              background: color.outer,
-              border: `4px solid ${color.inner}`,
-              boxSizing: "border-box",
-            }}
-          />
-        )}
-        {/* Artwork area */}
-        <div
-          style={{
-            position: "absolute",
-            top: matPx,
-            left: matPx,
-            width: frameWidth - matPx * 2,
-            height: frameHeight - matPx * 2,
-            background: selected === 0 ? "#000" : "#fff",
-            boxShadow: selected !== 0 ? "0 0 0 1px #ccc" : undefined,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 18,
-            color: "#888",
-          }}
-        >
-          Artwork
-        </div>
-      </div>
-    </div>
-  );
-}
-type MatConfig = {
-  selected: number;
-  matWidth: number;
-  doubleMat: boolean;
-};
-
 import {
   ALBUM_LAYOUTS,
   AlbumLayout as AlbumLayoutType,
-} from "../../../../features/albums/AlbumLayout";
+} from "@/features/albums/AlbumLayout";
+import { MatBoard, MatConfig } from "@/components/MatBoard";
 
 export default function EditAlbumPage() {
   const params = useParams();
   const albumId = params?.albumId || "demo";
-  const [matConfig, setMatConfig] = useState<MatConfig>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem(`album-mat-config-${albumId}`);
-      if (saved) return JSON.parse(saved);
-    }
-    return { selected: 0, matWidth: 40, doubleMat: true };
-  });
   const album = {
     title: "Sample Album",
     description: "A description of the album.",
@@ -146,13 +22,28 @@ export default function EditAlbumPage() {
     ],
   };
 
+  const [matConfig, setMatConfig] = useState<MatConfig>({
+    selected: 0,
+    matWidth: 40,
+    doubleMat: true,
+  });
   const [form, setForm] = useState(album);
   const [selectedLayout, setSelectedLayout] = useState<AlbumLayoutType>(
-    ALBUM_LAYOUTS[0]
+    ALBUM_LAYOUTS.find((l) => l.name === "Slideshow") || ALBUM_LAYOUTS[0]
   );
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [media, setMedia] = useState<string[]>(album.images);
   const [error, setError] = useState<string>("");
+  const [isClient, setIsClient] = useState(false);
+
+  // Load matConfig from localStorage on client only
+  React.useEffect(() => {
+    setIsClient(true);
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem(`album-mat-config-${albumId}`);
+      if (saved) setMatConfig(JSON.parse(saved));
+    }
+  }, [albumId]);
 
   const handleRemoveMedia = (idx: number) => {
     setMedia((prev) => prev.filter((_, i) => i !== idx));
@@ -173,10 +64,12 @@ export default function EditAlbumPage() {
 
   const handleAddMedia = (files: FileList | null) => {
     if (!files) return;
-    const newImages = Array.from(files).map((file) =>
-      URL.createObjectURL(file)
-    );
-    setMedia((prev) => [...prev, ...newImages]);
+    if (isClient) {
+      const newImages = Array.from(files).map((file) =>
+        URL.createObjectURL(file)
+      );
+      setMedia((prev) => [...prev, ...newImages]);
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -191,7 +84,7 @@ export default function EditAlbumPage() {
     }
     setError("");
     // Save mat config and album edits to localStorage
-    if (typeof window !== "undefined") {
+    if (isClient) {
       localStorage.setItem(
         `album-mat-config-${albumId}`,
         JSON.stringify(matConfig)
@@ -208,29 +101,29 @@ export default function EditAlbumPage() {
           layout: selectedLayout,
         })
       );
+      window.location.href = "/albums";
     }
-
-    window.location.href = "/albums";
   };
 
   return (
-    <div className="max-w-xl mx-auto py-12">
-      <MatBoardMockup config={matConfig} setConfig={setMatConfig} />
-      <h1 className="text-2xl font-bold mb-6">Edit Album</h1>
-      <form className="space-y-6" onSubmit={handleSubmit}>
+    <div className="max-w-2xl mx-auto py-12 px-4 bg-gray-950 rounded-xl shadow-xl">
+      <h1 className="text-3xl font-bold mb-8 text-gray-100">Edit Album</h1>
+      <form className="space-y-8" onSubmit={handleSubmit}>
         {error && (
-          <div className="bg-red-100 text-red-700 px-4 py-2 rounded mb-2 text-center">
+          <div className="bg-red-100 text-red-700 px-4 py-2 rounded mb-2 text-center border border-red-300">
             {error}
           </div>
         )}
         <div>
-          <label className="block text-sm font-medium mb-2">Album Media</label>
+          <label className="block text-sm font-semibold text-gray-300 mb-2">
+            Album Media
+          </label>
           <input
             id="addMediaInput"
             type="file"
             multiple
             accept="image/*"
-            className="block mb-2"
+            className="block mb-3 w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
             onChange={(e) => {
               handleAddMedia(e.target.files);
               e.target.value = "";
@@ -239,19 +132,21 @@ export default function EditAlbumPage() {
           <div className="grid grid-cols-3 gap-4 pb-2">
             {media.map((img, idx) => (
               <div key={img} className="relative group">
-                <div className="w-32 h-32 relative">
-                  <Image
-                    src={img}
-                    alt={`Media ${idx + 1}`}
-                    fill
-                    className="rounded object-cover border border-gray-700"
-                    sizes="128px"
-                  />
+                <div className="w-32 h-32 relative rounded-lg overflow-hidden border border-gray-800 bg-gray-900">
+                  {isClient && (
+                    <Image
+                      src={img}
+                      alt={`Media ${idx + 1}`}
+                      fill
+                      className="object-cover"
+                      sizes="128px"
+                    />
+                  )}
                 </div>
                 <button
                   type="button"
                   aria-label="Remove media"
-                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-base font-bold hover:bg-red-600 focus:outline-none transition"
+                  className="absolute top-2 right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-lg font-bold shadow hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 transition"
                   style={{ zIndex: 20 }}
                   onClick={() => handleRemoveMedia(idx)}
                 >
@@ -261,24 +156,10 @@ export default function EditAlbumPage() {
             ))}
           </div>
         </div>
-        <div>
-          <label htmlFor="title" className="block text-sm font-medium mb-1">
-            Title
-          </label>
-          <input
-            id="title"
-            name="title"
-            type="text"
-            value={form.title}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border rounded bg-gray-900 text-white"
-            required
-          />
-        </div>
         <div className="mb-2 text-left">
           <label
             htmlFor="layout-select"
-            className="text-blue-600 font-medium mr-2"
+            className="text-blue-400 font-semibold mr-2"
           >
             Album Layout:
           </label>
@@ -291,60 +172,62 @@ export default function EditAlbumPage() {
               );
               if (layout) setSelectedLayout(layout);
             }}
-            className="bg-gray-800 text-white rounded px-3 py-2"
+            className="bg-gray-800 text-white rounded px-3 py-2 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             {ALBUM_LAYOUTS.map((layout) => (
-              <option key={layout.name} value={layout.name}>
+              <option
+                key={layout.name}
+                value={layout.name}
+                className="bg-gray-800 text-white"
+              >
                 {layout.name}
               </option>
             ))}
           </select>
-          <span className="ml-2 text-gray-400">
-            {selectedLayout.description}
-          </span>
         </div>
+        <MatBoard config={matConfig} setConfig={setMatConfig} />
         <div>
-          <label htmlFor="cover" className="block text-sm font-medium mb-1">
-            Cover Image
+          <label className="block text-sm font-semibold text-gray-300 mb-2">
+            Album Title
           </label>
-          <div className="mb-2 w-32 h-32 relative">
-            <Image
-              src={
-                coverFile
-                  ? URL.createObjectURL(coverFile as Blob)
-                  : album.coverUrl
-              }
-              alt="Album cover"
-              fill
-              className="object-cover rounded"
-              sizes="128px"
-            />
-          </div>
           <input
-            id="cover"
-            name="cover"
-            type="file"
-            accept="image/*"
-            className="block w-full text-sm text-gray-400"
-            onChange={handleFileChange}
+            type="text"
+            name="title"
+            value={form.title}
+            onChange={handleChange}
+            className="w-full p-3 border border-gray-700 rounded-lg bg-gray-900 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Enter album title"
           />
         </div>
-        <div className="flex gap-4 mt-8">
-          <button
-            type="submit"
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded shadow disabled:opacity-50"
-            disabled={!form.title.trim() || media.length === 0}
-          >
-            Save Changes
-          </button>
-          <button
-            type="button"
-            className="bg-gray-700 hover:bg-gray-800 text-white font-semibold px-6 py-2 rounded"
-            onClick={() => window.history.back()}
-          >
-            Cancel
-          </button>
+        <div>
+          <label className="block text-sm font-semibold text-gray-300 mb-2">
+            Cover Image
+          </label>
+          <input
+            id="coverImageInput"
+            type="file"
+            accept="image/*"
+            className="block mb-3 w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+            onChange={handleFileChange}
+          />
+          {coverFile && (
+            <div className="relative w-32 h-32 mb-2 rounded-lg overflow-hidden border border-gray-800 bg-gray-900">
+              <Image
+                src={URL.createObjectURL(coverFile)}
+                alt="Cover Image"
+                fill
+                className="object-cover"
+                sizes="128px"
+              />
+            </div>
+          )}
         </div>
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
+        >
+          Save Changes
+        </button>
       </form>
     </div>
   );
