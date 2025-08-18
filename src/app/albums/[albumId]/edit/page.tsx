@@ -1,31 +1,140 @@
 "use client";
 import React, { useState } from "react";
+import Image from "next/image";
+import { useParams } from "next/navigation";
+
+// Mat board mockup component
+const matColors = [
+  { name: "Classic White", outer: "#f8f8f8", inner: "#4b306a" },
+  { name: "Soft Yellow", outer: "#ffe88a", inner: "#222" },
+  { name: "Modern Grey", outer: "#bfc2c3", inner: "#222" },
+  { name: "Blush Pink", outer: "#f8e1ea", inner: "#d16ba5" },
+];
+
+function MatBoardMockup({
+  config,
+  setConfig,
+}: {
+  config: MatConfig;
+  setConfig: (c: MatConfig) => void;
+}) {
+  const { selected, matWidth } = config;
+  // Add 'No Mat' option
+  const matOptions = [
+    { name: "No Mat", outer: "#000", inner: "#000" },
+    ...matColors,
+  ];
+  const color = matOptions[selected];
+  const frameWidth = 400;
+  const frameHeight = 300;
+  const minPercent = 5;
+  const maxPercent = 40;
+  const matPercent = matWidth || minPercent;
+  const matPx =
+    selected === 0
+      ? 0
+      : Math.floor((matPercent / 100) * Math.min(frameWidth, frameHeight));
+  return (
+    <div style={{ padding: 32 }}>
+      <h2 className="text-lg font-semibold mb-2">Mat Board Frame Mockup</h2>
+      <div style={{ marginBottom: 16 }}>
+        <label>Mat Color: </label>
+        <select
+          value={selected}
+          onChange={(e) =>
+            setConfig({ ...config, selected: Number(e.target.value) })
+          }
+        >
+          {matOptions.map((c, i) => (
+            <option value={i} key={c.name}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+        {selected !== 0 && (
+          <>
+            <label style={{ marginLeft: 16 }}>Mat Width: </label>
+            <input
+              type="range"
+              min={minPercent}
+              max={maxPercent}
+              value={matPercent}
+              onChange={(e) =>
+                setConfig({ ...config, matWidth: Number(e.target.value) })
+              }
+            />
+            <span> {matPercent}%</span>
+          </>
+        )}
+      </div>
+      <div
+        style={{
+          position: "relative",
+          width: frameWidth,
+          height: frameHeight,
+          background: color.outer,
+          boxShadow: "0 2px 8px #aaa",
+        }}
+      >
+        {/* Outer mat (skip if No Mat) */}
+        {selected !== 0 && (
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              width: "100%",
+              height: "100%",
+              background: color.outer,
+              border: `4px solid ${color.inner}`,
+              boxSizing: "border-box",
+            }}
+          />
+        )}
+        {/* Artwork area */}
+        <div
+          style={{
+            position: "absolute",
+            top: matPx,
+            left: matPx,
+            width: frameWidth - matPx * 2,
+            height: frameHeight - matPx * 2,
+            background: selected === 0 ? "#000" : "#fff",
+            boxShadow: selected !== 0 ? "0 0 0 1px #ccc" : undefined,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 18,
+            color: "#888",
+          }}
+        >
+          Artwork
+        </div>
+      </div>
+    </div>
+  );
+}
+type MatConfig = {
+  selected: number;
+  matWidth: number;
+  doubleMat: boolean;
+};
+
 import {
   ALBUM_LAYOUTS,
   AlbumLayout as AlbumLayoutType,
 } from "../../../../features/albums/AlbumLayout";
-import { useParams } from "next/navigation";
-import Image from "next/image";
-import type { DragEndEvent } from "@dnd-kit/core";
-import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  useSortable,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import { PhotoIcon } from "@heroicons/react/24/solid";
 
 export default function EditAlbumPage() {
   const params = useParams();
-  // const albumId = params?.albumId; // Not used yet
+  const albumId = params?.albumId || "demo";
+  const [matConfig, setMatConfig] = useState<MatConfig>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem(`album-mat-config-${albumId}`);
+      if (saved) return JSON.parse(saved);
+    }
+    return { selected: 0, matWidth: 40, doubleMat: true };
+  });
   const album = {
     title: "Sample Album",
     description: "A description of the album.",
@@ -37,7 +146,6 @@ export default function EditAlbumPage() {
     ],
   };
 
-  // Basic form state management
   const [form, setForm] = useState(album);
   const [selectedLayout, setSelectedLayout] = useState<AlbumLayoutType>(
     ALBUM_LAYOUTS[0]
@@ -45,95 +153,10 @@ export default function EditAlbumPage() {
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [media, setMedia] = useState<string[]>(album.images);
   const [error, setError] = useState<string>("");
-  const [isDragging, setIsDragging] = useState(false);
 
-  // Remove media item
   const handleRemoveMedia = (idx: number) => {
     setMedia((prev) => prev.filter((_, i) => i !== idx));
   };
-
-  // dnd-kit sensors
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    })
-  );
-
-  // Handle drag end
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (active.id && over?.id && active.id !== over.id) {
-      const oldIndex = media.findIndex((id) => id === active.id);
-      const newIndex = media.findIndex((id) => id === over.id);
-      setMedia((items) => arrayMove(items, oldIndex, newIndex));
-    }
-  };
-  // Sortable thumbnail component
-  function SortableThumbnail({
-    id,
-    idx,
-    src,
-  }: {
-    id: string;
-    idx: number;
-    src: string;
-  }) {
-    const {
-      attributes,
-      listeners,
-      setNodeRef,
-      transform,
-      transition,
-      isDragging,
-      isSorting,
-    } = useSortable({ id });
-    return (
-      <div
-        ref={setNodeRef}
-        style={{
-          transform: transform ? CSS.Transform.toString(transform) : undefined,
-          transition: transition || undefined,
-          opacity: isDragging ? 0.4 : 1,
-          zIndex: isDragging ? 50 : 1,
-          boxShadow: isDragging ? "0 4px 16px rgba(0,0,0,0.25)" : undefined,
-          border: isSorting ? "2px solid #2563eb" : undefined,
-        }}
-        className={`relative group cursor-grab ${
-          isDragging ? "ring-2 ring-blue-500" : ""
-        }`}
-        {...attributes}
-        {...listeners}
-      >
-        <div className="w-32 h-32 relative">
-          <Image
-            src={src}
-            alt={`Media ${idx + 1}`}
-            fill
-            className={`rounded object-cover border ${
-              isDragging ? "border-blue-500" : "border-gray-700"
-            } transition-all duration-200`}
-            sizes="128px"
-          />
-        </div>
-        {/* Remove button */}
-        <button
-          type="button"
-          aria-label="Remove media"
-          className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-base font-bold hover:bg-red-600 focus:outline-none transition"
-          style={{ zIndex: 20 }}
-          onClick={() => handleRemoveMedia(idx)}
-        >
-          &times;
-        </button>
-        {/* Drag handle visual */}
-        <span className="absolute bottom-1 left-1 text-xs text-gray-400 opacity-70 pointer-events-none select-none">
-          &#x2630;
-        </span>
-      </div>
-    );
-  }
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -167,14 +190,32 @@ export default function EditAlbumPage() {
       return;
     }
     setError("");
-    // TODO: Add API call to update album with selected layout
-    // e.g., { ...form, images: media, layout: selectedLayout }
-    alert("Album updated! (stub)");
+    // Save mat config and album edits to localStorage
+    if (typeof window !== "undefined") {
+      localStorage.setItem(
+        `album-mat-config-${albumId}`,
+        JSON.stringify(matConfig)
+      );
+      localStorage.setItem(
+        `album-edit-${albumId}`,
+        JSON.stringify({
+          title: form.title,
+          description: form.description,
+          coverUrl: coverFile
+            ? URL.createObjectURL(coverFile as Blob)
+            : album.coverUrl,
+          images: media,
+          layout: selectedLayout,
+        })
+      );
+    }
+
     window.location.href = "/albums";
   };
 
   return (
     <div className="max-w-xl mx-auto py-12">
+      <MatBoardMockup config={matConfig} setConfig={setMatConfig} />
       <h1 className="text-2xl font-bold mb-6">Edit Album</h1>
       <form className="space-y-6" onSubmit={handleSubmit}>
         {error && (
@@ -182,73 +223,43 @@ export default function EditAlbumPage() {
             {error}
           </div>
         )}
-        {/* Media items section with drag-and-drop */}
         <div>
           <label className="block text-sm font-medium mb-2">Album Media</label>
-          <div
-            className={`mb-4 border-2 border-dashed rounded-lg flex flex-col items-center justify-center transition-colors duration-200 cursor-pointer focus:ring-2 focus:ring-blue-500 focus:outline-none ${
-              isDragging
-                ? "border-blue-600 bg-blue-50 animate-pulse"
-                : "border-blue-300 bg-white"
-            }`}
-            onDragOver={(e) => {
-              e.preventDefault();
-              setIsDragging(true);
+          <input
+            id="addMediaInput"
+            type="file"
+            multiple
+            accept="image/*"
+            className="block mb-2"
+            onChange={(e) => {
+              handleAddMedia(e.target.files);
+              e.target.value = "";
             }}
-            onDragLeave={() => setIsDragging(false)}
-            onDrop={(e) => {
-              e.preventDefault();
-              setIsDragging(false);
-              handleAddMedia(e.dataTransfer.files);
-            }}
-            tabIndex={0}
-            role="button"
-            aria-label="Upload images"
-          >
-            <PhotoIcon className="h-10 w-10 text-blue-400 mb-2" />
-
-            <input
-              id="addMediaInput"
-              type="file"
-              multiple
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                handleAddMedia(e.target.files);
-                e.target.value = "";
-              }}
-            />
-            <label
-              htmlFor="addMediaInput"
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded shadow cursor-pointer mb-2 transition-all duration-150 focus:ring-2 focus:ring-blue-500"
-            >
-              Upload Images
-            </label>
-          </div>
-          {media.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 border-2 border-dashed border-blue-400 rounded-lg">
-              <p className="mb-2 text-blue-600">
-                No media items. Add images to your album.
-              </p>
-            </div>
-          ) : (
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext
-                items={media}
-                strategy={verticalListSortingStrategy}
-              >
-                <div className="grid grid-cols-3 gap-4 pb-2">
-                  {media.map((img, idx) => (
-                    <SortableThumbnail key={img} id={img} idx={idx} src={img} />
-                  ))}
+          />
+          <div className="grid grid-cols-3 gap-4 pb-2">
+            {media.map((img, idx) => (
+              <div key={img} className="relative group">
+                <div className="w-32 h-32 relative">
+                  <Image
+                    src={img}
+                    alt={`Media ${idx + 1}`}
+                    fill
+                    className="rounded object-cover border border-gray-700"
+                    sizes="128px"
+                  />
                 </div>
-              </SortableContext>
-            </DndContext>
-          )}
+                <button
+                  type="button"
+                  aria-label="Remove media"
+                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-base font-bold hover:bg-red-600 focus:outline-none transition"
+                  style={{ zIndex: 20 }}
+                  onClick={() => handleRemoveMedia(idx)}
+                >
+                  &times;
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
         <div>
           <label htmlFor="title" className="block text-sm font-medium mb-1">
@@ -292,7 +303,6 @@ export default function EditAlbumPage() {
             {selectedLayout.description}
           </span>
         </div>
-
         <div>
           <label htmlFor="cover" className="block text-sm font-medium mb-1">
             Cover Image
