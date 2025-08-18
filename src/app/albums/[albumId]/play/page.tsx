@@ -1,9 +1,11 @@
 "use client";
-import React, { useEffect } from "react";
+import React from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Album } from "@/entities/Album";
 import { getAlbum } from "@/lib/firestore";
 import { useAuth } from "@/context/AuthContext";
+import { AlbumLayout } from "@/features/albums/AlbumLayout";
+import Image from "next/image";
 
 function MatImage({
   src,
@@ -11,7 +13,7 @@ function MatImage({
   containerMode = false,
 }: {
   src: string;
-  matConfig: any;
+  matConfig: { matWidth?: number; matColor?: string };
   containerMode?: boolean;
 }) {
   const matPercent = matConfig?.matWidth ?? 5;
@@ -97,12 +99,14 @@ function MatImage({
           zIndex: 4,
         }}
       >
-        <img
+        <Image
           src={src}
           alt="Artwork"
           className="object-contain w-full h-full rounded"
           onLoad={handleImgLoad}
           style={{ maxWidth: "100%", maxHeight: "100%", border: "none" }}
+          fill
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
       </div>
     </div>
@@ -115,8 +119,10 @@ const SlideshowPage: React.FC = () => {
   const params = useParams();
   const albumId = params?.albumId as string;
   const [album, setAlbum] = React.useState<Album | undefined>(undefined);
-  const [loadingAlbum, setLoadingAlbum] = React.useState(true);
   const [current, setCurrent] = React.useState(0);
+  const [gridImages, setGridImages] = React.useState<string[]>([]);
+  const [nextSlotIndex, setNextSlotIndex] = React.useState(0);
+  const [globalImageIndex, setGlobalImageIndex] = React.useState(3); // Start from image 3 (after initial 0,1,2)
 
   React.useEffect(() => {
     if (!loading && !isSignedIn) {
@@ -126,44 +132,99 @@ const SlideshowPage: React.FC = () => {
 
   React.useEffect(() => {
     async function fetchAlbum() {
-      setLoadingAlbum(true);
       try {
         const data = await getAlbum(albumId);
         setAlbum(data || undefined);
       } catch {
         setAlbum(undefined);
       }
-      setLoadingAlbum(false);
     }
     if (albumId) fetchAlbum();
   }, [albumId]);
 
-  const images = album?.images || [];
-  const matConfig = album?.matConfig;
-  const layout = album?.layout || { type: "slideshow" };
+  const images = React.useMemo(() => album?.images || [], [album?.images]);
+  const matConfig = album?.matConfig || { matWidth: 5, matColor: "#000" };
+  const layout: AlbumLayout = React.useMemo(
+    () =>
+      album?.layout || {
+        type: "slideshow",
+        name: "Default",
+        description: "Default slideshow",
+        grid: { rows: 1, cols: 1 },
+      },
+    [album?.layout]
+  );
 
+  // Initialize grid with first 3 images
   React.useEffect(() => {
-    if (images.length > 1) {
+    if (images.length > 0 && layout?.type === "grid") {
+      const requiredCount = layout?.grid?.cols || 3;
+      setGridImages(images.slice(0, requiredCount));
+      setGlobalImageIndex(requiredCount); // Start next image index after initial set
+      setNextSlotIndex(0); // Start with slot 0
+    }
+  }, [images, layout]);
+
+  // Individual image cycling for grid layout
+  React.useEffect(() => {
+    if (layout?.type === "grid" && images.length > 3) {
       const timer = setInterval(() => {
-        setCurrent((prev) => (prev + 1) % images.length);
+        setGridImages((prevGrid) => {
+          const newGrid = [...prevGrid];
+          // Replace image at current slot with next global image
+          newGrid[nextSlotIndex] = images[globalImageIndex % images.length];
+          return newGrid;
+        });
+        setNextSlotIndex((prev) => (prev + 1) % 3);
+        setGlobalImageIndex((prev) => prev + 1);
       }, 2000);
       return () => clearInterval(timer);
     }
-  }, [images.length]);
+  }, [images, layout, nextSlotIndex, globalImageIndex]);
 
   const handleBack = React.useCallback(() => {
     router.push("/albums");
   }, [router]);
+
+  // Slideshow interval effect (hook placement fix)
+  React.useEffect(() => {
+    if (layout?.type === "slideshow" && images.length > 1) {
+      const timer = setInterval(() => {
+        setCurrent((prev) => (prev + 1) % images.length);
+      }, matConfig.cycleDuration ?? 2000);
+      return () => clearInterval(timer);
+    }
+    // No interval for other layouts
+    return undefined;
+  }, [layout?.type, images.length, matConfig.cycleDuration]);
 
   if (loading || !isSignedIn) return null;
 
   // Grid layout: 3 Portraits
   if (layout?.type === "grid") {
     const requiredCount = layout?.grid?.cols || 3;
-    const portraitImages = images.slice(0, requiredCount);
-    const allPortrait = portraitImages.length === requiredCount;
+    const hasMoreImages = images.length > requiredCount;
+    const displayImages =
+      gridImages.length > 0 ? gridImages : images.slice(0, requiredCount);
+    const allPortrait =
+      displayImages.length === requiredCount || !hasMoreImages;
     return (
       <div className="fixed inset-0 bg-black flex flex-col items-center justify-center z-50">
+        <style jsx>{`
+          @keyframes fadeIn {
+            from {
+              opacity: 0;
+              transform: scale(0.95);
+            }
+            to {
+              opacity: 1;
+              transform: scale(1);
+            }
+          }
+          .image-fade-transition {
+            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+          }
+        `}</style>
         <div
           className="grid w-full h-full mx-auto px-2 md:px-4"
           style={{
@@ -179,9 +240,9 @@ const SlideshowPage: React.FC = () => {
             paddingBottom: "6vh",
           }}
         >
-          {portraitImages.map((img: string) => (
+          {displayImages.map((img: string, index: number) => (
             <div
-              key={img}
+              key={`slot-${index}`}
               style={{
                 width: "100%",
                 height: "75vh",
@@ -194,7 +255,13 @@ const SlideshowPage: React.FC = () => {
                 margin: "0 auto",
               }}
             >
-              <MatImage src={img} matConfig={matConfig} containerMode={true} />
+              <div className="image-fade-transition" key={img}>
+                <MatImage
+                  src={img}
+                  matConfig={matConfig}
+                  containerMode={true}
+                />
+              </div>
             </div>
           ))}
         </div>

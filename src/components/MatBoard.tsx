@@ -12,6 +12,7 @@ const matColors = [
 export type MatConfig = {
   matWidth: number;
   matColor: string;
+  cycleDuration?: number;
 };
 
 interface MatBoardProps {

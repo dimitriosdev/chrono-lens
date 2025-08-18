@@ -28,6 +28,7 @@ const NewAlbumPage: React.FC = () => {
     matWidth: 40,
     matColor: "#000",
   });
+  const [cycleDuration, setCycleDuration] = useState(2000);
 
   useEffect(() => {
     if (!loading && !isSignedIn) {
@@ -72,7 +73,7 @@ const NewAlbumPage: React.FC = () => {
         title: albumName,
         images: imageUrls,
         layout: selectedLayout,
-        matConfig,
+        matConfig: { ...matConfig, cycleDuration },
         description: "",
         coverUrl: imageUrls[0],
         createdAt: new Date(),
@@ -195,6 +196,20 @@ const NewAlbumPage: React.FC = () => {
             onChange={(e) => setAlbumName(e.target.value)}
             className="w-full p-3 border border-gray-700 rounded-lg bg-gray-900 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500"
             placeholder="Enter album title"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-semibold text-gray-300 mb-2">
+            Image Change Duration (ms)
+          </label>
+          <input
+            type="number"
+            min={500}
+            max={10000}
+            step={100}
+            value={cycleDuration}
+            onChange={(e) => setCycleDuration(Number(e.target.value))}
+            className="w-32 px-2 py-1 rounded bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-cyan-500"
           />
         </div>
         <button

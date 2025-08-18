@@ -82,6 +82,7 @@ const EditAlbumPage: React.FC = () => {
   );
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverUrl, setCoverUrl] = useState<string>("");
+  const [cycleDuration, setCycleDuration] = useState(2000);
 
   useEffect(() => {
     if (!loading && !isSignedIn) {
@@ -107,6 +108,12 @@ const EditAlbumPage: React.FC = () => {
     }
     fetchAlbum();
   }, [albumId]);
+
+  useEffect(() => {
+    if (matConfig && typeof matConfig.cycleDuration === "number") {
+      setCycleDuration(matConfig.cycleDuration);
+    }
+  }, [matConfig]);
 
   // Drag-and-drop reordering
   const moveMediaDnd = (from: number, to: number) => {
@@ -143,7 +150,12 @@ const EditAlbumPage: React.FC = () => {
 
   const handleFiles = (files: FileList | null) => {
     if (!files) return;
-    setImages((prev) => [...prev, ...Array.from(files)]);
+    // Only add new files that aren't already present
+    const newFiles = Array.from(files).filter(
+      (file) =>
+        !images.some((img) => img.name === file.name && img.size === file.size)
+    );
+    setImages((prev) => [...prev, ...newFiles]);
   };
 
   const removeImage = (idx: number) => {
@@ -181,7 +193,7 @@ const EditAlbumPage: React.FC = () => {
         images: uploadedImageUrls,
         layout: selectedLayout,
         coverUrl: newCoverUrl || uploadedImageUrls[0],
-        matConfig,
+        matConfig: { ...matConfig, cycleDuration },
         updatedAt: new Date(),
       });
       setSuccess(true);
@@ -247,10 +259,19 @@ const EditAlbumPage: React.FC = () => {
             }}
           />
           <div className="grid grid-cols-3 gap-4 pb-2">
-            {[...imageUrls, ...imageObjectUrls].map((img, idx) => (
+            {imageUrls.map((img, idx) => (
               <DraggableMedia
                 key={img + idx}
                 idx={idx}
+                img={img}
+                removeImage={removeImage}
+                moveMedia={moveMediaDnd}
+              />
+            ))}
+            {imageObjectUrls.map((img, idx) => (
+              <DraggableMedia
+                key={img + "new" + idx}
+                idx={imageUrls.length + idx}
                 img={img}
                 removeImage={removeImage}
                 moveMedia={moveMediaDnd}
@@ -333,6 +354,20 @@ const EditAlbumPage: React.FC = () => {
               />
             </div>
           )}
+        </div>
+        <div>
+          <label className="block text-sm font-semibold text-gray-300 mb-2">
+            Image Change Duration (ms)
+          </label>
+          <input
+            type="number"
+            min={500}
+            max={10000}
+            step={100}
+            value={cycleDuration}
+            onChange={(e) => setCycleDuration(Number(e.target.value))}
+            className="w-32 px-2 py-1 rounded bg-gray-800 text-white border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
         </div>
         <button
           type="submit"
