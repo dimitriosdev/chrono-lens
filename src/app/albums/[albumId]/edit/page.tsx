@@ -15,7 +15,7 @@ function DraggableMedia({
 }: DraggableMediaProps) {
   return (
     <div
-      className="relative group cursor-move"
+      className="relative group cursor-move w-32 h-32"
       draggable
       onDragStart={() => {
         dragIndex = idx;
@@ -28,7 +28,7 @@ function DraggableMedia({
         dragIndex = null;
       }}
     >
-      <div className="w-32 h-32 relative rounded-lg overflow-hidden border border-gray-800 bg-gray-900">
+      <div className="w-full h-full relative rounded-lg overflow-hidden border border-gray-800 bg-gray-900">
         <Image
           src={img}
           alt={`Media ${idx + 1}`}
@@ -36,16 +36,16 @@ function DraggableMedia({
           className="object-cover"
           sizes="128px"
         />
+        <button
+          type="button"
+          aria-label="Remove media"
+          className="absolute top-2 right-2 bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-xl font-bold shadow hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 transition"
+          style={{ zIndex: 20 }}
+          onClick={() => removeImage(idx)}
+        >
+          &times;
+        </button>
       </div>
-      <button
-        type="button"
-        aria-label="Remove media"
-        className="absolute top-2 right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-lg font-bold shadow hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 transition"
-        style={{ zIndex: 20 }}
-        onClick={() => removeImage(idx)}
-      >
-        &times;
-      </button>
     </div>
   );
 }

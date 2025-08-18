@@ -27,7 +27,7 @@ const Sidebar = React.memo(function Sidebar({
           >
             {link.icon ? link.icon : <PlusIcon className="h-6 w-6" />}
           </a>
-          <span className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 text-xs bg-gray-800 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
+          <span className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 text-xs bg-gray-800 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-[100] pointer-events-none">
             {link.label}
           </span>
         </div>
@@ -46,7 +46,7 @@ const Sidebar = React.memo(function Sidebar({
           >
             {aboutLink.icon}
           </a>
-          <span className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 text-xs bg-gray-800 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
+          <span className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 text-xs bg-gray-800 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-[100] pointer-events-none">
             {aboutLink.label}
           </span>
         </div>
@@ -61,7 +61,7 @@ const Sidebar = React.memo(function Sidebar({
           >
             <UserCircleIcon className="h-6 w-6 text-white" />
           </button>
-          <span className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 text-xs bg-gray-800 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-10 pointer-events-none">
+          <span className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 text-xs bg-gray-800 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-[100] pointer-events-none">
             Sign Out
           </span>
         </div>
