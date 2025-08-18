@@ -1,5 +1,4 @@
 "use client";
-// Drag-and-drop logic for media
 let dragIndex: number | null = null;
 type DraggableMediaProps = {
   idx: number;
@@ -51,7 +50,6 @@ function DraggableMedia({
 }
 import React, { useState, useEffect, useMemo } from "react";
 import { MatBoard, MatConfig } from "@/components/MatBoard";
-// alias: import * as MatBoardModule from "@/components/MatBoard";
 import Image from "next/image";
 
 import { useParams, useRouter } from "next/navigation";
@@ -59,11 +57,8 @@ import {
   ALBUM_LAYOUTS,
   AlbumLayout as AlbumLayoutType,
 } from "@/features/albums/AlbumLayout";
-// alias: import * as AlbumLayoutModule from "@/features/albums/AlbumLayout";
 import { getAlbum, updateAlbum } from "@/lib/firestore";
-// alias: import * as FirestoreModule from "@/lib/firestore";
 import { uploadImage } from "@/lib/storage";
-// alias: import * as StorageModule from "@/lib/storage";
 
 const EditAlbumPage: React.FC = () => {
   const params = useParams();
