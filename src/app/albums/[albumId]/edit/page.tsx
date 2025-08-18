@@ -58,7 +58,7 @@ import {
   AlbumLayout as AlbumLayoutType,
 } from "@/features/albums/AlbumLayout";
 import { getAlbum, updateAlbum } from "@/lib/firestore";
-import { uploadImage } from "@/lib/storage";
+import { uploadImage, deleteImage } from "@/lib/storage";
 import { useAuth } from "@/context/AuthContext";
 
 const EditAlbumPage: React.FC = () => {
@@ -158,9 +158,15 @@ const EditAlbumPage: React.FC = () => {
     setImages((prev) => [...prev, ...newFiles]);
   };
 
-  const removeImage = (idx: number) => {
+  const removeImage = async (idx: number) => {
+    // Remove from UI
+    const urlToDelete = imageUrls[idx];
     setImages((prev) => prev.filter((_, i) => i !== idx));
     setImageUrls((prev) => prev.filter((_, i) => i !== idx));
+    // Remove from storage if it's a URL
+    if (urlToDelete) {
+      await deleteImage(urlToDelete);
+    }
   };
 
   const handleCoverFile = (e: React.ChangeEvent<HTMLInputElement>) => {
