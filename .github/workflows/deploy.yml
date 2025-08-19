@@ -62,8 +62,11 @@ jobs:
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
           expires: 7d
           projectId: '${{ secrets.FIREBASE_PROJECT_ID }}'
+          entryPoint: ./
         env:
           FIREBASE_CLI_EXPERIMENTS: webframeworks
+          FIREBASE_CLI_PREVIEWS: hostingchannels
+          FIREBASE_DEPLOY_FORCE: true
 
   # Deploy to Production (main branch only)
   deploy-production:
@@ -97,8 +100,11 @@ jobs:
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
           channelId: live
           projectId: '${{ secrets.FIREBASE_PROJECT_ID }}'
+          entryPoint: ./
         env:
           FIREBASE_CLI_EXPERIMENTS: webframeworks
+          FIREBASE_CLI_PREVIEWS: hostingchannels
+          FIREBASE_DEPLOY_FORCE: true
 
       - name: 📬 Deployment Success Notification
         if: success()
