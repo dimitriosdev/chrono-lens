@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 env:
-  NODE_VERSION: '18'
+  NODE_VERSION: '20'
 
 jobs:
   # Test and Lint Job
@@ -71,7 +71,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     environment:
       name: production
-      url: https://${{ secrets.FIREBASE_PROJECT_ID }}.web.app
+      url: https://chrono-lens-ac1885.web.app
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
@@ -100,4 +100,4 @@ jobs:
         if: success()
         run: |
           echo "🎉 Deployment successful!"
-          echo "🌐 Live URL: https://${{ secrets.FIREBASE_PROJECT_ID }}.web.app"
+          echo "🌐 Live URL: https://chrono-lens-ac1885.web.app"
