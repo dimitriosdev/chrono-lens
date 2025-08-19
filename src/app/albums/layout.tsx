@@ -6,10 +6,9 @@ import { useAuth } from "@/context/AuthContext";
 
 type AlbumsLayoutProps = {
   children: React.ReactNode;
-  onSignOut?: () => void;
 };
 
-const AlbumsLayout: React.FC<AlbumsLayoutProps> = ({ children, onSignOut }) => {
+const AlbumsLayout: React.FC<AlbumsLayoutProps> = ({ children }) => {
   const { isSignedIn, loading } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -51,7 +50,6 @@ const AlbumsLayout: React.FC<AlbumsLayoutProps> = ({ children, onSignOut }) => {
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
         navLinks={NAV_LINKS.map(({ href, label }) => ({ href, label }))}
-        onSignOut={onSignOut}
       />
       {/* Main content area - always scrollable */}
       <main className="flex-1 h-full overflow-y-auto">{children}</main>

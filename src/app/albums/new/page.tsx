@@ -13,6 +13,7 @@ import { addAlbum } from "@/lib/firestore";
 import { uploadImage } from "@/lib/storage";
 // alias: import * as StorageModule from "@/lib/storage";
 import { useAuth } from "@/context/AuthContext";
+import { validateAlbumTitle, validateFile } from "../../../lib/security";
 
 const NewAlbumPage: React.FC = () => {
   const { isSignedIn, loading } = useAuth();
@@ -21,6 +22,7 @@ const NewAlbumPage: React.FC = () => {
   const [albumName, setAlbumName] = useState("");
   const [loadingAlbum, setLoadingAlbum] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState("");
   const [selectedLayout, setSelectedLayout] = useState<AlbumLayoutType>(
     ALBUM_LAYOUTS.find((l) => l.type === "slideshow") || ALBUM_LAYOUTS[0]
   );
@@ -40,17 +42,26 @@ const NewAlbumPage: React.FC = () => {
 
   const handleFiles = (files: FileList | null) => {
     if (!files) return;
-    setImages(Array.from(files));
-  };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    handleFiles(e.dataTransfer.files);
-  };
+    const validFiles: File[] = [];
+    const errors: string[] = [];
 
-  const handleInput = (e: React.ChangeEvent<HTMLInputElement>) => {
-    handleFiles(e.target.files);
-    e.target.value = "";
+    Array.from(files).forEach((file) => {
+      const validation = validateFile(file);
+      if (validation.isValid) {
+        validFiles.push(file);
+      } else {
+        errors.push(`${file.name}: ${validation.error}`);
+      }
+    });
+
+    if (errors.length > 0) {
+      setError(errors.join("; "));
+    } else {
+      setError("");
+    }
+
+    setImages(validFiles);
   };
 
   const removeImage = (idx: number) => {
@@ -58,8 +69,23 @@ const NewAlbumPage: React.FC = () => {
   };
 
   const handleSave = async () => {
-    if (!albumName || images.length === 0) return;
+    // Validate title
+    const titleValidation = validateAlbumTitle(albumName);
+    if (!titleValidation.isValid) {
+      setError(titleValidation.error || "Invalid title");
+      return;
+    }
+
+    if (images.length === 0) {
+      setError("At least one image is required");
+      return;
+    }
+
+    // Get userId from localStorage (temporary solution until proper auth)
+    const userId = localStorage.getItem("userId") || `user_${Date.now()}`;
+
     setLoadingAlbum(true);
+    setError("");
 
     // Generate a temporary albumId for storage paths
     const tempAlbumId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -76,6 +102,7 @@ const NewAlbumPage: React.FC = () => {
         matConfig: { ...matConfig, cycleDuration },
         description: "",
         coverUrl: imageUrls[0],
+        userId,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
@@ -84,15 +111,17 @@ const NewAlbumPage: React.FC = () => {
         router.push("/albums");
       }, 1200);
     } catch (err) {
+      console.error("Failed to create album:", err);
+      setError("Failed to create album. Please try again.");
       setSuccess(false);
     }
     setLoadingAlbum(false);
   };
 
   // Example sign out logic: redirect to login page
-  const handleSignOut = () => {
-    router.push("/");
-  };
+  // const handleSignOut = () => {
+  //   router.push("/");
+  // };
 
   return (
     <div className="max-w-2xl mx-auto py-12 px-4 bg-gray-950 rounded-xl shadow-xl">
@@ -111,6 +140,11 @@ const NewAlbumPage: React.FC = () => {
             Album created! Redirecting...
           </div>
         )}
+        {error && (
+          <div className="bg-red-100 text-red-700 px-4 py-2 rounded mb-2 text-center border border-red-300">
+            {error}
+          </div>
+        )}
         <div>
           <label className="block text-sm font-semibold text-gray-300 mb-2">
             Album Media
@@ -121,7 +155,10 @@ const NewAlbumPage: React.FC = () => {
             multiple
             accept="image/*"
             className="block mb-3 w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100"
-            onChange={handleInput}
+            onChange={(e) => {
+              handleFiles(e.target.files);
+              e.target.value = "";
+            }}
           />
           <div className="grid grid-cols-3 gap-4 pb-2">
             {images.map((img, idx) => (

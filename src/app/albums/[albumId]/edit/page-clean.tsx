@@ -1,12 +1,31 @@
-"use client";
+// Required for static export with dynamic routes
+export async function generateStaticParams() {
+  return [];
+}
+
+("use client");
+import React, { useState, useEffect, useMemo } from "react";
+import { MatBoard, MatConfig } from "@/components/MatBoard";
+import Image from "next/image";
+import { useParams, useRouter } from "next/navigation";
+import {
+  ALBUM_LAYOUTS,
+  AlbumLayout as AlbumLayoutType,
+} from "@/features/albums/AlbumLayout";
+import { getAlbum, updateAlbum } from "@/lib/firestore";
+import { uploadImage, deleteImage } from "@/lib/storage";
+import { useAuth } from "@/context/AuthContext";
+import { validateAlbumTitle, validateFile } from "@/lib/security";
 
 let dragIndex: number | null = null;
+
 type DraggableMediaProps = {
   idx: number;
   img: string;
   removeImage: (idx: number) => void;
   moveMedia: (from: number, to: number) => void;
 };
+
 function DraggableMedia({
   idx,
   img,
@@ -49,19 +68,6 @@ function DraggableMedia({
     </div>
   );
 }
-import React, { useState, useEffect, useMemo } from "react";
-import { MatBoard, MatConfig } from "@/components/MatBoard";
-import Image from "next/image";
-
-import { useParams, useRouter } from "next/navigation";
-import {
-  ALBUM_LAYOUTS,
-  AlbumLayout as AlbumLayoutType,
-} from "@/features/albums/AlbumLayout";
-import { getAlbum, updateAlbum } from "@/lib/firestore";
-import { uploadImage, deleteImage } from "@/lib/storage";
-import { useAuth } from "@/context/AuthContext";
-import { validateAlbumTitle, validateFile } from "@/lib/security";
 
 const EditAlbumPage: React.FC = () => {
   const { isSignedIn, loading } = useAuth();

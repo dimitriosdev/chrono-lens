@@ -28,9 +28,12 @@ const AlbumGrid: React.FC = () => {
     async function fetchAlbums() {
       setLoading(true);
       try {
+        console.log("Fetching albums...");
         const data = await getAlbums();
+        console.log("Albums fetched:", data.length, data);
         setAlbums(data);
-      } catch {
+      } catch (error) {
+        console.error("Error fetching albums:", error);
         setAlbums([]);
       }
       setLoading(false);

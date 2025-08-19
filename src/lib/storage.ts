@@ -5,31 +5,73 @@ import {
   getDownloadURL,
   deleteObject,
 } from "firebase/storage";
+import {
+  validateFile,
+  sanitizeText,
+  getCurrentUserId,
+  checkRateLimit,
+} from "@/utils/security";
 
 export async function uploadImage(
   file: File,
   albumId: string,
   idx: number
 ): Promise<string> {
-  const storageRef = ref(
-    storage,
-    `albums/${albumId}/${Date.now()}_${idx}_${file.name}`
-  );
+  // Security validations
+  const userId = getCurrentUserId();
+  if (!userId) {
+    throw new Error("User not authenticated");
+  }
+
+  // Rate limiting check
+  if (!checkRateLimit(userId, 20, 60000)) {
+    // 20 uploads per minute
+    throw new Error(
+      "Upload rate limit exceeded. Please wait before uploading more images."
+    );
+  }
+
+  // Validate file
+  const validation = validateFile(file);
+  if (!validation.isValid) {
+    throw new Error(validation.error);
+  }
+
+  // Sanitize filename
+  const sanitizedName = sanitizeText(file.name.replace(/[^a-zA-Z0-9.-]/g, "_"));
+
+  // Generate secure path with user ID for isolation
+  const securePath = `users/${userId}/albums/${albumId}/${Date.now()}_${idx}_${sanitizedName}`;
+  const storageRef = ref(storage, securePath);
+
   await uploadBytes(storageRef, file);
   return await getDownloadURL(storageRef);
 }
 
 export async function deleteImage(url: string): Promise<void> {
+  // Security check
+  const userId = getCurrentUserId();
+  if (!userId) {
+    throw new Error("User not authenticated");
+  }
+
   // Convert download URL to storage path
-  // Example: https://firebasestorage.googleapis.com/v0/b/<bucket>/o/albums%2FalbumId%2Ffilename?alt=media
-  // We need albums/albumId/filename
+  // Example: https://firebasestorage.googleapis.com/v0/b/<bucket>/o/users%2FuserId%2Falbums%2FalbumId%2Ffilename?alt=media
   try {
     const matches = url.match(/\/o\/(.+)\?/);
     if (!matches || !matches[1]) throw new Error("Invalid storage URL");
+
     const path = decodeURIComponent(matches[1]);
+
+    // Ensure user can only delete their own files
+    if (!path.startsWith(`users/${userId}/`)) {
+      throw new Error("Unauthorized: Cannot delete files from other users");
+    }
+
     const storageRef = ref(storage, path);
     await deleteObject(storageRef);
-  } catch (err) {
-    // Optionally log error
+  } catch (error) {
+    console.warn("Failed to delete image from storage:", error);
+    // Don't throw error to avoid breaking UI when file doesn't exist
   }
 }
