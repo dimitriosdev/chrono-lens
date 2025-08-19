@@ -1,4 +1,4 @@
-import { storage } from "./firebase";
+import { getFirebaseStorage } from "./firebase";
 import {
   ref,
   uploadBytes,
@@ -42,6 +42,12 @@ export async function uploadImage(
 
   // Generate secure path with user ID for isolation
   const securePath = `users/${userId}/albums/${albumId}/${Date.now()}_${idx}_${sanitizedName}`;
+  
+  const storage = getFirebaseStorage();
+  if (!storage) {
+    throw new Error("Firebase storage not initialized");
+  }
+  
   const storageRef = ref(storage, securePath);
 
   await uploadBytes(storageRef, file);
@@ -66,6 +72,11 @@ export async function deleteImage(url: string): Promise<void> {
     // Ensure user can only delete their own files
     if (!path.startsWith(`users/${userId}/`)) {
       throw new Error("Unauthorized: Cannot delete files from other users");
+    }
+
+    const storage = getFirebaseStorage();
+    if (!storage) {
+      throw new Error("Firebase storage not initialized");
     }
 
     const storageRef = ref(storage, path);

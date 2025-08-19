@@ -12,9 +12,10 @@ import {
   orderBy,
   limit,
   DocumentData,
-  QuerySnapshot,
+  Firestore,
+  CollectionReference,
 } from "firebase/firestore";
-import { app } from "@/lib/firebase";
+import { getFirebaseApp } from "@/lib/firebase";
 import { Album } from "@/entities/Album";
 import {
   validateAlbumTitle,
@@ -25,8 +26,21 @@ import {
   MAX_ALBUMS_PER_USER,
 } from "@/utils/security";
 
-const db = getFirestore(app);
-const albumsCollection = collection(db, "albums");
+// Initialize Firestore lazily
+let db: Firestore | null = null;
+let albumsCollection: CollectionReference<DocumentData> | null = null;
+
+const getDB = () => {
+  if (!db) {
+    const app = getFirebaseApp();
+    if (!app) {
+      throw new Error("Firebase app not initialized");
+    }
+    db = getFirestore(app);
+    albumsCollection = collection(db, "albums");
+  }
+  return { db, albumsCollection: albumsCollection! };
+};
 
 export async function getAlbum(id: string): Promise<Album | null> {
   const userId = getCurrentUserId();
