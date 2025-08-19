@@ -1,36 +1,8 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function NotFoundPage() {
-  const router = useRouter();
-  const [showRedirect, setShowRedirect] = useState(false);
-
   // Fun photo-related 404 message
   const message = "️ This picture fell out of the album somewhere";
-
-  useEffect(() => {
-    const path = window.location.pathname;
-
-    // If it looks like an album route, try to navigate there
-    if (path.match(/^\/albums\/[^\/]+\/(edit|play)$/)) {
-      // Give user a chance to see the 404 page, then redirect
-      setTimeout(() => {
-        router.push(path);
-      }, 2000);
-      return;
-    }
-
-    // Show redirect option after a delay
-    setTimeout(() => {
-      setShowRedirect(true);
-    }, 1500);
-  }, [router]);
-
-  const handleGoHome = () => {
-    router.push("/");
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-950 via-gray-900 to-blue-950 flex items-center justify-center p-4">
@@ -56,38 +28,13 @@ export default function NotFoundPage() {
 
         {/* Action Buttons */}
         <div className="space-y-4">
-          {showRedirect && (
-            <button
-              onClick={handleGoHome}
-              className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transform transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              📱 Return to Photo Albums
-            </button>
-          )}
+          <Link
+            href="/"
+            className="inline-block w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg transform transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            📱 Return to Photo Albums
+          </Link>
         </div>
-
-        {/* Loading Animation for Album Routes */}
-        {!showRedirect && (
-          <div className="mt-6">
-            <div className="flex items-center justify-center space-x-2 text-gray-400">
-              <div
-                className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"
-                style={{ animationDelay: "0ms" }}
-              ></div>
-              <div
-                className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"
-                style={{ animationDelay: "150ms" }}
-              ></div>
-              <div
-                className="w-2 h-2 bg-blue-400 rounded-full animate-bounce"
-                style={{ animationDelay: "300ms" }}
-              ></div>
-            </div>
-            <p className="text-sm text-gray-500 mt-2">
-              Developing this page...
-            </p>
-          </div>
-        )}
       </div>
 
       {/* Floating Photo Frames */}
