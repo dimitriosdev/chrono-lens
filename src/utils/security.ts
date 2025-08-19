@@ -181,22 +181,37 @@ export function isAuthenticated(): boolean {
   return localStorage.getItem("isSignedIn") === "true";
 }
 
-export function getCurrentUserId(): string | null {
-  if (typeof window === "undefined") return null;
-
-  // Check if user is signed in
-  if (localStorage.getItem("isSignedIn") !== "true") {
-    return null;
+/**
+ * Get the current user ID from Firebase Auth or localStorage fallback.
+ * If user is signed in with Firebase, use their Firebase UID.
+ * Otherwise, generate and store a temporary user ID.
+ */
+export async function getCurrentUserId(): Promise<string> {
+  if (typeof window === "undefined") {
+    // Server-side rendering
+    return "";
   }
 
-  // Get or generate a user ID
+  // First, try to get the Firebase user ID
+  try {
+    const { getFirebaseAuth } = await import("../lib/firebase");
+    const auth = getFirebaseAuth();
+    if (auth?.currentUser) {
+      return auth.currentUser.uid;
+    }
+  } catch (error) {
+    console.warn("Could not get Firebase user ID:", error);
+  }
+
+  // Fallback to localStorage for temporary/anonymous users
   let userId = localStorage.getItem("userId");
   if (!userId) {
-    // Generate a unique user ID for localStorage-based auth
-    userId = `user_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    // Generate a unique user ID
+    userId = `user_${Date.now()}_${Math.random()
+      .toString(36)
+      .substring(2, 9)}`;
     localStorage.setItem("userId", userId);
   }
-
   return userId;
 }
 

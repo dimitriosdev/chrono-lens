@@ -18,7 +18,7 @@ export async function uploadImage(
   idx: number
 ): Promise<string> {
   // Security validations
-  const userId = getCurrentUserId();
+  const userId = await getCurrentUserId();
   if (!userId) {
     throw new Error("User not authenticated");
   }
@@ -56,7 +56,7 @@ export async function uploadImage(
 
 export async function deleteImage(url: string): Promise<void> {
   // Security check
-  const userId = getCurrentUserId();
+  const userId = await getCurrentUserId();
   if (!userId) {
     throw new Error("User not authenticated");
   }

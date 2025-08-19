@@ -45,7 +45,7 @@ const getDB = () => {
 };
 
 export async function getAlbum(id: string): Promise<Album | null> {
-  const userId = getCurrentUserId();
+  const userId = await getCurrentUserId();
   if (!userId) {
     throw new Error("User not authenticated");
   }
@@ -65,7 +65,7 @@ export async function getAlbum(id: string): Promise<Album | null> {
 }
 
 export async function getAlbums(): Promise<Album[]> {
-  const userId = getCurrentUserId();
+  const userId = await getCurrentUserId();
   const { albumsCollection } = getDB();
 
   // Temporary: Don't require authentication for debugging
@@ -123,7 +123,7 @@ export async function getAlbums(): Promise<Album[]> {
 }
 
 export async function addAlbum(album: Omit<Album, "id">): Promise<string> {
-  const userId = getCurrentUserId();
+  const userId = await getCurrentUserId();
   if (!userId) {
     throw new Error("User not authenticated");
   }
