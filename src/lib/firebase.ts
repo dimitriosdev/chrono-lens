@@ -14,7 +14,7 @@ const requiredEnvVars = {
 };
 
 // Debug logging for build time
-console.log('Firebase Environment Variables Check:', {
+console.log("Firebase Environment Variables Check:", {
   apiKey: !!requiredEnvVars.apiKey,
   authDomain: !!requiredEnvVars.authDomain,
   projectId: !!requiredEnvVars.projectId,
@@ -29,12 +29,12 @@ const missingVars = Object.entries(requiredEnvVars)
   .map(([key]) => {
     // Map to exact environment variable names
     const envVarMap: { [key: string]: string } = {
-      apiKey: 'NEXT_PUBLIC_FIREBASE_API_KEY',
-      authDomain: 'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
-      projectId: 'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
-      storageBucket: 'NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET',
-      messagingSenderId: 'NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID',
-      appId: 'NEXT_PUBLIC_FIREBASE_APP_ID',
+      apiKey: "NEXT_PUBLIC_FIREBASE_API_KEY",
+      authDomain: "NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN",
+      projectId: "NEXT_PUBLIC_FIREBASE_PROJECT_ID",
+      storageBucket: "NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET",
+      messagingSenderId: "NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID",
+      appId: "NEXT_PUBLIC_FIREBASE_APP_ID",
     };
     return envVarMap[key] || `NEXT_PUBLIC_FIREBASE_${key.toUpperCase()}`;
   });

@@ -111,6 +111,23 @@ jobs:
           echo "Messaging Sender ID exists: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID != '' }}"
           echo "App ID exists: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID != '' }}"
 
+      - name: 🔍 Debug Actual Environment Values
+        run: |
+          echo "Environment variables in build context:"
+          echo "NEXT_PUBLIC_FIREBASE_API_KEY length: ${#NEXT_PUBLIC_FIREBASE_API_KEY}"
+          echo "NEXT_PUBLIC_FIREBASE_PROJECT_ID: $NEXT_PUBLIC_FIREBASE_PROJECT_ID"
+          echo "All secrets availability:"
+          echo "  NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY != '' }}"
+          echo "  FIREBASE_API_KEY: ${{ secrets.FIREBASE_API_KEY != '' }}"
+          echo "  API_KEY: ${{ secrets.API_KEY != '' }}"
+        env:
+          NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
+          NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN: ${{ secrets.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN }}
+          NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
+          NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
+          NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
+          NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
+
       - name: 🏗️ Build project
         run: npm run build
         env:
