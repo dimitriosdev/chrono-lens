@@ -23,6 +23,17 @@ console.log("Firebase Environment Variables Check:", {
   appId: !!requiredEnvVars.appId,
 });
 
+// Debug actual values (safely)
+console.log("Environment Variable Details:", {
+  apiKeyLength: requiredEnvVars.apiKey?.length || 0,
+  projectIdValue: requiredEnvVars.projectId || "undefined",
+  authDomainValue: requiredEnvVars.authDomain || "undefined",
+  nodeEnv: process.env.NODE_ENV,
+  allFirebaseEnvVars: Object.keys(process.env).filter((key) =>
+    key.includes("FIREBASE")
+  ),
+});
+
 // Check for missing environment variables
 const missingVars = Object.entries(requiredEnvVars)
   .filter(([, value]) => !value)
