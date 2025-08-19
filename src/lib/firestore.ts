@@ -12,8 +12,10 @@ import {
   orderBy,
   limit,
   DocumentData,
+  QuerySnapshot,
   Firestore,
   CollectionReference,
+  QueryDocumentSnapshot,
 } from "firebase/firestore";
 import { getFirebaseApp } from "@/lib/firebase";
 import { Album } from "@/entities/Album";
@@ -48,6 +50,7 @@ export async function getAlbum(id: string): Promise<Album | null> {
     throw new Error("User not authenticated");
   }
 
+  const { albumsCollection } = getDB();
   const albumDoc = await getDoc(doc(albumsCollection, id));
   if (!albumDoc.exists()) return null;
 
@@ -63,6 +66,7 @@ export async function getAlbum(id: string): Promise<Album | null> {
 
 export async function getAlbums(): Promise<Album[]> {
   const userId = getCurrentUserId();
+  const { albumsCollection } = getDB();
 
   // Temporary: Don't require authentication for debugging
   console.log("Current userId:", userId);
@@ -82,7 +86,8 @@ export async function getAlbums(): Promise<Album[]> {
       // If user-specific albums found, return them
       if (!snapshot.empty) {
         const userAlbums = snapshot.docs.map(
-          (doc) => ({ id: doc.id, ...doc.data() } as Album)
+          (doc: QueryDocumentSnapshot<DocumentData>) =>
+            ({ id: doc.id, ...doc.data() } as Album)
         );
         console.log("Found user albums:", userAlbums.length);
         return userAlbums;
@@ -98,7 +103,8 @@ export async function getAlbums(): Promise<Album[]> {
     );
     const snapshot = await getDocs(allQuery);
     const allAlbums = snapshot.docs.map(
-      (doc) => ({ id: doc.id, ...doc.data() } as Album)
+      (doc: QueryDocumentSnapshot<DocumentData>) =>
+        ({ id: doc.id, ...doc.data() } as Album)
     );
     console.log("Found all albums:", allAlbums.length);
     return allAlbums;
@@ -109,7 +115,10 @@ export async function getAlbums(): Promise<Album[]> {
     console.log("Using final fallback...");
     const fallbackQuery = query(albumsCollection);
     const snapshot = await getDocs(fallbackQuery);
-    return snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as Album));
+    return snapshot.docs.map(
+      (doc: QueryDocumentSnapshot<DocumentData>) =>
+        ({ id: doc.id, ...doc.data() } as Album)
+    );
   }
 }
 
@@ -153,6 +162,7 @@ export async function addAlbum(album: Omit<Album, "id">): Promise<string> {
     updatedAt: new Date(),
   };
 
+  const { albumsCollection } = getDB();
   const docRef = await addDoc(albumsCollection, secureAlbum);
   return docRef.id;
 }
@@ -161,9 +171,11 @@ export async function updateAlbum(
   id: string,
   album: Partial<Album>
 ): Promise<void> {
+  const { albumsCollection } = getDB();
   await updateDoc(doc(albumsCollection, id), album);
 }
 
 export async function deleteAlbum(id: string): Promise<void> {
+  const { albumsCollection } = getDB();
   await deleteDoc(doc(albumsCollection, id));
 }

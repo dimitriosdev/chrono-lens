@@ -42,12 +42,12 @@ export async function uploadImage(
 
   // Generate secure path with user ID for isolation
   const securePath = `users/${userId}/albums/${albumId}/${Date.now()}_${idx}_${sanitizedName}`;
-  
+
   const storage = getFirebaseStorage();
   if (!storage) {
     throw new Error("Firebase storage not initialized");
   }
-  
+
   const storageRef = ref(storage, securePath);
 
   await uploadBytes(storageRef, file);
