@@ -1,6 +1,13 @@
 import Link from "next/link";
+import { Metadata } from "next";
 import BackgroundImage from "../../components/BackgroundImage";
 import Navigation from "../../components/Navigation";
+
+export const metadata: Metadata = {
+  title: "About",
+  description:
+    "Learn about Chrono Lens - a modern photo album app designed to help you capture, organize, and revisit your favorite memories.",
+};
 
 export default function AboutPage() {
   return (
