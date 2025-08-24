@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { logVersionInfo } from '@/lib/version';
+import { useEffect } from "react";
+import { logVersionInfo } from "@/lib/version";
 
 export function VersionLogger() {
   useEffect(() => {

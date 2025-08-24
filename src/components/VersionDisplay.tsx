@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { getVersionInfo } from '@/lib/version';
+import { useState } from "react";
+import { getVersionInfo } from "@/lib/version";
 
 export function VersionDisplay() {
   const [showVersion, setShowVersion] = useState(false);
@@ -30,19 +30,22 @@ export function VersionDisplay() {
           ×
         </button>
       </div>
-      
+
       <div className="space-y-1 text-gray-600">
         <div>
-          <span className="font-medium">Version:</span> {versionInfo.fullVersion}
+          <span className="font-medium">Version:</span>{" "}
+          {versionInfo.fullVersion}
         </div>
         <div>
-          <span className="font-medium">Environment:</span> {versionInfo.environment}
+          <span className="font-medium">Environment:</span>{" "}
+          {versionInfo.environment}
         </div>
         <div>
           <span className="font-medium">Built:</span> {versionInfo.buildDate}
         </div>
         <div>
-          <span className="font-medium">Deployed:</span> {versionInfo.deployDate}
+          <span className="font-medium">Deployed:</span>{" "}
+          {versionInfo.deployDate}
         </div>
         <div className="text-xs text-gray-500 mt-2">
           Commit: {versionInfo.commitHash.substring(0, 12)}
