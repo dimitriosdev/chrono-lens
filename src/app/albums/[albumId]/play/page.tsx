@@ -156,10 +156,11 @@ const SlideshowPage: React.FC = () => {
     [album?.layout]
   );
 
-  // Initialize grid with first 3 images
+  // Initialize grid with first images based on layout
   React.useEffect(() => {
     if (images.length > 0 && layout?.type === "grid") {
-      const requiredCount = layout?.grid?.cols || 3;
+      const requiredCount =
+        (layout?.grid?.rows || 1) * (layout?.grid?.cols || 3);
       setGridImages(images.slice(0, requiredCount));
       setGlobalImageIndex(requiredCount); // Start next image index after initial set
       setNextSlotIndex(0); // Start with slot 0
@@ -168,18 +169,22 @@ const SlideshowPage: React.FC = () => {
 
   // Individual image cycling for grid layout
   React.useEffect(() => {
-    if (layout?.type === "grid" && images.length > 3) {
-      const timer = setInterval(() => {
-        setGridImages((prevGrid) => {
-          const newGrid = [...prevGrid];
-          // Replace image at current slot with next global image
-          newGrid[nextSlotIndex] = images[globalImageIndex % images.length];
-          return newGrid;
-        });
-        setNextSlotIndex((prev) => (prev + 1) % 3);
-        setGlobalImageIndex((prev) => prev + 1);
-      }, matConfig.cycleDuration ?? 2000);
-      return () => clearInterval(timer);
+    if (layout?.type === "grid") {
+      const requiredCount =
+        (layout?.grid?.rows || 1) * (layout?.grid?.cols || 3);
+      if (images.length > requiredCount) {
+        const timer = setInterval(() => {
+          setGridImages((prevGrid) => {
+            const newGrid = [...prevGrid];
+            // Replace image at current slot with next global image
+            newGrid[nextSlotIndex] = images[globalImageIndex % images.length];
+            return newGrid;
+          });
+          setNextSlotIndex((prev) => (prev + 1) % requiredCount);
+          setGlobalImageIndex((prev) => prev + 1);
+        }, matConfig.cycleDuration ?? 2000);
+        return () => clearInterval(timer);
+      }
     }
   }, [
     images,
@@ -207,14 +212,23 @@ const SlideshowPage: React.FC = () => {
 
   if (loading || !isSignedIn) return null;
 
-  // Grid layout: 3 Portraits
+  // Grid layout: 3 Portraits or 6 Portraits
   if (layout?.type === "grid") {
-    const requiredCount = layout?.grid?.cols || 3;
+    const rows = layout?.grid?.rows || 1;
+    const cols = layout?.grid?.cols || 3;
+    const requiredCount = rows * cols;
     const hasMoreImages = images.length > requiredCount;
     const displayImages =
       gridImages.length > 0 ? gridImages : images.slice(0, requiredCount);
     const allPortrait =
       displayImages.length === requiredCount || !hasMoreImages;
+
+    // Determine styling based on layout
+    const is6Portrait = requiredCount === 6;
+    const imageHeight = is6Portrait ? "35vh" : "75vh";
+    const maxImageHeight = is6Portrait ? "300px" : "600px";
+    const maxImageWidth = is6Portrait ? "200px" : "350px";
+
     return (
       <div className="fixed inset-0 bg-black flex flex-col items-center justify-center z-50">
         <style jsx>{`
@@ -239,8 +253,9 @@ const SlideshowPage: React.FC = () => {
             width: "100%",
             height: "100%",
             display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
-            gap: "1.5vw",
+            gridTemplateColumns: `repeat(${cols}, 1fr)`,
+            gridTemplateRows: `repeat(${rows}, 1fr)`,
+            gap: is6Portrait ? "1vw" : "1.5vw",
             alignItems: "center",
             justifyItems: "center",
             paddingTop: "2vh",
@@ -252,9 +267,9 @@ const SlideshowPage: React.FC = () => {
               key={`slot-${index}`}
               style={{
                 width: "100%",
-                height: "75vh",
-                maxWidth: "350px",
-                maxHeight: "600px",
+                height: imageHeight,
+                maxWidth: maxImageWidth,
+                maxHeight: maxImageHeight,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",

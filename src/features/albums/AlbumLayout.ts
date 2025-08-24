@@ -16,6 +16,13 @@ export const ALBUM_LAYOUTS: AlbumLayout[] = [
     type: "grid",
   },
   {
+    name: "6 Portraits",
+    description: "Six images in portrait mode (2x3 grid)",
+    grid: { rows: 2, cols: 3 },
+    orientation: "portrait",
+    type: "grid",
+  },
+  {
     name: "Slideshow",
     description: "Single image at a time, auto-advancing",
     grid: { rows: 1, cols: 1 },
