@@ -10,7 +10,6 @@ env:
   NODE_VERSION: '20'
 
 jobs:
-  # Semantic Release Job (main branch only)
   release:
     name: 🏷️ Semantic Release
     runs-on: ubuntu-latest
@@ -77,6 +76,17 @@ jobs:
       - name: 📥 Install dependencies
         run: npm ci
 
+      - name: 📦 Cache Next.js build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ${{ github.workspace }}/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
+            ${{ runner.os }}-nextjs-
+
       - name: 🏗️ Build project
         run: npm run build
 
@@ -87,7 +97,7 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           channelId: live
           projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
-          firebaseToolsArgs: '--force'
+          force: true
         env:
           FIREBASE_CLI_EXPERIMENTS: webframeworks
           FIREBASE_FUNCTIONS_FORCE_CLEANUP_POLICY: true
@@ -123,7 +133,18 @@ jobs:
       - name: 📥 Install dependencies
         run: npm ci
 
-      - name: 🔍 Lint code
+      - name: 📦 Cache Next.js build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ${{ github.workspace }}/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
+            ${{ runner.os }}-nextjs-
+
+      - name: �🔍 Lint code
         run: npm run lint
 
       - name: 🏗️ Build project
@@ -131,7 +152,7 @@ jobs:
 
   # Deploy to Preview (for PRs)
   deploy-preview:
-    name: � Deploy Preview
+    name: 🔄 Deploy Preview
     runs-on: ubuntu-latest
     needs: test
     if: github.event_name == 'pull_request'
@@ -148,6 +169,17 @@ jobs:
       - name: 📥 Install dependencies
         run: npm ci
 
+      - name: 📦 Cache Next.js build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.npm
+            ${{ github.workspace }}/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
+            ${{ runner.os }}-nextjs-
+
       - name: 🏗️ Build project
         env:
           NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
@@ -158,13 +190,13 @@ jobs:
           NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
         run: npm run build
 
-      - name: � Deploy to Firebase Preview
+      - name: 🔄 Deploy to Firebase Preview
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
-          firebaseToolsArgs: '--force'
+          force: true
         env:
           FIREBASE_CLI_EXPERIMENTS: webframeworks
           FIREBASE_FUNCTIONS_FORCE_CLEANUP_POLICY: true
