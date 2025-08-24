@@ -180,5 +180,26 @@ export async function updateAlbum(
 
 export async function deleteAlbum(id: string): Promise<void> {
   const { albumsCollection } = getDB();
+
+  // First, get the album data to retrieve image URLs
+  const albumData = await getAlbum(id);
+
+  if (albumData) {
+    // Import deleteImage function
+    const { deleteImage } = await import("./storage");
+
+    // Delete all images from storage
+    const imagesToDelete = [
+      ...(albumData.images || []),
+      ...(albumData.coverUrl ? [albumData.coverUrl] : []),
+    ];
+
+    // Delete images in parallel for better performance
+    await Promise.allSettled(
+      imagesToDelete.map((imageUrl) => deleteImage(imageUrl))
+    );
+  }
+
+  // Finally, delete the album document
   await deleteDoc(doc(albumsCollection, id));
 }
