@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/dimitriosdev/chrono-lens/compare/v1.0.0...v1.0.1) (2025-08-24)
+
+
+### Bug Fixes
+
+* move typescript to dependencies for production builds ([ac711fd](https://github.com/dimitriosdev/chrono-lens/commit/ac711fdce723dca6602a09e7df3093636985a42d))
+
 # 1.0.0 (2025-08-24)
 
 
