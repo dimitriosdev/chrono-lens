@@ -4,6 +4,8 @@ import "./globals.css";
 import { AuthProvider } from "../context/AuthContext";
 import Navigation from "../components/Navigation";
 import { ErrorBoundary } from "../components/ErrorBoundary";
+import { VersionDisplay } from "../components/VersionDisplay";
+import { VersionLogger } from "../components/VersionLogger";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,11 +34,13 @@ export default function RootLayout({
       >
         <AuthProvider>
           <ErrorBoundary>
+            <VersionLogger />
             <div className="flex min-h-screen w-full bg-gray-950">
               <Navigation />
               <main className="flex-1 px-2 pt-14 sm:pt-0 w-full sm:ml-20">
                 {children}
               </main>
+              <VersionDisplay />
             </div>
           </ErrorBoundary>
         </AuthProvider>
