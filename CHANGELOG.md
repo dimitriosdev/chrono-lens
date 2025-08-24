@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/dimitriosdev/chrono-lens/compare/v1.2.0...v1.2.1) (2025-08-24)
+
+
+### Bug Fixes
+
+* use matConfig.cycleDuration for image cycling interval in SlideshowPage ([68e4124](https://github.com/dimitriosdev/chrono-lens/commit/68e412424d79afaf5eac3ef16deeabc48c9bf00f))
+
 # [1.2.0](https://github.com/dimitriosdev/chrono-lens/compare/v1.1.0...v1.2.0) (2025-08-24)
 
 
