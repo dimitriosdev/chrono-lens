@@ -207,9 +207,7 @@ export async function getCurrentUserId(): Promise<string> {
   let userId = localStorage.getItem("userId");
   if (!userId) {
     // Generate a unique user ID
-    userId = `user_${Date.now()}_${Math.random()
-      .toString(36)
-      .substring(2, 9)}`;
+    userId = `user_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
     localStorage.setItem("userId", userId);
   }
   return userId;
@@ -237,4 +235,25 @@ export function checkRateLimit(
 
   userRequests.count++;
   return true;
+}
+
+// Clear rate limiting cache (useful for development)
+export function clearRateLimit(userId?: string): void {
+  if (userId) {
+    requestCounts.delete(userId);
+  } else {
+    requestCounts.clear();
+  }
+}
+
+// Add to global window object in development for easy debugging
+if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
+  interface DevWindow extends Window {
+    clearRateLimit?: typeof clearRateLimit;
+    checkRateLimit?: typeof checkRateLimit;
+  }
+
+  const devWindow = window as DevWindow;
+  devWindow.clearRateLimit = clearRateLimit;
+  devWindow.checkRateLimit = checkRateLimit;
 }

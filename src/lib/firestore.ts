@@ -128,11 +128,14 @@ export async function addAlbum(album: Omit<Album, "id">): Promise<string> {
     throw new Error("User not authenticated");
   }
 
-  // Rate limiting
-  if (!checkRateLimit(userId, 5, 60000)) {
-    // 5 albums per minute
+  // Rate limiting - more lenient in development
+  const isDevelopment = process.env.NODE_ENV === "development";
+  const maxAlbums = isDevelopment ? 50 : 5; // 50 in dev, 5 in prod
+  const timeWindow = isDevelopment ? 60000 : 60000; // 1 minute in both
+
+  if (!checkRateLimit(userId, maxAlbums, timeWindow)) {
     throw new Error(
-      "Album creation rate limit exceeded. Please wait before creating more albums."
+      `Album creation rate limit exceeded. Please wait before creating more albums. (${maxAlbums} per minute allowed)`
     );
   }
 
