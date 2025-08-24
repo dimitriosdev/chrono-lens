@@ -178,10 +178,16 @@ const SlideshowPage: React.FC = () => {
         });
         setNextSlotIndex((prev) => (prev + 1) % 3);
         setGlobalImageIndex((prev) => prev + 1);
-      }, 2000);
+      }, matConfig.cycleDuration ?? 2000);
       return () => clearInterval(timer);
     }
-  }, [images, layout, nextSlotIndex, globalImageIndex]);
+  }, [
+    images,
+    layout,
+    nextSlotIndex,
+    globalImageIndex,
+    matConfig.cycleDuration,
+  ]);
 
   const handleBack = React.useCallback(() => {
     router.push("/albums");
