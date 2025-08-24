@@ -1,3 +1,11 @@
+# [1.3.0](https://github.com/dimitriosdev/chrono-lens/compare/v1.2.1...v1.3.0) (2025-08-24)
+
+
+### Features
+
+* Enhance album editing and creation with image descriptions ([c188c50](https://github.com/dimitriosdev/chrono-lens/commit/c188c504a4fb920991637ef11f363d97a9742df4))
+* enhance album layout options with a new "6 Portraits" grid configuration ([709f2df](https://github.com/dimitriosdev/chrono-lens/commit/709f2df0f1d55bcf3ef94b12e0a386acef954d0e))
+
 ## [1.2.1](https://github.com/dimitriosdev/chrono-lens/compare/v1.2.0...v1.2.1) (2025-08-24)
 
 
