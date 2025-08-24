@@ -78,9 +78,12 @@ export async function deleteImage(url: string): Promise<void> {
 
     const path = decodeURIComponent(matches[1]);
 
-    // Ensure user can only delete their own files
+    // For single-user scenarios: warn but attempt to delete files even if they don't match current userId
     if (!path.startsWith(`users/${userId}/`)) {
-      throw new Error("Unauthorized: Cannot delete files from other users");
+      console.warn(
+        `Attempting to delete file from different user path: ${path} (current user: ${userId})`
+      );
+      // Continue with deletion attempt instead of returning early
     }
 
     const storage = getFirebaseStorage();
@@ -92,7 +95,17 @@ export async function deleteImage(url: string): Promise<void> {
     await deleteObject(storageRef);
     console.log("Successfully deleted image from storage:", path);
   } catch (error) {
+    // Log the error but don't throw to avoid breaking the entire deletion process
     console.warn("Failed to delete image from storage:", url, error);
-    // Don't throw error to avoid breaking UI when file doesn't exist
+
+    // Only throw if it's a critical error (not authorization or file not found)
+    if (
+      error instanceof Error &&
+      !error.message.includes("Unauthorized") &&
+      !error.message.includes("not found") &&
+      !error.message.includes("does not exist")
+    ) {
+      throw error;
+    }
   }
 }

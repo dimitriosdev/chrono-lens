@@ -34,7 +34,24 @@ const AlbumGrid: React.FC = () => {
         console.log("Album deleted successfully");
       } catch (error) {
         console.error("Failed to delete album:", error);
-        alert("Failed to delete album. Please try again.");
+
+        // Provide more specific error messages
+        let errorMessage = "Failed to delete album. Please try again.";
+        if (error instanceof Error) {
+          if (error.message.includes("Unauthorized")) {
+            errorMessage = "You don't have permission to delete this album.";
+          } else if (error.message.includes("not found")) {
+            errorMessage = "Album not found. It may have already been deleted.";
+            // Remove from UI anyway since it doesn't exist
+            setAlbums((prev: Album[]) =>
+              prev.filter((a: Album) => a.id !== albumId)
+            );
+          } else if (error.message.includes("not authenticated")) {
+            errorMessage = "Please log in to delete albums.";
+          }
+        }
+
+        alert(errorMessage);
       }
     }
   };
