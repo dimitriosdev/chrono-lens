@@ -3,9 +3,12 @@
  * This file is automatically updated during build/deployment
  */
 
+// Import package.json to get the actual version
+import packageJson from "../../package.json";
+
 export const APP_VERSION = {
-  // Semantic version
-  version: "1.0.0",
+  // Semantic version from package.json or environment variable (for releases)
+  version: process.env.NEXT_PUBLIC_VERSION || packageJson.version,
 
   // Build timestamp (will be set during build)
   buildTime: process.env.NEXT_PUBLIC_BUILD_TIME || new Date().toISOString(),
