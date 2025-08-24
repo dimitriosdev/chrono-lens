@@ -1,0 +1,11 @@
+[
+  {
+    "origin": [
+      "https://chrono-lens-ac1885.web.app",
+      "https://chrono-lens-ac1885.firebaseapp.com",
+      "http://localhost:3000"
+    ],
+    "method": ["GET"],
+    "maxAgeSeconds": 3600
+  }
+]
