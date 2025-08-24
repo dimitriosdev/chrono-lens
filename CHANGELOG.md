@@ -1,3 +1,15 @@
+# [1.1.0](https://github.com/dimitriosdev/chrono-lens/compare/v1.0.1...v1.1.0) (2025-08-24)
+
+
+### Bug Fixes
+
+* correct CI/CD dependency installation ([ea7da80](https://github.com/dimitriosdev/chrono-lens/commit/ea7da80c059989f62f5739a7640bbd79b5855e1e))
+
+
+### Features
+
+* add favicon and enhance metadata for SEO and PWA support ([765fcff](https://github.com/dimitriosdev/chrono-lens/commit/765fcff069659668a4f374cb1fec3ca0ff4cf739))
+
 ## [1.0.1](https://github.com/dimitriosdev/chrono-lens/compare/v1.0.0...v1.0.1) (2025-08-24)
 
 
