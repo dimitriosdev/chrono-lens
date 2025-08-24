@@ -19,8 +19,7 @@
     "framer-motion": "^12.23.12",
     "next": "15.4.6",
     "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "typescript": "^5"
+    "react-dom": "19.1.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -37,6 +36,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.4.6",
     "semantic-release": "^24.2.7",
-    "tailwindcss": "^4"
+    "tailwindcss": "^4",
+    "typescript": "^5"
   }
 }
