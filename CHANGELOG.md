@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/dimitriosdev/chrono-lens/compare/v1.1.0...v1.2.0) (2025-08-24)
+
+
+### Features
+
+* enhance deleteAlbum to remove associated images from storage ([2c19b83](https://github.com/dimitriosdev/chrono-lens/commit/2c19b83102b6c01b344eca0a716baeb8e1ad78f4))
+
 # [1.1.0](https://github.com/dimitriosdev/chrono-lens/compare/v1.0.1...v1.1.0) (2025-08-24)
 
 
