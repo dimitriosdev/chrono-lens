@@ -41,7 +41,7 @@ function MatImage({
 
   // Adaptive mat calculation - reduce mat percentage for grid mode
   const adjustedMatPercent = containerMode
-    ? Math.min(matPercent, 15)
+    ? Math.min(matPercent, 10)
     : matPercent;
   const imgAspect = imgDims.width / imgDims.height;
   const artworkArea = Math.min(frameW, frameH) * (1 - adjustedMatPercent / 100);
@@ -143,7 +143,22 @@ const SlideshowPage: React.FC = () => {
     if (albumId) fetchAlbum();
   }, [albumId]);
 
-  const images = React.useMemo(() => album?.images || [], [album?.images]);
+  const images = React.useMemo(() => {
+    const albumImages = album?.images || [];
+    // Handle both old format (string[]) and new format (AlbumImage[])
+    return albumImages.map((img) => (typeof img === "string" ? img : img.url));
+  }, [album?.images]);
+
+  const imageDescriptions = React.useMemo(() => {
+    const albumImages = album?.images || [];
+    // Get descriptions for new format, empty string for old format
+    const descriptions = albumImages.map((img) =>
+      typeof img === "string" ? "" : img.description || ""
+    );
+    return descriptions;
+  }, [album?.images]);
+
+  const currentImageDescription = imageDescriptions[current] || "";
   const matConfig = album?.matConfig || { matWidth: 5, matColor: "#000" };
   const layout: AlbumLayout = React.useMemo(
     () =>
@@ -223,88 +238,172 @@ const SlideshowPage: React.FC = () => {
     const allPortrait =
       displayImages.length === requiredCount || !hasMoreImages;
 
-    // Determine styling based on layout
+    // Modern responsive grid design
     const is6Portrait = requiredCount === 6;
-    const imageHeight = is6Portrait ? "35vh" : "75vh";
-    const maxImageHeight = is6Portrait ? "300px" : "600px";
-    const maxImageWidth = is6Portrait ? "200px" : "350px";
 
     return (
-      <div className="fixed inset-0 bg-black flex flex-col items-center justify-center z-50">
+      <div className="fixed inset-0 bg-gray-900 flex flex-col items-center justify-center z-50">
         <style jsx>{`
           @keyframes fadeIn {
             from {
               opacity: 0;
-              transform: scale(0.95);
+              transform: translateY(20px);
             }
             to {
               opacity: 1;
-              transform: scale(1);
+              transform: translateY(0);
             }
           }
           .image-fade-transition {
-            transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+            animation: fadeIn 0.6s ease-out;
+          }
+
+          /* Mobile-first approach for better viewing */
+          @media (max-width: 640px) {
+            .mobile-grid-6 {
+              grid-template-columns: repeat(2, 1fr) !important;
+              grid-template-rows: repeat(2, 1fr) !important;
+              gap: 6px !important;
+              padding: 6px !important;
+              height: calc(100vh - 100px) !important;
+            }
+            .mobile-grid-6 > div:nth-child(n + 5) {
+              display: none !important;
+            }
+            .mobile-grid-6 .group {
+              transform: scale(1.1) !important;
+            }
+            .mobile-grid-3 {
+              grid-template-columns: repeat(1, 1fr) !important;
+              grid-template-rows: repeat(2, 1fr) !important;
+              gap: 12px !important;
+              padding: 8px !important;
+              height: calc(100vh - 100px) !important;
+            }
+            .mobile-grid-3 > div:nth-child(n + 3) {
+              display: none !important;
+            }
+          }
+
+          @media (min-width: 641px) and (max-width: 768px) {
+            .mobile-grid-6 {
+              grid-template-columns: repeat(2, 1fr) !important;
+              grid-template-rows: repeat(3, 1fr) !important;
+              gap: 10px !important;
+              padding: 12px !important;
+            }
+            .mobile-grid-3 {
+              grid-template-columns: repeat(1, 1fr) !important;
+              grid-template-rows: repeat(3, 1fr) !important;
+              gap: 12px !important;
+              padding: 12px !important;
+            }
+          }
+
+          @media (min-width: 769px) and (max-width: 1024px) {
+            .mobile-grid-6 {
+              grid-template-columns: repeat(3, 1fr) !important;
+              grid-template-rows: repeat(2, 1fr) !important;
+              gap: 14px !important;
+              padding: 16px !important;
+            }
           }
         `}</style>
+
         <div
-          className="grid w-full h-full mx-auto px-2 md:px-4"
-          style={{
-            maxWidth: "1200px",
-            width: "100%",
-            height: "100%",
-            display: "grid",
-            gridTemplateColumns: `repeat(${cols}, 1fr)`,
-            gridTemplateRows: `repeat(${rows}, 1fr)`,
-            gap: is6Portrait ? "1vw" : "1.5vw",
-            alignItems: "center",
-            justifyItems: "center",
-            paddingTop: "2vh",
-            paddingBottom: "6vh",
-          }}
+          className={`w-full h-full max-w-7xl mx-auto p-2 sm:p-4 md:p-6 lg:p-8 ${
+            is6Portrait
+              ? "mobile-grid-6"
+              : requiredCount === 3
+              ? "mobile-grid-3"
+              : ""
+          }`}
         >
-          {displayImages.map((img: string, index: number) => (
-            <div
-              key={`slot-${index}`}
-              style={{
-                width: "100%",
-                height: imageHeight,
-                maxWidth: maxImageWidth,
-                maxHeight: maxImageHeight,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: "transparent",
-                margin: "0 auto",
-              }}
-            >
-              <div className="image-fade-transition" key={img}>
-                <MatImage
-                  src={img}
-                  matConfig={matConfig}
-                  containerMode={true}
-                />
-              </div>
-            </div>
-          ))}
+          <div
+            className="grid w-full h-full gap-2 sm:gap-3 md:gap-4 lg:gap-6"
+            style={{
+              gridTemplateColumns: `repeat(${cols}, 1fr)`,
+              gridTemplateRows: `repeat(${rows}, 1fr)`,
+              height: "calc(100vh - 60px)",
+            }}
+          >
+            {displayImages.map((img: string) => {
+              // Get the description for the current image - find the correct index in the original images array
+              const originalImageIndex = images.indexOf(img);
+              const description =
+                originalImageIndex >= 0
+                  ? imageDescriptions[originalImageIndex]
+                  : "";
+
+              return (
+                <div
+                  key={`${img}-${globalImageIndex}-${nextSlotIndex}`}
+                  className="relative w-full h-full min-h-0"
+                >
+                  <div className="group relative w-full h-full transition-all duration-300 hover:scale-[1.02] image-fade-transition">
+                    {/* Mat board container */}
+                    <div className="relative w-full h-full flex items-center justify-center">
+                      <div className="relative">
+                        <MatImage
+                          src={img}
+                          matConfig={matConfig}
+                          containerMode={true}
+                        />
+
+                        {/* Description overlay - positioned relative to mat frame */}
+                        {description && description.trim() && (
+                          <div
+                            key={`desc-${img}-${originalImageIndex}-${globalImageIndex}`}
+                            className="absolute inset-0 z-10"
+                          >
+                            {/* Subtle bottom fade */}
+                            <div className="absolute bottom-0 left-0 right-0 h-12 sm:h-16 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 md:opacity-80" />
+
+                            {/* Clean caption positioned within mat frame */}
+                            <div className="absolute bottom-1 sm:bottom-2 left-1 sm:left-2 right-1 sm:right-2 opacity-0 group-hover:opacity-100 transition-all duration-300 md:opacity-100 transform translate-y-1 group-hover:translate-y-0">
+                              <p className="text-white text-xs sm:text-sm font-medium tracking-wider drop-shadow-lg text-center px-1 sm:px-2 py-1 bg-black/30 rounded backdrop-blur-sm">
+                                {description}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
+
         {!allPortrait && (
-          <div className="absolute bottom-16 w-full text-center z-50">
-            <span className="text-red-500 bg-black bg-opacity-80 px-4 py-2 rounded-lg font-semibold">
+          <div className="absolute bottom-12 sm:bottom-16 w-full text-center z-50 px-4">
+            <span className="text-red-500 bg-black bg-opacity-80 px-3 sm:px-4 py-2 rounded-lg text-sm sm:font-semibold">
               All images must be portrait for this layout. Please update your
               album.
             </span>
           </div>
         )}
-        <div className="absolute bottom-4 w-full text-center z-40">
-          <h1 className="text-base font-medium text-white opacity-70">
+
+        <div className="absolute bottom-2 sm:bottom-4 w-full text-center z-40 px-4">
+          <h1 className="text-sm sm:text-base font-medium text-white opacity-70">
             {album?.title || "Untitled Album"}
           </h1>
+          {/* Mobile cycling indicator for 6 Portrait layout */}
+          {is6Portrait && (
+            <div className="block sm:hidden mt-1">
+              <p className="text-xs text-white opacity-50">
+                Images cycle automatically • {images.length} total
+              </p>
+            </div>
+          )}
         </div>
+
         <button
           type="button"
           onClick={handleBack}
           aria-label="Back to albums"
-          className="absolute top-4 left-4 bg-gray-900 bg-opacity-80 text-white px-4 py-2 rounded-lg shadow-lg text-base font-semibold hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white z-50"
+          className="absolute top-2 sm:top-4 left-2 sm:left-4 bg-gray-900 bg-opacity-80 text-white px-3 sm:px-4 py-2 rounded-lg shadow-lg text-sm sm:text-base font-semibold hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white z-50"
         >
           ←
         </button>
@@ -326,16 +425,23 @@ const SlideshowPage: React.FC = () => {
       ) : (
         <div className="text-white">No images in album.</div>
       )}
-      <div className="absolute bottom-4 w-full text-center z-40">
-        <h1 className="text-base font-medium text-white opacity-70">
+      <div className="absolute bottom-2 sm:bottom-4 w-full text-center z-40 px-4">
+        <h1 className="text-sm sm:text-base font-medium text-white opacity-70">
           {album?.title || "Untitled Album"}
         </h1>
+        {currentImageDescription && currentImageDescription.trim() && (
+          <div className="mt-2 sm:mt-3 px-4 sm:px-6 py-2 sm:py-3 bg-black/60 backdrop-blur-sm rounded-xl mx-auto max-w-2xl">
+            <p className="text-white text-sm sm:text-base leading-relaxed drop-shadow-lg">
+              {currentImageDescription}
+            </p>
+          </div>
+        )}
       </div>
       <button
         type="button"
         onClick={handleBack}
         aria-label="Back to albums"
-        className="absolute top-4 left-4 bg-gray-900 bg-opacity-80 text-white px-4 py-2 rounded-lg shadow-lg text-base font-semibold hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white z-50"
+        className="absolute top-2 sm:top-4 left-2 sm:left-4 bg-gray-900 bg-opacity-80 text-white px-3 sm:px-4 py-2 rounded-lg shadow-lg text-sm sm:text-base font-semibold hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white z-50"
       >
         ←
       </button>

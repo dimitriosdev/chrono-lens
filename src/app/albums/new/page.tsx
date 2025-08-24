@@ -14,11 +14,13 @@ import { uploadImage } from "@/lib/storage";
 // alias: import * as StorageModule from "@/lib/storage";
 import { useAuth } from "@/context/AuthContext";
 import { validateAlbumTitle, validateFile } from "../../../lib/security";
+import { AlbumImage } from "@/entities/Album";
 
 const NewAlbumPage: React.FC = () => {
   const { isSignedIn, loading } = useAuth();
   const router = useRouter();
   const [images, setImages] = useState<File[]>([]);
+  const [imageDescriptions, setImageDescriptions] = useState<string[]>([]);
   const [albumName, setAlbumName] = useState("");
   const [loadingAlbum, setLoadingAlbum] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -61,11 +63,22 @@ const NewAlbumPage: React.FC = () => {
       setError("");
     }
 
-    setImages(validFiles);
+    // Append new images and initialize descriptions for them
+    setImages((prev) => [...prev, ...validFiles]);
+    setImageDescriptions((prev) => [...prev, ...validFiles.map(() => "")]);
   };
 
   const removeImage = (idx: number) => {
     setImages((prev) => prev.filter((_, i) => i !== idx));
+    setImageDescriptions((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  const updateImageDescription = (idx: number, description: string) => {
+    setImageDescriptions((prev) => {
+      const updated = [...prev];
+      updated[idx] = description;
+      return updated;
+    });
   };
 
   const handleSave = async () => {
@@ -89,19 +102,27 @@ const NewAlbumPage: React.FC = () => {
 
     // Generate a temporary albumId for storage paths
     const tempAlbumId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    const imageUrls: string[] = [];
+    const albumImages: AlbumImage[] = [];
     try {
       for (let i = 0; i < images.length; i++) {
         const url = await uploadImage(images[i], tempAlbumId, i);
-        imageUrls.push(url);
+        const imageDescription = imageDescriptions[i]?.trim();
+        const albumImage: AlbumImage = { url };
+
+        // Only add description field if it's not empty
+        if (imageDescription) {
+          albumImage.description = imageDescription;
+        }
+
+        albumImages.push(albumImage);
       }
       await addAlbum({
         title: albumName,
-        images: imageUrls,
+        images: albumImages,
         layout: selectedLayout,
         matConfig: { ...matConfig, cycleDuration },
         description: "",
-        coverUrl: imageUrls[0],
+        coverUrl: albumImages[0]?.url,
         userId,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -160,27 +181,41 @@ const NewAlbumPage: React.FC = () => {
               e.target.value = "";
             }}
           />
-          <div className="grid grid-cols-3 gap-4 pb-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-2">
             {images.map((img, idx) => (
-              <div key={idx} className="relative group">
-                <div className="w-32 h-32 relative rounded-lg overflow-hidden border border-gray-800 bg-gray-900">
+              <div key={idx} className="relative group flex flex-col">
+                <div className="w-full h-32 relative rounded-lg overflow-hidden border border-gray-800 bg-gray-900">
                   <Image
                     src={URL.createObjectURL(img)}
                     alt={`Media ${idx + 1}`}
                     fill
                     className="object-cover"
-                    sizes="128px"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  />
+                  <button
+                    type="button"
+                    aria-label="Remove media"
+                    className="absolute top-2 right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-lg font-bold shadow hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 transition"
+                    style={{ zIndex: 20 }}
+                    onClick={() => removeImage(idx)}
+                  >
+                    &times;
+                  </button>
+                </div>
+                <div className="mt-2">
+                  <label className="block text-xs text-gray-400 mb-1">
+                    Description (optional)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g., Paris vacation, birthday party, etc."
+                    value={imageDescriptions[idx] || ""}
+                    onChange={(e) =>
+                      updateImageDescription(idx, e.target.value)
+                    }
+                    className="w-full px-3 py-2 text-sm rounded bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 placeholder-gray-400"
                   />
                 </div>
-                <button
-                  type="button"
-                  aria-label="Remove media"
-                  className="absolute top-2 right-2 bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-lg font-bold shadow hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 transition"
-                  style={{ zIndex: 20 }}
-                  onClick={() => removeImage(idx)}
-                >
-                  &times;
-                </button>
               </div>
             ))}
           </div>

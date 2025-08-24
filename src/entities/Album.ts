@@ -1,11 +1,16 @@
 import { AlbumLayout } from "@/features/albums/AlbumLayout";
 
+export interface AlbumImage {
+  url: string;
+  description?: string;
+}
+
 export interface Album {
   id: string; // Firestore document ID
   title: string;
   description?: string;
   coverUrl?: string;
-  images: string[];
+  images: AlbumImage[];
   layout?: AlbumLayout;
   matConfig?: import("@/components/MatBoard").MatConfig;
   userId?: string; // Owner user ID for security and isolation (optional for backward compatibility)

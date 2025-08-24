@@ -4,48 +4,68 @@ let dragIndex: number | null = null;
 type DraggableMediaProps = {
   idx: number;
   img: string;
+  description?: string;
   removeImage: (idx: number) => void;
   moveMedia: (from: number, to: number) => void;
+  updateDescription?: (idx: number, description: string) => void;
 };
 function DraggableMedia({
   idx,
   img,
+  description,
   removeImage,
   moveMedia,
+  updateDescription,
 }: DraggableMediaProps) {
   return (
-    <div
-      className="relative group cursor-move w-32 h-32"
-      draggable
-      onDragStart={() => {
-        dragIndex = idx;
-      }}
-      onDragOver={(e) => e.preventDefault()}
-      onDrop={() => {
-        if (dragIndex !== null && dragIndex !== idx) {
-          moveMedia(dragIndex, idx);
-        }
-        dragIndex = null;
-      }}
-    >
-      <div className="w-full h-full relative rounded-lg overflow-hidden border border-gray-800 bg-gray-900">
-        <Image
-          src={img}
-          alt={`Media ${idx + 1}`}
-          fill
-          className="object-cover"
-          sizes="128px"
-        />
-        <button
-          type="button"
-          aria-label="Remove media"
-          className="absolute top-2 right-2 bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-xl font-bold shadow hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 transition"
-          style={{ zIndex: 20 }}
-          onClick={() => removeImage(idx)}
-        >
-          &times;
-        </button>
+    <div className="flex flex-col">
+      <div
+        className="relative group cursor-move w-full h-32"
+        draggable
+        onDragStart={() => {
+          dragIndex = idx;
+        }}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={() => {
+          if (dragIndex !== null && dragIndex !== idx) {
+            moveMedia(dragIndex, idx);
+          }
+          dragIndex = null;
+        }}
+      >
+        <div className="w-full h-full relative rounded-lg overflow-hidden border border-gray-800 bg-gray-900">
+          <Image
+            src={img}
+            alt={`Media ${idx + 1}`}
+            fill
+            className="object-cover"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+          />
+          <button
+            type="button"
+            aria-label="Remove media"
+            className="absolute top-2 right-2 bg-red-600 text-white rounded-full w-7 h-7 flex items-center justify-center text-xl font-bold shadow hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-400 transition"
+            style={{ zIndex: 20 }}
+            onClick={() => removeImage(idx)}
+          >
+            &times;
+          </button>
+        </div>
       </div>
+      {updateDescription && (
+        <div className="mt-2">
+          <label className="block text-xs text-gray-400 mb-1">
+            Description (optional)
+          </label>
+          <input
+            type="text"
+            placeholder="e.g., Paris vacation, birthday party, etc."
+            value={description || ""}
+            onChange={(e) => updateDescription(idx, e.target.value)}
+            className="w-full px-3 py-2 text-sm rounded bg-gray-800 text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 placeholder-gray-400"
+          />
+        </div>
+      )}
     </div>
   );
 }
@@ -62,6 +82,7 @@ import { getAlbum, updateAlbum } from "@/lib/firestore";
 import { uploadImage, deleteImage } from "@/lib/storage";
 import { useAuth } from "@/context/AuthContext";
 import { validateAlbumTitle, validateFile } from "@/lib/security";
+import { AlbumImage } from "@/entities/Album";
 
 const EditAlbumPage: React.FC = () => {
   const { isSignedIn, loading } = useAuth();
@@ -77,6 +98,10 @@ const EditAlbumPage: React.FC = () => {
   );
   const [images, setImages] = useState<File[]>([]);
   const [imageUrls, setImageUrls] = useState<string[]>([]);
+  const [imageDescriptions, setImageDescriptions] = useState<string[]>([]);
+  const [newImageDescriptions, setNewImageDescriptions] = useState<string[]>(
+    []
+  );
   const [albumName, setAlbumName] = useState("");
   const [description, setDescription] = useState("");
   const [selectedLayout, setSelectedLayout] = useState<AlbumLayoutType>(
@@ -101,7 +126,26 @@ const EditAlbumPage: React.FC = () => {
         setAlbum(data);
         setAlbumName(data.title || "");
         setDescription(data.description || "");
-        setImageUrls(data.images || []);
+
+        // Handle both old format (string[]) and new format (AlbumImage[])
+        const albumImages = data.images || [];
+        const urls: string[] = [];
+        const descriptions: string[] = [];
+
+        albumImages.forEach((img) => {
+          if (typeof img === "string") {
+            // Old format
+            urls.push(img);
+            descriptions.push("");
+          } else {
+            // New format
+            urls.push(img.url);
+            descriptions.push(img.description || "");
+          }
+        });
+
+        setImageUrls(urls);
+        setImageDescriptions(descriptions);
         setSelectedLayout(data.layout || ALBUM_LAYOUTS[0]);
         setCoverUrl(data.coverUrl || "");
         setMatConfig(data.matConfig || { matWidth: 40, matColor: "#000" });
@@ -119,21 +163,50 @@ const EditAlbumPage: React.FC = () => {
 
   // Drag-and-drop reordering
   const moveMediaDnd = (from: number, to: number) => {
-    const all = [...imageUrls, ...images];
+    const allUrls = [...imageUrls, ...imageObjectUrls];
+    const allDescriptions = [...imageDescriptions, ...newImageDescriptions];
+
     if (from === to) return;
-    const item = all[from];
-    all.splice(from, 1);
-    all.splice(to, 0, item);
-    // Split back into imageUrls and images
-    const newImageUrls = all
+
+    const urlItem = allUrls[from];
+    const descItem = allDescriptions[from];
+
+    allUrls.splice(from, 1);
+    allDescriptions.splice(from, 1);
+    allUrls.splice(to, 0, urlItem);
+    allDescriptions.splice(to, 0, descItem);
+
+    // Split back into existing and new images
+    const newImageUrls = allUrls
       .slice(0, imageUrls.length)
-      .map((x) => (typeof x === "string" ? x : ""))
-      .filter(Boolean);
-    const newImages = all
-      .slice(imageUrls.length)
-      .filter((x) => x instanceof File);
+      .filter((url) => typeof url === "string");
+    const newImages = images.slice();
+    const updatedImageDescriptions = allDescriptions.slice(0, imageUrls.length);
+    const updatedNewImageDescriptions = allDescriptions.slice(imageUrls.length);
+
     setImageUrls(newImageUrls);
     setImages(newImages);
+    setImageDescriptions(updatedImageDescriptions);
+    setNewImageDescriptions(updatedNewImageDescriptions);
+  };
+
+  const updateImageDescription = (idx: number, description: string) => {
+    if (idx < imageUrls.length) {
+      // Updating existing image description
+      setImageDescriptions((prev) => {
+        const updated = [...prev];
+        updated[idx] = description;
+        return updated;
+      });
+    } else {
+      // Updating new image description
+      const newIdx = idx - imageUrls.length;
+      setNewImageDescriptions((prev) => {
+        const updated = [...prev];
+        updated[newIdx] = description;
+        return updated;
+      });
+    }
   };
 
   // Memoize object URLs for images and clean up on change
@@ -182,16 +255,25 @@ const EditAlbumPage: React.FC = () => {
     }
 
     setImages((prev) => [...prev, ...validFiles]);
+    // Initialize descriptions for new images
+    setNewImageDescriptions((prev) => [...prev, ...validFiles.map(() => "")]);
   };
 
   const removeImage = async (idx: number) => {
-    // Remove from UI
-    const urlToDelete = imageUrls[idx];
-    setImages((prev) => prev.filter((_, i) => i !== idx));
-    setImageUrls((prev) => prev.filter((_, i) => i !== idx));
-    // Remove from storage if it's a URL
-    if (urlToDelete) {
-      await deleteImage(urlToDelete);
+    if (idx < imageUrls.length) {
+      // Removing existing image
+      const urlToDelete = imageUrls[idx];
+      setImageUrls((prev) => prev.filter((_, i) => i !== idx));
+      setImageDescriptions((prev) => prev.filter((_, i) => i !== idx));
+      // Remove from storage if it's a URL
+      if (urlToDelete) {
+        await deleteImage(urlToDelete);
+      }
+    } else {
+      // Removing new image
+      const newIdx = idx - imageUrls.length;
+      setImages((prev) => prev.filter((_, i) => i !== newIdx));
+      setNewImageDescriptions((prev) => prev.filter((_, i) => i !== newIdx));
     }
   };
 
@@ -221,13 +303,36 @@ const EditAlbumPage: React.FC = () => {
 
     setLoading(true);
     setError("");
-    const uploadedImageUrls = [...imageUrls];
+    const albumImages: AlbumImage[] = [];
+
     try {
-      // Upload new images
+      // Add existing images with their descriptions
+      imageUrls.forEach((url, idx) => {
+        const imageDescription = imageDescriptions[idx]?.trim();
+        const albumImage: AlbumImage = { url };
+
+        // Only add description field if it's not empty
+        if (imageDescription) {
+          albumImage.description = imageDescription;
+        }
+
+        albumImages.push(albumImage);
+      });
+
+      // Upload new images and add them
       for (let i = 0; i < images.length; i++) {
         const url = await uploadImage(images[i], albumId, i);
-        uploadedImageUrls.push(url);
+        const newImageDescription = newImageDescriptions[i]?.trim();
+        const albumImage: AlbumImage = { url };
+
+        // Only add description field if it's not empty
+        if (newImageDescription) {
+          albumImage.description = newImageDescription;
+        }
+
+        albumImages.push(albumImage);
       }
+
       // Upload cover image if changed
       let newCoverUrl = coverUrl;
       if (coverFile) {
@@ -236,9 +341,9 @@ const EditAlbumPage: React.FC = () => {
       await updateAlbum(albumId, {
         title: albumName,
         description,
-        images: uploadedImageUrls,
+        images: albumImages,
         layout: selectedLayout,
-        coverUrl: newCoverUrl || uploadedImageUrls[0],
+        coverUrl: newCoverUrl || albumImages[0]?.url,
         matConfig: {
           matWidth: matConfig.matWidth || 40,
           matColor: matConfig.matColor || "#000",
@@ -308,14 +413,16 @@ const EditAlbumPage: React.FC = () => {
               e.target.value = "";
             }}
           />
-          <div className="grid grid-cols-3 gap-4 pb-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pb-2">
             {imageUrls.map((img, idx) => (
               <DraggableMedia
                 key={img + idx}
                 idx={idx}
                 img={img}
+                description={imageDescriptions[idx]}
                 removeImage={removeImage}
                 moveMedia={moveMediaDnd}
+                updateDescription={updateImageDescription}
               />
             ))}
             {imageObjectUrls.map((img, idx) => (
@@ -323,8 +430,10 @@ const EditAlbumPage: React.FC = () => {
                 key={img + "new" + idx}
                 idx={imageUrls.length + idx}
                 img={img}
+                description={newImageDescriptions[idx]}
                 removeImage={removeImage}
                 moveMedia={moveMediaDnd}
+                updateDescription={updateImageDescription}
               />
             ))}
           </div>

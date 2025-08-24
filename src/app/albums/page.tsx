@@ -18,7 +18,9 @@ export default function AlbumsPage() {
   return (
     <div className="relative min-h-screen w-full">
       <Navigation />
-      <AlbumGrid />
+      <div className="pt-14 sm:pt-0 sm:ml-20">
+        <AlbumGrid />
+      </div>
     </div>
   );
 }

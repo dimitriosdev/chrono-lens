@@ -61,11 +61,20 @@ export async function deleteImage(url: string): Promise<void> {
     throw new Error("User not authenticated");
   }
 
+  // Skip empty or invalid URLs
+  if (!url || typeof url !== "string") {
+    console.warn("Skipping deletion of invalid URL:", url);
+    return;
+  }
+
   // Convert download URL to storage path
   // Example: https://firebasestorage.googleapis.com/v0/b/<bucket>/o/users%2FuserId%2Falbums%2FalbumId%2Ffilename?alt=media
   try {
     const matches = url.match(/\/o\/(.+)\?/);
-    if (!matches || !matches[1]) throw new Error("Invalid storage URL");
+    if (!matches || !matches[1]) {
+      console.warn("Invalid storage URL format:", url);
+      return;
+    }
 
     const path = decodeURIComponent(matches[1]);
 
@@ -81,8 +90,9 @@ export async function deleteImage(url: string): Promise<void> {
 
     const storageRef = ref(storage, path);
     await deleteObject(storageRef);
+    console.log("Successfully deleted image from storage:", path);
   } catch (error) {
-    console.warn("Failed to delete image from storage:", error);
+    console.warn("Failed to delete image from storage:", url, error);
     // Don't throw error to avoid breaking UI when file doesn't exist
   }
 }

@@ -18,7 +18,7 @@ import {
   QueryDocumentSnapshot,
 } from "firebase/firestore";
 import { getFirebaseApp } from "@/lib/firebase";
-import { Album } from "@/entities/Album";
+import { Album, AlbumImage } from "@/entities/Album";
 import {
   validateAlbumTitle,
   sanitizeText,
@@ -44,6 +44,26 @@ const getDB = () => {
   return { db, albumsCollection: albumsCollection! };
 };
 
+// Helper function to normalize images from old format to new format
+const normalizeImages = (images: string[] | AlbumImage[]): AlbumImage[] => {
+  if (!images || !Array.isArray(images)) return [];
+
+  // If images are already in the new format (objects with url property)
+  if (
+    images.length > 0 &&
+    typeof images[0] === "object" &&
+    "url" in images[0]
+  ) {
+    return images as AlbumImage[];
+  }
+
+  // Convert from old format (array of strings) to new format
+  return (images as string[]).map((imageUrl: string) => ({
+    url: imageUrl,
+    // Don't include description field if it would be undefined
+  }));
+};
+
 export async function getAlbum(id: string): Promise<Album | null> {
   const userId = await getCurrentUserId();
   if (!userId) {
@@ -60,6 +80,9 @@ export async function getAlbum(id: string): Promise<Album | null> {
   if (albumData.userId && albumData.userId !== userId) {
     throw new Error("Unauthorized: Cannot access other users' albums");
   }
+
+  // Normalize images for backward compatibility
+  albumData.images = normalizeImages(albumData.images);
 
   return albumData;
 }
@@ -86,8 +109,12 @@ export async function getAlbums(): Promise<Album[]> {
       // If user-specific albums found, return them
       if (!snapshot.empty) {
         const userAlbums = snapshot.docs.map(
-          (doc: QueryDocumentSnapshot<DocumentData>) =>
-            ({ id: doc.id, ...doc.data() } as Album)
+          (doc: QueryDocumentSnapshot<DocumentData>) => {
+            const albumData = { id: doc.id, ...doc.data() } as Album;
+            // Normalize images for backward compatibility
+            albumData.images = normalizeImages(albumData.images);
+            return albumData;
+          }
         );
         console.log("Found user albums:", userAlbums.length);
         return userAlbums;
@@ -103,8 +130,12 @@ export async function getAlbums(): Promise<Album[]> {
     );
     const snapshot = await getDocs(allQuery);
     const allAlbums = snapshot.docs.map(
-      (doc: QueryDocumentSnapshot<DocumentData>) =>
-        ({ id: doc.id, ...doc.data() } as Album)
+      (doc: QueryDocumentSnapshot<DocumentData>) => {
+        const albumData = { id: doc.id, ...doc.data() } as Album;
+        // Normalize images for backward compatibility
+        albumData.images = normalizeImages(albumData.images);
+        return albumData;
+      }
     );
     console.log("Found all albums:", allAlbums.length);
     return allAlbums;
@@ -115,10 +146,12 @@ export async function getAlbums(): Promise<Album[]> {
     console.log("Using final fallback...");
     const fallbackQuery = query(albumsCollection);
     const snapshot = await getDocs(fallbackQuery);
-    return snapshot.docs.map(
-      (doc: QueryDocumentSnapshot<DocumentData>) =>
-        ({ id: doc.id, ...doc.data() } as Album)
-    );
+    return snapshot.docs.map((doc: QueryDocumentSnapshot<DocumentData>) => {
+      const albumData = { id: doc.id, ...doc.data() } as Album;
+      // Normalize images for backward compatibility
+      albumData.images = normalizeImages(albumData.images);
+      return albumData;
+    });
   }
 }
 
@@ -188,16 +221,48 @@ export async function deleteAlbum(id: string): Promise<void> {
     // Import deleteImage function
     const { deleteImage } = await import("./storage");
 
-    // Delete all images from storage
-    const imagesToDelete = [
-      ...(albumData.images || []),
-      ...(albumData.coverUrl ? [albumData.coverUrl] : []),
-    ];
+    // Delete all images from storage - handle both old and new image formats
+    const imagesToDelete: string[] = [];
 
-    // Delete images in parallel for better performance
-    await Promise.allSettled(
-      imagesToDelete.map((imageUrl) => deleteImage(imageUrl))
+    // Handle images array (both old string[] format and new AlbumImage[] format)
+    if (albumData.images) {
+      albumData.images.forEach((img) => {
+        if (typeof img === "string") {
+          // Old format: img is a URL string
+          imagesToDelete.push(img);
+        } else if (img && typeof img === "object" && img.url) {
+          // New format: img is an object with url property
+          imagesToDelete.push(img.url);
+        }
+      });
+    }
+
+    // Add cover image if it exists
+    if (albumData.coverUrl) {
+      imagesToDelete.push(albumData.coverUrl);
+    }
+
+    // Filter out any undefined/null URLs and delete images in parallel
+    const validUrls = imagesToDelete.filter(
+      (url) => url && typeof url === "string"
     );
+    console.log(
+      `Deleting ${validUrls.length} images from storage for album ${id}`
+    );
+
+    const deletionResults = await Promise.allSettled(
+      validUrls.map((imageUrl) => deleteImage(imageUrl))
+    );
+
+    // Log any failed deletions for debugging
+    deletionResults.forEach((result, index) => {
+      if (result.status === "rejected") {
+        console.warn(
+          `Failed to delete image ${validUrls[index]}:`,
+          result.reason
+        );
+      }
+    });
   }
 
   // Finally, delete the album document
