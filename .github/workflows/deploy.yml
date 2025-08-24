@@ -87,6 +87,7 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           channelId: live
           projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
+          firebaseToolsArgs: '--force'
         env:
           FIREBASE_CLI_EXPERIMENTS: webframeworks
           FIREBASE_FUNCTIONS_FORCE_CLEANUP_POLICY: true
@@ -163,6 +164,7 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
+          firebaseToolsArgs: '--force'
         env:
           FIREBASE_CLI_EXPERIMENTS: webframeworks
           FIREBASE_FUNCTIONS_FORCE_CLEANUP_POLICY: true
