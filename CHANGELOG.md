@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/dimitriosdev/chrono-lens/compare/v1.3.0...v1.4.0) (2025-08-24)
+
+
+### Features
+
+* Implement Album Form and Enhanced Mat Board components ([7aef935](https://github.com/dimitriosdev/chrono-lens/commit/7aef935efbb263c750470bbfe94f68d4bdb4ea6a))
+
 # [1.3.0](https://github.com/dimitriosdev/chrono-lens/compare/v1.2.1...v1.3.0) (2025-08-24)
 
 
