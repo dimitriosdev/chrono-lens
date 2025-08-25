@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/dimitriosdev/chrono-lens/compare/v1.4.0...v1.5.0) (2025-08-25)
+
+
+### Features
+
+* Enhance deployment process with versioning and commit hash tracking ([41ab5ec](https://github.com/dimitriosdev/chrono-lens/commit/41ab5ec8aac5d21a31f0487e0c7b37f93fe0c3ee))
+
 # [1.4.0](https://github.com/dimitriosdev/chrono-lens/compare/v1.3.0...v1.4.0) (2025-08-24)
 
 
