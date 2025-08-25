@@ -64,7 +64,14 @@ export const validateEmail = (email: string): ValidationResult => {
 
 export const validateFile = (file: File): ValidationResult => {
   const maxSize = 10 * 1024 * 1024; // 10MB
-  const allowedTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+  const allowedTypes = [
+    "image/jpeg",
+    "image/png",
+    "image/gif",
+    "image/webp",
+    "image/heic",
+    "image/heif",
+  ];
 
   if (!file) {
     return {
@@ -83,7 +90,7 @@ export const validateFile = (file: File): ValidationResult => {
   if (!allowedTypes.includes(file.type)) {
     return {
       isValid: false,
-      error: "File must be an image (JPEG, PNG, GIF, or WebP)",
+      error: "File must be an image (JPEG, PNG, GIF, WebP, or HEIC)",
     };
   }
 

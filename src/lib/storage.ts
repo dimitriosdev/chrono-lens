@@ -11,6 +11,7 @@ import {
   getCurrentUserId,
   checkRateLimit,
 } from "@/utils/security";
+import { processImage, ProcessedImage } from "@/utils/imageProcessing";
 
 export async function uploadImage(
   file: File,
@@ -31,14 +32,65 @@ export async function uploadImage(
     );
   }
 
-  // Validate file
+  // Validate original file
   const validation = validateFile(file);
   if (!validation.isValid) {
     throw new Error(validation.error);
   }
 
+  // Process image (convert HEIC, optimize size) - only in browser
+  let processedImage: ProcessedImage;
+  try {
+    // Check if we're in a browser environment before processing
+    if (typeof window !== "undefined") {
+      processedImage = await processImage(file);
+
+      // Log processing results in development
+      if (process.env.NODE_ENV === "development") {
+        console.log(`Image processing completed for ${file.name}:`, {
+          originalSize: processedImage.originalSize,
+          processedSize: processedImage.processedSize,
+          wasConverted: processedImage.wasConverted,
+          wasOptimized: processedImage.wasOptimized,
+          compressionRatio: Math.round(
+            ((processedImage.originalSize - processedImage.processedSize) /
+              processedImage.originalSize) *
+              100
+          ),
+        });
+      }
+    } else {
+      // Server-side fallback: use original file
+      processedImage = {
+        file,
+        originalSize: file.size,
+        processedSize: file.size,
+        wasOptimized: false,
+        wasConverted: false,
+        originalFormat: file.type,
+        processedFormat: file.type,
+      };
+    }
+  } catch (error) {
+    console.warn("Image processing failed, uploading original file:", error);
+    // Fallback to original file if processing fails
+    processedImage = {
+      file,
+      originalSize: file.size,
+      processedSize: file.size,
+      wasOptimized: false,
+      wasConverted: false,
+      originalFormat: file.type,
+      processedFormat: file.type,
+    };
+  }
+
+  const finalFile = processedImage.file;
+
   // Sanitize filename
-  const sanitizedName = sanitizeText(file.name.replace(/[^a-zA-Z0-9.-]/g, "_"));
+  const sanitizedName = sanitizeText(
+    finalFile.name.replace(/[^a-zA-Z0-9.-]/g, "_")
+  );
 
   // Generate secure path with user ID for isolation
   const securePath = `users/${userId}/albums/${albumId}/${Date.now()}_${idx}_${sanitizedName}`;
@@ -50,7 +102,7 @@ export async function uploadImage(
 
   const storageRef = ref(storage, securePath);
 
-  await uploadBytes(storageRef, file);
+  await uploadBytes(storageRef, finalFile);
   return await getDownloadURL(storageRef);
 }
 

@@ -10,6 +10,8 @@ A modern, intelligent photo album application built with Next.js, featuring smar
 - 🖼️ **Digital Mat Boards** - Professional photo presentation with customizable frames
 - 📊 **Image Analysis** - Automatic composition analysis and optimization
 - 🎬 **Slideshow Mode** - Automatic photo transitions with customizable timing
+- 🔄 **Advanced Image Processing** - HEIC conversion and automatic optimization
+- 💾 **Smart Compression** - Intelligent file size reduction while maintaining quality
 
 ## 🚀 Quick Start
 

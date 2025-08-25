@@ -7,6 +7,8 @@ export const ALLOWED_FILE_TYPES = [
   "image/png",
   "image/webp",
   "image/gif",
+  "image/heic",
+  "image/heif",
 ];
 
 export const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -56,7 +58,7 @@ export function validateFile(file: File): { isValid: boolean; error?: string } {
     return {
       isValid: false,
       error:
-        "File type not allowed. Please upload JPEG, PNG, WebP, or GIF images only.",
+        "File type not allowed. Please upload JPEG, PNG, WebP, GIF, or HEIC images only.",
     };
   }
 

@@ -1,12 +1,14 @@
 /**
  * Album Images Form Section
- * Handles image upload, management, and organization
+ * Handles image upload, management, and organization with processing
  */
 "use client";
 
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { FormSection } from "@/components/FormComponents";
 import { ImageGrid, ImageItem } from "@/components/ImageGrid";
+import { ImageProcessingStatus } from "@/components/ImageProcessingStatus";
+import { processImages, ProcessedImage } from "@/utils/imageProcessing";
 
 interface AlbumImagesSectionProps {
   images: ImageItem[];
@@ -23,20 +25,21 @@ export function AlbumImagesSection({
   maxImages = 20,
   className = "",
 }: AlbumImagesSectionProps) {
-  const handleDescriptionChange = useCallback(
-    (id: string, description: string) => {
-      const updatedImages = images.map((img) => {
-        if (img.id === id) {
-          return { ...img, description };
-        }
-        return img;
-      });
-      onImagesChange(updatedImages);
-    },
-    [images, onImagesChange]
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [processedResults, setProcessedResults] = useState<ProcessedImage[]>(
+    []
   );
+  const [processingProgress, setProcessingProgress] = useState<{
+    current: number;
+    total: number;
+    currentFile: string;
+  }>({
+    current: 0,
+    total: 0,
+    currentFile: "",
+  });
 
-  const handleRemove = useCallback(
+  const handleImageRemove = useCallback(
     (id: string) => {
       const updatedImages = images.filter((img) => img.id !== id);
       onImagesChange(updatedImages);
@@ -44,7 +47,7 @@ export function AlbumImagesSection({
     [images, onImagesChange]
   );
 
-  const handleReorder = useCallback(
+  const handleImageReorder = useCallback(
     (fromIndex: number, toIndex: number) => {
       const updatedImages = [...images];
       const [movedImage] = updatedImages.splice(fromIndex, 1);
@@ -54,25 +57,70 @@ export function AlbumImagesSection({
     [images, onImagesChange]
   );
 
-  const handleFilesAdd = useCallback(
-    (files: FileList) => {
-      const newImages: ImageItem[] = Array.from(files).map((file, index) => ({
-        id: `new-${Date.now()}-${index}`,
-        url: URL.createObjectURL(file),
-        file,
-        description: "",
-        isNew: true,
-      }));
+  const handleDescriptionChange = useCallback(
+    (id: string, description: string) => {
+      const updatedImages = images.map((img) =>
+        img.id === id ? { ...img, description } : img
+      );
+      onImagesChange(updatedImages);
+    },
+    [images, onImagesChange]
+  );
 
-      const totalImages = images.length + newImages.length;
-      if (totalImages > maxImages) {
+  const handleFilesAdd = useCallback(
+    async (files: FileList) => {
+      const fileArray = Array.from(files);
+
+      if (images.length + fileArray.length > maxImages) {
         alert(
-          `Cannot add ${newImages.length} images. Maximum ${maxImages} images allowed.`
+          `Cannot add ${fileArray.length} images. Maximum ${maxImages} images allowed.`
         );
         return;
       }
 
-      onImagesChange([...images, ...newImages]);
+      setIsProcessing(true);
+      setProcessingProgress({
+        current: 0,
+        total: fileArray.length,
+        currentFile: "",
+      });
+
+      try {
+        // Process images with progress tracking
+        const results = await processImages(
+          fileArray,
+          (processed, total, currentFile) => {
+            setProcessingProgress({ current: processed, total, currentFile });
+          }
+        );
+
+        setProcessedResults(results);
+
+        // Convert processed images to ImageItems
+        const newImages: ImageItem[] = results.map((result, index) => ({
+          id: `new-${Date.now()}-${index}`,
+          url: URL.createObjectURL(result.file),
+          file: result.file,
+          description: "",
+          isNew: true,
+        }));
+
+        onImagesChange([...images, ...newImages]);
+      } catch (error) {
+        console.error("Image processing failed:", error);
+        // Fallback: add original files without processing
+        const newImages: ImageItem[] = fileArray.map((file, index) => ({
+          id: `new-${Date.now()}-${index}`,
+          url: URL.createObjectURL(file),
+          file,
+          description: "",
+          isNew: true,
+        }));
+
+        onImagesChange([...images, ...newImages]);
+      } finally {
+        setIsProcessing(false);
+      }
     },
     [images, onImagesChange, maxImages]
   );
@@ -83,11 +131,20 @@ export function AlbumImagesSection({
       description="Add and organize your album images"
       className={className}
     >
+      {/* Image Processing Status */}
+      <ImageProcessingStatus
+        isProcessing={isProcessing}
+        processedImages={processedResults}
+        currentFile={processingProgress.currentFile}
+        progress={processingProgress.total > 0 ? processingProgress : undefined}
+      />
+
+      {/* Image Grid */}
       <ImageGrid
         images={images}
         onDescriptionChange={handleDescriptionChange}
-        onRemove={handleRemove}
-        onReorder={handleReorder}
+        onRemove={handleImageRemove}
+        onReorder={handleImageReorder}
         onFilesAdd={handleFilesAdd}
         maxImages={maxImages}
       />

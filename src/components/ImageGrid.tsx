@@ -124,7 +124,7 @@ export function ImageGrid({
         ref={fileInputRef}
         type="file"
         multiple
-        accept="image/*"
+        accept="image/*,.heic,.heif"
         onChange={handleFileUpload}
         className="hidden"
       />
