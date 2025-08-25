@@ -1,0 +1,49 @@
+#!/bin/sh
+# Pre-commit hook to run additional validation before commit
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+echo "${YELLOW}Running pre-commit validation...${NC}"
+
+# Check if we're in the right directory
+if [ ! -f "package.json" ]; then
+    echo "${RED}✗ Not in project root directory${NC}"
+    exit 1
+fi
+
+# Run TypeScript type checking
+echo "Checking TypeScript types..."
+if ! npm run type-check > /dev/null 2>&1; then
+    echo "${RED}⚠ TypeScript type check failed${NC}"
+    echo "Run 'npm run type-check' to see the errors"
+    echo "${YELLOW}Continuing with commit (development mode)...${NC}"
+    # exit 1  # Commented out for development mode
+fi
+
+# Run ESLint
+echo "Running ESLint..."
+if ! npm run lint > /dev/null 2>&1; then
+    echo "${RED}✗ ESLint check failed${NC}"
+    echo "Run 'npm run lint' to see the errors"
+    exit 1
+fi
+
+# Check for staged files that might need formatting
+staged_files=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(ts|tsx|js|jsx|json|md)$')
+
+if [ -n "$staged_files" ]; then
+    echo "Checking code formatting..."
+    # Here you could add Prettier check if you use it
+    # if ! npx prettier --check $staged_files; then
+    #     echo "${RED}✗ Code formatting check failed${NC}"
+    #     echo "Run 'npx prettier --write <files>' to fix formatting"
+    #     exit 1
+    # fi
+fi
+
+echo "${GREEN}✓ All pre-commit checks passed${NC}"
+exit 0

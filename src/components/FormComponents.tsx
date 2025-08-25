@@ -1,18 +1,9 @@
 "use client";
 
-import React, { ReactNode } from "react";
+import React from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
-
-interface FormSectionProps {
-  title: string;
-  description?: string;
-  children: ReactNode;
-  collapsible?: boolean;
-  defaultExpanded?: boolean;
-  expanded?: boolean;
-  onExpandedChange?: (expanded: boolean) => void;
-  className?: string;
-}
+import { FormSectionProps, FormFieldProps } from "@/types/form";
+import { ButtonProps, LoadingSpinnerProps } from "@/types/ui";
 
 export function FormSection({
   title,
@@ -72,15 +63,6 @@ export function FormSection({
   );
 }
 
-interface FormFieldProps {
-  label: string;
-  required?: boolean;
-  error?: string;
-  help?: string;
-  children: ReactNode;
-  className?: string;
-}
-
 export function FormField({
   label,
   required = false,
@@ -107,17 +89,6 @@ export function FormField({
   );
 }
 
-interface ButtonProps {
-  children: ReactNode;
-  variant?: "primary" | "secondary" | "danger" | "success";
-  size?: "sm" | "md" | "lg";
-  disabled?: boolean;
-  loading?: boolean;
-  onClick?: () => void;
-  type?: "button" | "submit" | "reset";
-  className?: string;
-}
-
 export function Button({
   children,
   variant = "primary",
@@ -136,6 +107,8 @@ export function Button({
     secondary: "bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500",
     danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",
     success: "bg-green-600 text-white hover:bg-green-700 focus:ring-green-500",
+    ghost:
+      "bg-transparent text-gray-300 hover:bg-gray-700 focus:ring-gray-500 border border-gray-600",
   };
 
   const sizeClasses = {
@@ -157,11 +130,6 @@ export function Button({
       {children}
     </button>
   );
-}
-
-interface LoadingSpinnerProps {
-  size?: "sm" | "md" | "lg";
-  className?: string;
 }
 
 export function LoadingSpinner({
