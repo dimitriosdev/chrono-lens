@@ -59,10 +59,6 @@ jobs:
       NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
       NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
       NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
-      NEXT_PUBLIC_BUILD_TIME: ${{ steps.version.outputs.build_time }}
-      NEXT_PUBLIC_COMMIT_HASH: ${{ steps.version.outputs.commit_hash }}
-      NEXT_PUBLIC_DEPLOY_TIME: ${{ steps.version.outputs.deploy_time }}
-      NEXT_PUBLIC_VERSION: ${{ steps.version.outputs.version }}
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
@@ -108,6 +104,11 @@ jobs:
             ${{ runner.os }}-nextjs-
 
       - name: 🏗️ Build project
+        env:
+          NEXT_PUBLIC_BUILD_TIME: ${{ steps.version.outputs.build_time }}
+          NEXT_PUBLIC_COMMIT_HASH: ${{ steps.version.outputs.commit_hash }}
+          NEXT_PUBLIC_DEPLOY_TIME: ${{ steps.version.outputs.deploy_time }}
+          NEXT_PUBLIC_VERSION: ${{ steps.version.outputs.version }}
         run: npm run build
 
       - name: 🚀 Deploy to Firebase Production
@@ -164,7 +165,7 @@ jobs:
             ${{ runner.os }}-nextjs-${{ hashFiles('**/package-lock.json') }}-
             ${{ runner.os }}-nextjs-
 
-      - name: �🔍 Lint code
+      - name: 🔍 Lint code
         run: npm run lint
 
       - name: 🏗️ Build project
