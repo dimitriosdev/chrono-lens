@@ -1,3 +1,11 @@
+# [1.7.0](https://github.com/dimitriosdev/chrono-lens/compare/v1.6.0...v1.7.0) (2025-08-25)
+
+
+### Features
+
+* add git hooks for conventional commit validation ([5b7f480](https://github.com/dimitriosdev/chrono-lens/commit/5b7f480f49a5291191327e56fd55c8d260ed4df2))
+* implement AlbumForm component with sections for basic info, images, layout, and mat board customization ([ee140db](https://github.com/dimitriosdev/chrono-lens/commit/ee140db77c76e64459a80d963a96a13987700c64))
+
 # [1.6.0](https://github.com/dimitriosdev/chrono-lens/compare/v1.5.0...v1.6.0) (2025-08-25)
 
 
