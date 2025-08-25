@@ -76,11 +76,13 @@ export async function getAlbum(id: string): Promise<Album | null> {
 
   const albumData = albumDoc.data() as Album;
 
-  // For single-user scenarios: only warn about ownership mismatch instead of throwing
+  // For single-user scenarios: only allow access if album has userId mismatch
   if (albumData.userId && albumData.userId !== userId) {
-    console.warn(
-      `Album ${id} has different userId (${albumData.userId}) than current user (${userId}), but allowing access for single-user scenario`
-    );
+    if (process.env.NODE_ENV === "development") {
+      console.warn(
+        `Album ${id} has different userId (${albumData.userId}) than current user (${userId}), but allowing access for single-user scenario`
+      );
+    }
   }
 
   // Normalize images for backward compatibility
@@ -93,7 +95,9 @@ export async function getAlbums(): Promise<Album[]> {
   const userId = await getCurrentUserId();
   const { albumsCollection } = getDB();
 
-  console.log("Current userId:", userId);
+  if (process.env.NODE_ENV === "development") {
+    console.log("Current userId:", userId);
+  }
 
   try {
     // If user is authenticated, try to get their albums first
@@ -114,7 +118,10 @@ export async function getAlbums(): Promise<Album[]> {
           return albumData;
         }
       );
-      console.log("Found user albums:", userAlbums.length);
+
+      if (process.env.NODE_ENV === "development") {
+        console.log("Found user albums:", userAlbums.length);
+      }
 
       // If we found user-specific albums, return them
       if (userAlbums.length > 0) {
@@ -123,7 +130,10 @@ export async function getAlbums(): Promise<Album[]> {
     }
 
     // Fallback: Get all albums (for single-user scenarios or legacy data)
-    console.log("Fetching all albums as fallback...");
+    if (process.env.NODE_ENV === "development") {
+      console.log("Fetching all albums as fallback...");
+    }
+
     const allQuery = query(
       albumsCollection,
       orderBy("createdAt", "desc"),
@@ -137,13 +147,22 @@ export async function getAlbums(): Promise<Album[]> {
         return albumData;
       }
     );
-    console.log("Found all albums:", allAlbums.length);
+
+    if (process.env.NODE_ENV === "development") {
+      console.log("Found all albums:", allAlbums.length);
+    }
+
     return allAlbums;
   } catch (error) {
-    console.error("Error fetching albums:", error);
+    if (process.env.NODE_ENV === "development") {
+      console.error("Error fetching albums:", error);
+    }
 
     // Final fallback: get all albums without filtering
-    console.log("Using final fallback...");
+    if (process.env.NODE_ENV === "development") {
+      console.log("Using final fallback...");
+    }
+
     try {
       const fallbackQuery = query(albumsCollection);
       const snapshot = await getDocs(fallbackQuery);
@@ -153,7 +172,9 @@ export async function getAlbums(): Promise<Album[]> {
         return albumData;
       });
     } catch (fallbackError) {
-      console.error("Final fallback also failed:", fallbackError);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Final fallback also failed:", fallbackError);
+      }
       return [];
     }
   }
@@ -228,10 +249,13 @@ export async function deleteAlbum(id: string): Promise<void> {
 
   // For single-user scenarios: only check ownership if album has a userId that doesn't match
   // This allows deletion of albums without userId (legacy) or with mismatched userId (auth changes)
+  // For single-user scenarios: allow deletion even with userId mismatch
   if (albumData.userId && albumData.userId !== userId) {
-    console.warn(
-      `Album ${id} has different userId (${albumData.userId}) than current user (${userId}), but allowing deletion for single-user scenario`
-    );
+    if (process.env.NODE_ENV === "development") {
+      console.warn(
+        `Album ${id} has different userId (${albumData.userId}) than current user (${userId}), but allowing deletion for single-user scenario`
+      );
+    }
   }
 
   // Import deleteImage function
@@ -262,9 +286,12 @@ export async function deleteAlbum(id: string): Promise<void> {
   const validUrls = imagesToDelete.filter(
     (url) => url && typeof url === "string"
   );
-  console.log(
-    `Deleting ${validUrls.length} images from storage for album ${id}`
-  );
+
+  if (process.env.NODE_ENV === "development") {
+    console.log(
+      `Deleting ${validUrls.length} images from storage for album ${id}`
+    );
+  }
 
   const deletionResults = await Promise.allSettled(
     validUrls.map((imageUrl) => deleteImage(imageUrl))
@@ -275,7 +302,7 @@ export async function deleteAlbum(id: string): Promise<void> {
     (result) => result.status === "rejected"
   );
 
-  if (failedDeletions.length > 0) {
+  if (failedDeletions.length > 0 && process.env.NODE_ENV === "development") {
     console.warn(
       `Failed to delete ${failedDeletions.length} out of ${validUrls.length} images from storage`
     );

@@ -26,14 +26,22 @@ const AlbumGrid: React.FC = () => {
       )
     ) {
       try {
-        console.log(`Deleting album: ${album.title} (${albumId})`);
+        if (process.env.NODE_ENV === "development") {
+          console.log(`Deleting album: ${album.title} (${albumId})`);
+        }
+
         await deleteAlbum(albumId);
         setAlbums((prev: Album[]) =>
           prev.filter((a: Album) => a.id !== albumId)
         );
-        console.log("Album deleted successfully");
+
+        if (process.env.NODE_ENV === "development") {
+          console.log("Album deleted successfully");
+        }
       } catch (error) {
-        console.error("Failed to delete album:", error);
+        if (process.env.NODE_ENV === "development") {
+          console.error("Failed to delete album:", error);
+        }
 
         // Provide more specific error messages
         let errorMessage = "Failed to delete album. Please try again.";
@@ -60,12 +68,21 @@ const AlbumGrid: React.FC = () => {
     async function fetchAlbums() {
       setLoading(true);
       try {
-        console.log("Fetching albums...");
+        if (process.env.NODE_ENV === "development") {
+          console.log("Fetching albums...");
+        }
+
         const data = await getAlbums();
-        console.log("Albums fetched:", data.length, data);
+
+        if (process.env.NODE_ENV === "development") {
+          console.log("Albums fetched:", data.length, data);
+        }
+
         setAlbums(data);
       } catch (error) {
-        console.error("Error fetching albums:", error);
+        if (process.env.NODE_ENV === "development") {
+          console.error("Error fetching albums:", error);
+        }
         setAlbums([]);
       }
       setLoading(false);

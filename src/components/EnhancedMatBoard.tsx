@@ -4,6 +4,32 @@ import React from "react";
 import { AlbumLayout } from "@/features/albums/AlbumLayout";
 import { FormField } from "./FormComponents";
 
+// Utility function to determine if a color is light or dark
+function isLightColor(color: string): boolean {
+  // Remove # if present
+  const hex = color.replace("#", "");
+
+  // Convert to RGB
+  const r = parseInt(hex.substr(0, 2), 16);
+  const g = parseInt(hex.substr(2, 2), 16);
+  const b = parseInt(hex.substr(4, 2), 16);
+
+  // Calculate relative luminance using W3C formula
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
+  // Return true if light (luminance > 0.5)
+  return luminance > 0.5;
+}
+
+// Get appropriate text color based on mat color
+function getCaptionTextColor(matColor: string, isNoMat: boolean): string {
+  if (isNoMat) {
+    return "text-white/80"; // Default for no mat (dark background)
+  }
+
+  return isLightColor(matColor) ? "text-gray-800/90" : "text-white/90";
+}
+
 const matColors = [
   { name: "No Mat", color: "#000" },
   { name: "Classic White", color: "#f8f8f8" },
@@ -181,19 +207,44 @@ export function EnhancedMatBoard({
                     }}
                   >
                     {imagesToShow[i] ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={imagesToShow[i]}
-                        alt={`Preview ${i + 1}`}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          console.warn(
-                            "Image failed to load:",
-                            imagesToShow[i]
-                          );
-                          (e.target as HTMLImageElement).style.display = "none";
-                        }}
-                      />
+                      <>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={imagesToShow[i]}
+                          alt={`Preview ${i + 1}`}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            if (process.env.NODE_ENV === "development") {
+                              console.warn(
+                                "Image failed to load:",
+                                imagesToShow[i]
+                              );
+                            }
+                            (e.target as HTMLImageElement).style.display =
+                              "none";
+                          }}
+                        />
+                        {/* Sample caption to show text color */}
+                        <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
+                          <div className="relative">
+                            <div
+                              className={`h-4 bg-gradient-to-t ${
+                                isLightColor(matColor) && !isNoMat
+                                  ? "from-white/20 to-transparent"
+                                  : "from-black/20 to-transparent"
+                              }`}
+                            ></div>
+                            <p
+                              className={`absolute bottom-0 left-0 right-0 text-xs text-center px-1 overflow-hidden text-ellipsis whitespace-nowrap ${getCaptionTextColor(
+                                matColor,
+                                isNoMat
+                              )}`}
+                            >
+                              Sample Caption
+                            </p>
+                          </div>
+                        </div>
+                      </>
                     ) : (
                       <div className="flex items-center justify-center h-full text-gray-500 text-xs">
                         {i < previewImages.length ? "Image" : "Empty"}

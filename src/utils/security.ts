@@ -200,7 +200,9 @@ export async function getCurrentUserId(): Promise<string> {
       return auth.currentUser.uid;
     }
   } catch (error) {
-    console.warn("Could not get Firebase user ID:", error);
+    if (process.env.NODE_ENV === "development") {
+      console.warn("Could not get Firebase user ID:", error);
+    }
   }
 
   // Fallback to localStorage for temporary/anonymous users

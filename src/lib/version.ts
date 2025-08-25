@@ -38,7 +38,7 @@ export const getVersionInfo = () => {
 
 // Helper function for debugging
 export const logVersionInfo = () => {
-  if (typeof window !== "undefined") {
+  if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
     console.group("🚀 App Version Info");
     console.log("Version:", APP_VERSION.version);
     console.log("Build Time:", APP_VERSION.buildTime);

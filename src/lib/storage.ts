@@ -63,7 +63,9 @@ export async function deleteImage(url: string): Promise<void> {
 
   // Skip empty or invalid URLs
   if (!url || typeof url !== "string") {
-    console.warn("Skipping deletion of invalid URL:", url);
+    if (process.env.NODE_ENV === "development") {
+      console.warn("Skipping deletion of invalid URL:", url);
+    }
     return;
   }
 
@@ -72,17 +74,21 @@ export async function deleteImage(url: string): Promise<void> {
   try {
     const matches = url.match(/\/o\/(.+)\?/);
     if (!matches || !matches[1]) {
-      console.warn("Invalid storage URL format:", url);
+      if (process.env.NODE_ENV === "development") {
+        console.warn("Invalid storage URL format:", url);
+      }
       return;
     }
 
     const path = decodeURIComponent(matches[1]);
 
-    // For single-user scenarios: warn but attempt to delete files even if they don't match current userId
+    // For single-user scenarios: attempt to delete files even if they don't match current userId
     if (!path.startsWith(`users/${userId}/`)) {
-      console.warn(
-        `Attempting to delete file from different user path: ${path} (current user: ${userId})`
-      );
+      if (process.env.NODE_ENV === "development") {
+        console.warn(
+          `Attempting to delete file from different user path: ${path} (current user: ${userId})`
+        );
+      }
       // Continue with deletion attempt instead of returning early
     }
 
@@ -93,10 +99,15 @@ export async function deleteImage(url: string): Promise<void> {
 
     const storageRef = ref(storage, path);
     await deleteObject(storageRef);
-    console.log("Successfully deleted image from storage:", path);
+
+    if (process.env.NODE_ENV === "development") {
+      console.log("Successfully deleted image from storage:", path);
+    }
   } catch (error) {
     // Log the error but don't throw to avoid breaking the entire deletion process
-    console.warn("Failed to delete image from storage:", url, error);
+    if (process.env.NODE_ENV === "development") {
+      console.warn("Failed to delete image from storage:", url, error);
+    }
 
     // Only throw if it's a critical error (not authorization or file not found)
     if (

@@ -9,7 +9,9 @@ import {
 export async function signInWithGoogle(): Promise<User | null> {
   const auth = getFirebaseAuth();
   if (!auth) {
-    console.error("Firebase auth not initialized");
+    if (process.env.NODE_ENV === "development") {
+      console.error("Firebase auth not initialized");
+    }
     return null;
   }
 
@@ -18,7 +20,9 @@ export async function signInWithGoogle(): Promise<User | null> {
     const result = await signInWithPopup(auth, provider);
     return result.user;
   } catch (error) {
-    console.error("Google sign-in error:", error);
+    if (process.env.NODE_ENV === "development") {
+      console.error("Google sign-in error:", error);
+    }
     return null;
   }
 }
@@ -28,7 +32,9 @@ export async function signOutUser(
 ): Promise<void> {
   const auth = getFirebaseAuth();
   if (!auth) {
-    console.error("Firebase auth not initialized");
+    if (process.env.NODE_ENV === "development") {
+      console.error("Firebase auth not initialized");
+    }
     return;
   }
 

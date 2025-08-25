@@ -26,9 +26,9 @@ export class ErrorBoundary extends Component<
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // Replace with production logging service
     if (process.env.NODE_ENV === "production") {
-      // Example: send to Sentry, LogRocket, etc.
       // logErrorToService(error, errorInfo);
     } else {
+      // Log to console in development mode only
       console.error("ErrorBoundary caught an error:", error, errorInfo);
     }
   }

@@ -8,31 +8,158 @@ import { useAuth } from "@/context/AuthContext";
 import { AlbumLayout } from "@/features/albums/AlbumLayout";
 import Image from "next/image";
 
+// Hook to track screen size
+function useScreenSize() {
+  const [screenSize, setScreenSize] = React.useState({ width: 0, height: 0 });
+
+  React.useEffect(() => {
+    function updateSize() {
+      setScreenSize({ width: window.innerWidth, height: window.innerHeight });
+    }
+
+    window.addEventListener("resize", updateSize);
+    updateSize();
+
+    return () => window.removeEventListener("resize", updateSize);
+  }, []);
+
+  return screenSize;
+}
+
+// Utility function to determine if a color is light or dark
+function isLightColor(color: string): boolean {
+  // Remove # if present
+  const hex = color.replace("#", "");
+
+  // Convert to RGB
+  const r = parseInt(hex.substr(0, 2), 16);
+  const g = parseInt(hex.substr(2, 2), 16);
+  const b = parseInt(hex.substr(4, 2), 16);
+
+  // Calculate relative luminance using W3C formula
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
+  // Return true if light (luminance > 0.5)
+  return luminance > 0.5;
+}
+
 function MatImage({
   src,
   matConfig,
   containerMode = false,
+  gridInfo,
 }: {
   src: string;
   matConfig: { matWidth?: number; matColor?: string };
   containerMode?: boolean;
+  gridInfo?: { rows: number; cols: number };
 }) {
   const matPercent = matConfig?.matWidth ?? 5;
   const matColor = matConfig?.matColor ?? "#000";
   const isNoMat = matColor === "#000";
   const [imgDims, setImgDims] = React.useState({ width: 1, height: 1 });
+  const { width: screenWidth, height: screenHeight } = useScreenSize();
 
   // Use different sizing for grid vs slideshow
-  const frameW = containerMode
-    ? 280
-    : typeof window !== "undefined" && window.innerWidth
-    ? window.innerWidth
-    : 400;
-  const frameH = containerMode
-    ? 420
-    : typeof window !== "undefined" && window.innerHeight
-    ? window.innerHeight
-    : 600;
+  const getFrameDimensions = () => {
+    if (!containerMode) {
+      // Slideshow mode - use full screen
+      return {
+        width: screenWidth || 400,
+        height: screenHeight || 600,
+      };
+    }
+
+    // Grid mode - responsive sizing based on screen width and grid layout
+    if (screenWidth) {
+      const cols = gridInfo?.cols || 3;
+      const rows = gridInfo?.rows || 2;
+
+      // Special handling for Single Row layout (1×8)
+      if (rows === 1 && cols >= 6) {
+        const availableWidth = screenWidth * 0.9;
+        const maxWidthPerItem = availableWidth / cols;
+
+        // For single row, keep height proportional to width, not screen height
+        const optimalHeight = Math.min(maxWidthPerItem * 1.2, 200); // Max 200px height
+
+        return {
+          width: Math.min(maxWidthPerItem, 180), // Max 180px width for single row
+          height: optimalHeight,
+        };
+      }
+
+      // Special handling for Column Stack layout (8×1)
+      if (cols === 1 && rows >= 6) {
+        const availableHeight = (screenHeight || 800) * 0.8;
+        const maxHeightPerItem = availableHeight / rows;
+
+        // For column stack, keep width proportional and reasonable
+        const optimalWidth = Math.min(screenWidth * 0.4, 300); // Max 300px width
+
+        return {
+          width: optimalWidth,
+          height: Math.min(maxHeightPerItem, 150), // Max 150px height per item
+        };
+      }
+
+      if (screenWidth >= 1300) {
+        // Large screens: maximize space usage based on grid size
+        const availableWidth = screenWidth * 0.9; // 90% of screen
+        const availableHeight = (screenHeight || 800) * 0.8; // 80% of height
+
+        // Calculate optimal size based on grid layout
+        const maxWidthPerItem = availableWidth / cols;
+        const maxHeightPerItem = availableHeight / rows;
+
+        // Use smaller dimension to maintain aspect ratio
+        const itemSize = Math.min(maxWidthPerItem, maxHeightPerItem);
+
+        return {
+          width: Math.min(itemSize, 600), // Cap at 600px for very large screens
+          height: Math.min(itemSize, 500), // Cap at 500px
+        };
+      } else if (screenWidth >= 768) {
+        // Medium screens: moderate sizing with special handling
+        const availableWidth = screenWidth * 0.85;
+
+        // Special handling for Single Row on medium screens
+        if (rows === 1 && cols >= 6) {
+          const maxWidthPerItem = availableWidth / cols;
+          return {
+            width: Math.min(maxWidthPerItem, 140),
+            height: Math.min(maxWidthPerItem * 1.2, 160),
+          };
+        }
+
+        // Special handling for Column Stack on medium screens
+        if (cols === 1 && rows >= 6) {
+          return {
+            width: Math.min(screenWidth * 0.4, 250),
+            height: Math.min(((screenHeight || 600) * 0.8) / rows, 120),
+          };
+        }
+
+        // Regular grid handling
+        const maxWidthPerItem = availableWidth / cols;
+        return {
+          width: Math.min(maxWidthPerItem, 350),
+          height: Math.min(maxWidthPerItem * 0.8, 280),
+        };
+      } else {
+        // Small screens: compact sizing
+        return {
+          width: Math.min(screenWidth * 0.9, 280),
+          height: Math.min(screenWidth * 0.7, 350),
+        };
+      }
+    }
+
+    // Fallback for SSR
+    return { width: 280, height: 350 };
+  };
+
+  const { width: frameW, height: frameH } = getFrameDimensions();
 
   const handleImgLoad = (e: React.SyntheticEvent<HTMLImageElement>) => {
     const img = e.target as HTMLImageElement;
@@ -323,11 +450,12 @@ const SlideshowPage: React.FC = () => {
           }`}
         >
           <div
-            className="grid w-full h-full gap-2 sm:gap-3 md:gap-4 lg:gap-6"
+            className="grid w-full h-full gap-2 sm:gap-3 md:gap-4 lg:gap-6 xl:gap-8 p-2 sm:p-4 lg:p-6 xl:p-8"
             style={{
               gridTemplateColumns: `repeat(${cols}, 1fr)`,
               gridTemplateRows: `repeat(${rows}, 1fr)`,
               height: "calc(100vh - 60px)",
+              maxWidth: "100vw",
             }}
           >
             {displayImages.map((img: string, index: number) => {
@@ -345,30 +473,117 @@ const SlideshowPage: React.FC = () => {
                   ? description
                   : fallbackCaption;
 
+              // Get appropriate text color based on mat color
+              const isNoMat = matConfig.matColor === "#000";
+
+              // Calculate responsive caption styling based on grid layout
+              const getCaptionStyling = () => {
+                const totalCells = rows * cols;
+
+                if (cols >= 8) {
+                  // Very many small images (like Single Row 1x8)
+                  return {
+                    gradientHeight: "h-4",
+                    spacing: "bottom-0.5 left-0.5 right-0.5",
+                    padding: "px-1 py-0.5",
+                    textSize: "text-xs",
+                    rounded: "rounded",
+                    show: totalCells <= 10, // Only show for reasonable number of items
+                  };
+                } else if (cols >= 4 || totalCells >= 9) {
+                  // Many small images (like Mixed Grid 3x3, Mosaic 4x4)
+                  return {
+                    gradientHeight: "h-6",
+                    spacing: "bottom-0.5 left-0.5 right-0.5",
+                    padding: "px-1.5 py-0.5",
+                    textSize: "text-xs",
+                    rounded: "rounded",
+                    show: true,
+                  };
+                } else if (cols >= 3 || totalCells >= 6) {
+                  // Medium grids (like 3 Portraits, 6 Portraits, 3x2 Landscape)
+                  return {
+                    gradientHeight: "h-6",
+                    spacing: "bottom-1 left-1 right-1",
+                    padding: "px-2 py-1",
+                    textSize: "text-xs",
+                    rounded: "rounded",
+                    show: true,
+                  };
+                } else if (cols === 1) {
+                  // Column Stack (8x1) - tall images
+                  return {
+                    gradientHeight: "h-8",
+                    spacing: "bottom-1 left-1 right-1",
+                    padding: "px-2 py-1",
+                    textSize: "text-xs",
+                    rounded: "rounded",
+                    show: true,
+                  };
+                } else {
+                  // Large images (like 2x2 Grid)
+                  return {
+                    gradientHeight: "h-8",
+                    spacing: "bottom-1 left-1 right-1",
+                    padding: "px-2 py-1",
+                    textSize: "text-xs",
+                    rounded: "rounded",
+                    show: true,
+                  };
+                }
+              };
+
+              const captionStyle = getCaptionStyling();
+
               return (
                 <div
                   key={`${img}-${globalImageIndex}-${nextSlotIndex}`}
-                  className="relative w-full h-full min-h-0 overflow-hidden"
+                  className="relative w-full h-full min-h-0 overflow-hidden group"
                 >
-                  <div className="group relative w-full h-full transition-all duration-300 image-fade-transition">
-                    {/* Mat board container */}
+                  <div className="relative w-full h-full transition-all duration-500 ease-out image-fade-transition">
+                    {/* Mat board container with caption positioned on image */}
                     <div className="relative w-full h-full flex items-center justify-center">
-                      <MatImage
-                        src={img}
-                        matConfig={matConfig}
-                        containerMode={true}
-                      />
-                    </div>
-
-                    {/* Barely noticeable caption overlay at bottom of image */}
-                    <div className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none">
                       <div className="relative">
-                        {/* Subtle gradient fade */}
-                        <div className="h-8 bg-gradient-to-t from-black/20 to-transparent"></div>
-                        {/* Calligraphy caption text with Greek support */}
-                        <p className="absolute bottom-0 left-0 right-0 text-white/80 text-sm text-center px-1 pb-1 overflow-hidden text-ellipsis whitespace-nowrap font-calligraphy">
-                          {displayCaption}
-                        </p>
+                        <MatImage
+                          src={img}
+                          matConfig={matConfig}
+                          containerMode={true}
+                          gridInfo={{ rows, cols }}
+                        />
+
+                        {/* Caption positioned directly on the MatImage */}
+                        {captionStyle.show && (
+                          <div className="absolute bottom-0 left-0 right-0 z-30 pointer-events-none">
+                            <div className="relative">
+                              {/* More subtle gradient overlay */}
+                              <div
+                                className={`${captionStyle.gradientHeight} bg-gradient-to-t from-black/30 via-black/15 to-transparent`}
+                              ></div>
+                              {/* More discreet caption design */}
+                              <div
+                                className={`absolute ${captionStyle.spacing}`}
+                              >
+                                <div
+                                  className={`${captionStyle.padding} ${
+                                    captionStyle.rounded
+                                  } backdrop-blur-sm shadow-sm border transition-all duration-300 ${
+                                    isLightColor(
+                                      matConfig.matColor || "#000"
+                                    ) && !isNoMat
+                                      ? "bg-white/70 text-gray-800 border-gray-200/15"
+                                      : "bg-gray-900/70 text-white/90 border-gray-600/15"
+                                  }`}
+                                >
+                                  <p
+                                    className={`${captionStyle.textSize} font-normal text-center font-calligraphy leading-tight overflow-hidden text-ellipsis whitespace-nowrap opacity-90`}
+                                  >
+                                    {displayCaption}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -399,13 +614,15 @@ const SlideshowPage: React.FC = () => {
           aria-label="Back to albums"
           className="absolute top-2 sm:top-4 left-2 sm:left-4 bg-gray-900 bg-opacity-80 text-white px-3 sm:px-4 py-2 rounded-lg shadow-lg text-sm sm:text-base font-semibold hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white z-50 font-calligraphy"
         >
-          Back
+          &lt;
         </button>
       </div>
     );
   }
 
   // Slideshow layout
+  const isNoMat = matConfig.matColor === "#000";
+
   return (
     <div className="fixed inset-0 bg-black flex flex-col items-center justify-center z-50">
       {images.length > 0 ? (
@@ -419,15 +636,34 @@ const SlideshowPage: React.FC = () => {
       ) : (
         <div className="text-white font-calligraphy">No images in album.</div>
       )}
-      <div className="absolute bottom-2 sm:bottom-4 w-full text-center z-40 px-4">
-        <h1 className="text-sm sm:text-base font-medium text-white opacity-70 font-calligraphy">
-          {album?.title || "Untitled Album"}
-        </h1>
+      <div className="absolute bottom-4 sm:bottom-6 w-full text-center z-40 px-6">
+        {/* Album title with elegant styling */}
+        <div className="mb-4">
+          <h1
+            className={`text-lg sm:text-xl font-bold tracking-wide font-calligraphy drop-shadow-lg ${
+              isLightColor(matConfig.matColor || "#000") && !isNoMat
+                ? "text-gray-900"
+                : "text-white"
+            }`}
+          >
+            {album?.title || "Untitled Album"}
+          </h1>
+        </div>
+
+        {/* Image description with premium design */}
         {currentImageDescription && currentImageDescription.trim() && (
-          <div className="mt-2 sm:mt-3 px-4 sm:px-6 py-2 sm:py-3 bg-black/60 backdrop-blur-sm rounded-xl mx-auto max-w-2xl">
-            <p className="text-white text-sm sm:text-base leading-relaxed drop-shadow-lg font-calligraphy">
-              {currentImageDescription}
-            </p>
+          <div className="flex justify-center">
+            <div
+              className={`px-6 py-4 backdrop-blur-lg rounded-2xl shadow-2xl border max-w-3xl ${
+                isLightColor(matConfig.matColor || "#000") && !isNoMat
+                  ? "bg-white/95 text-gray-900 border-white/30"
+                  : "bg-black/95 text-white border-white/20"
+              }`}
+            >
+              <p className="text-base sm:text-lg leading-relaxed font-medium font-calligraphy tracking-wide">
+                {currentImageDescription}
+              </p>
+            </div>
           </div>
         )}
       </div>
