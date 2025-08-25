@@ -59,10 +59,10 @@ jobs:
       NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
       NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
       NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
-      NEXT_PUBLIC_BUILD_TIME: ${{ github.event.head_commit.timestamp }}
-      NEXT_PUBLIC_COMMIT_HASH: ${{ github.sha }}
-      NEXT_PUBLIC_DEPLOY_TIME: ${{ github.event.head_commit.timestamp }}
-      NEXT_PUBLIC_VERSION: ${{ needs.release.outputs.new-release-version || '0.1.0' }}
+      NEXT_PUBLIC_BUILD_TIME: ${{ steps.version.outputs.build_time }}
+      NEXT_PUBLIC_COMMIT_HASH: ${{ steps.version.outputs.commit_hash }}
+      NEXT_PUBLIC_DEPLOY_TIME: ${{ steps.version.outputs.deploy_time }}
+      NEXT_PUBLIC_VERSION: ${{ steps.version.outputs.version }}
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
@@ -75,6 +75,26 @@ jobs:
 
       - name: 📥 Install dependencies
         run: npm ci
+
+      - name: 🏷️ Generate version info
+        id: version
+        run: |
+          echo "build_time=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)" >> $GITHUB_OUTPUT
+          echo "commit_hash=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
+          echo "deploy_time=$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)" >> $GITHUB_OUTPUT
+          
+          # Get version from package.json or use release version
+          if [ "${{ needs.release.outputs.new-release-version }}" != "" ]; then
+            echo "version=${{ needs.release.outputs.new-release-version }}" >> $GITHUB_OUTPUT
+          else
+            echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+          fi
+          
+          # Debug output
+          echo "Build time: $(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)"
+          echo "Commit hash: $(echo ${{ github.sha }} | cut -c1-7)"
+          echo "Deploy time: $(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)"
+          echo "Version: $(node -p "require('./package.json').version")"
 
       - name: 📦 Cache Next.js build
         uses: actions/cache@v4
@@ -105,7 +125,7 @@ jobs:
       - name: 🎉 Deployment Success
         if: success()
         run: |
-          echo "🚀 Successfully deployed version ${{ needs.release.outputs.new-release-version || '0.1.0' }}"
+          echo "🚀 Successfully deployed version ${{ steps.version.outputs.version }}"
           echo "🌐 Live at: https://chrono-lens-ac1885.web.app"
 
   # Test and Lint Job (for PRs only)

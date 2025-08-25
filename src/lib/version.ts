@@ -14,7 +14,7 @@ export const APP_VERSION = {
   buildTime: process.env.NEXT_PUBLIC_BUILD_TIME || new Date().toISOString(),
 
   // Git commit hash (will be set during build)
-  commitHash: process.env.NEXT_PUBLIC_COMMIT_HASH || "unknown",
+  commitHash: process.env.NEXT_PUBLIC_COMMIT_HASH || "dev-local",
 
   // Environment
   environment: process.env.NODE_ENV || "development",

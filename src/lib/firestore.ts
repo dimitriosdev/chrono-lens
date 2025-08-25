@@ -24,7 +24,6 @@ import {
   sanitizeText,
   getCurrentUserId,
   validateUserLimits,
-  checkRateLimit,
   MAX_ALBUMS_PER_USER,
 } from "@/utils/security";
 
@@ -163,17 +162,6 @@ export async function addAlbum(album: Omit<Album, "id">): Promise<string> {
   const userId = await getCurrentUserId();
   if (!userId) {
     throw new Error("User not authenticated");
-  }
-
-  // Rate limiting - more lenient in development
-  const isDevelopment = process.env.NODE_ENV === "development";
-  const maxAlbums = isDevelopment ? 50 : 5; // 50 in dev, 5 in prod
-  const timeWindow = isDevelopment ? 60000 : 60000; // 1 minute in both
-
-  if (!checkRateLimit(userId, maxAlbums, timeWindow)) {
-    throw new Error(
-      `Album creation rate limit exceeded. Please wait before creating more albums. (${maxAlbums} per minute allowed)`
-    );
   }
 
   // Validate album title
