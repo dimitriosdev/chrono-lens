@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/dimitriosdev/chrono-lens/compare/v1.5.0...v1.6.0) (2025-08-25)
+
+
+### Features
+
+* Implement smart layout recommendations and rate limiting for album creation ([4111a99](https://github.com/dimitriosdev/chrono-lens/commit/4111a99c5999d68a9a42141747a0b14c1c36245b))
+
 # [1.5.0](https://github.com/dimitriosdev/chrono-lens/compare/v1.4.0...v1.5.0) (2025-08-25)
 
 
