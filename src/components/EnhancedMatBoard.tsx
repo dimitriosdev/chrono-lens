@@ -145,7 +145,7 @@ export function EnhancedMatBoard({
               style={{
                 width: frameWidth,
                 height: frameHeight,
-                background: matColor,
+                background: isNoMat ? "#374151" : matColor, // Use gray-700 for no mat
                 borderRadius: "0.5rem",
               }}
             >

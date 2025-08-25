@@ -25,6 +25,7 @@ import {
   getCurrentUserId,
   validateUserLimits,
   MAX_ALBUMS_PER_USER,
+  checkRateLimit,
 } from "@/utils/security";
 
 // Initialize Firestore lazily
@@ -162,6 +163,13 @@ export async function addAlbum(album: Omit<Album, "id">): Promise<string> {
   const userId = await getCurrentUserId();
   if (!userId) {
     throw new Error("User not authenticated");
+  }
+
+  // Check rate limit (max 5 albums per minute per user)
+  if (!checkRateLimit(userId, 5, 60000)) {
+    throw new Error(
+      "Rate limit exceeded. Please wait before creating another album."
+    );
   }
 
   // Validate album title

@@ -1,5 +1,11 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import {
+  Geist,
+  Geist_Mono,
+  Cinzel,
+  Playfair_Display,
+  EB_Garamond,
+} from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "../context/AuthContext";
 import Navigation from "../components/Navigation";
@@ -15,6 +21,25 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+// Calligraphy fonts with Greek support
+const cinzel = Cinzel({
+  variable: "--font-cinzel",
+  subsets: ["latin", "latin-ext"],
+  display: "swap",
+});
+
+const playfairDisplay = Playfair_Display({
+  variable: "--font-playfair",
+  subsets: ["latin", "latin-ext"],
+  display: "swap",
+});
+
+const ebGaramond = EB_Garamond({
+  variable: "--font-eb-garamond",
+  subsets: ["latin", "latin-ext"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -77,7 +102,7 @@ export default function RootLayout({
         />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${cinzel.variable} ${playfairDisplay.variable} ${ebGaramond.variable} antialiased`}
       >
         <AuthProvider>
           <ErrorBoundary>

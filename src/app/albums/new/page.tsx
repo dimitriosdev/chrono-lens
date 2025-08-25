@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { addAlbum } from "@/lib/firestore";
 import { uploadImage } from "@/lib/storage";
 import { AlbumForm } from "@/components/AlbumForm";
+import { RateLimitManager } from "@/components/RateLimitManager";
 import { AlbumImage } from "@/entities/Album";
 import { AlbumLayout } from "@/features/albums/AlbumLayout";
 import { MatConfig } from "@/components/EnhancedMatBoard";
@@ -41,6 +42,14 @@ const NewAlbumPage: React.FC = () => {
     try {
       // Get userId from localStorage (temporary solution until proper auth)
       const userId = localStorage.getItem("userId") || `user_${Date.now()}`;
+
+      // Check rate limit before proceeding (max 5 albums per minute)
+      const { checkRateLimit } = await import("@/utils/security");
+      if (!checkRateLimit(userId, 5, 60000)) {
+        throw new Error(
+          "Too many album creation requests. Please wait a minute before creating another album."
+        );
+      }
 
       // Generate a temporary albumId for storage paths
       const tempAlbumId = `${Date.now()}-${Math.random()
@@ -89,6 +98,7 @@ const NewAlbumPage: React.FC = () => {
   return (
     <div className="py-8 px-4">
       <AlbumForm mode="create" onSave={handleSave} loading={albumLoading} />
+      <RateLimitManager />
     </div>
   );
 };

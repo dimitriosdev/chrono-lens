@@ -59,9 +59,9 @@ function MatImage({
 
   return (
     <div
-      className="relative flex items-center justify-center bg-white"
+      className="relative flex items-center justify-center"
       style={{
-        background: matColor,
+        background: isNoMat ? "#374151" : matColor, // Use gray-700 for no mat
         width: `${frameW}px`,
         height: `${frameH}px`,
         border: "none",
@@ -173,7 +173,10 @@ const SlideshowPage: React.FC = () => {
 
   // Initialize grid with first images based on layout
   React.useEffect(() => {
-    if (images.length > 0 && layout?.type === "grid") {
+    if (
+      images.length > 0 &&
+      (layout?.type === "grid" || layout?.type === "custom")
+    ) {
       const requiredCount =
         (layout?.grid?.rows || 1) * (layout?.grid?.cols || 3);
       setGridImages(images.slice(0, requiredCount));
@@ -184,7 +187,7 @@ const SlideshowPage: React.FC = () => {
 
   // Individual image cycling for grid layout
   React.useEffect(() => {
-    if (layout?.type === "grid") {
+    if (layout?.type === "grid" || layout?.type === "custom") {
       const requiredCount =
         (layout?.grid?.rows || 1) * (layout?.grid?.cols || 3);
       if (images.length > requiredCount) {
@@ -227,8 +230,8 @@ const SlideshowPage: React.FC = () => {
 
   if (loading || !isSignedIn) return null;
 
-  // Grid layout: 3 Portraits or 6 Portraits
-  if (layout?.type === "grid") {
+  // Grid layout: 3 Portraits, 6 Portraits, or custom layouts like Mosaic
+  if (layout?.type === "grid" || layout?.type === "custom") {
     const rows = layout?.grid?.rows || 1;
     const cols = layout?.grid?.cols || 3;
     const requiredCount = rows * cols;
@@ -327,7 +330,7 @@ const SlideshowPage: React.FC = () => {
               height: "calc(100vh - 60px)",
             }}
           >
-            {displayImages.map((img: string) => {
+            {displayImages.map((img: string, index: number) => {
               // Get the description for the current image - find the correct index in the original images array
               const originalImageIndex = images.indexOf(img);
               const description =
@@ -335,38 +338,37 @@ const SlideshowPage: React.FC = () => {
                   ? imageDescriptions[originalImageIndex]
                   : "";
 
+              // For debugging - let's also show some fallback info
+              const fallbackCaption = `Image ${index + 1}`;
+              const displayCaption =
+                description && description.trim()
+                  ? description
+                  : fallbackCaption;
+
               return (
                 <div
                   key={`${img}-${globalImageIndex}-${nextSlotIndex}`}
-                  className="relative w-full h-full min-h-0"
+                  className="relative w-full h-full min-h-0 overflow-hidden"
                 >
-                  <div className="group relative w-full h-full transition-all duration-300 hover:scale-[1.02] image-fade-transition">
+                  <div className="group relative w-full h-full transition-all duration-300 image-fade-transition">
                     {/* Mat board container */}
                     <div className="relative w-full h-full flex items-center justify-center">
+                      <MatImage
+                        src={img}
+                        matConfig={matConfig}
+                        containerMode={true}
+                      />
+                    </div>
+
+                    {/* Barely noticeable caption overlay at bottom of image */}
+                    <div className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none">
                       <div className="relative">
-                        <MatImage
-                          src={img}
-                          matConfig={matConfig}
-                          containerMode={true}
-                        />
-
-                        {/* Description overlay - positioned relative to mat frame */}
-                        {description && description.trim() && (
-                          <div
-                            key={`desc-${img}-${originalImageIndex}-${globalImageIndex}`}
-                            className="absolute inset-0 z-10"
-                          >
-                            {/* Subtle bottom fade */}
-                            <div className="absolute bottom-0 left-0 right-0 h-12 sm:h-16 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 md:opacity-80" />
-
-                            {/* Clean caption positioned within mat frame */}
-                            <div className="absolute bottom-1 sm:bottom-2 left-1 sm:left-2 right-1 sm:right-2 opacity-0 group-hover:opacity-100 transition-all duration-300 md:opacity-100 transform translate-y-1 group-hover:translate-y-0">
-                              <p className="text-white text-xs sm:text-sm font-medium tracking-wider drop-shadow-lg text-center px-1 sm:px-2 py-1 bg-black/30 rounded backdrop-blur-sm">
-                                {description}
-                              </p>
-                            </div>
-                          </div>
-                        )}
+                        {/* Subtle gradient fade */}
+                        <div className="h-8 bg-gradient-to-t from-black/20 to-transparent"></div>
+                        {/* Calligraphy caption text with Greek support */}
+                        <p className="absolute bottom-0 left-0 right-0 text-white/80 text-sm text-center px-1 pb-1 overflow-hidden text-ellipsis whitespace-nowrap font-calligraphy">
+                          {displayCaption}
+                        </p>
                       </div>
                     </div>
                   </div>
@@ -378,7 +380,7 @@ const SlideshowPage: React.FC = () => {
 
         {!allPortrait && (
           <div className="absolute bottom-12 sm:bottom-16 w-full text-center z-50 px-4">
-            <span className="text-red-500 bg-black bg-opacity-80 px-3 sm:px-4 py-2 rounded-lg text-sm sm:font-semibold">
+            <span className="text-red-500 bg-black bg-opacity-80 px-3 sm:px-4 py-2 rounded-lg text-sm sm:font-semibold font-calligraphy">
               All images must be portrait for this layout. Please update your
               album.
             </span>
@@ -386,26 +388,18 @@ const SlideshowPage: React.FC = () => {
         )}
 
         <div className="absolute bottom-2 sm:bottom-4 w-full text-center z-40 px-4">
-          <h1 className="text-sm sm:text-base font-medium text-white opacity-70">
+          <h1 className="text-sm sm:text-base font-medium text-white opacity-70 font-calligraphy">
             {album?.title || "Untitled Album"}
           </h1>
-          {/* Mobile cycling indicator for 6 Portrait layout */}
-          {is6Portrait && (
-            <div className="block sm:hidden mt-1">
-              <p className="text-xs text-white opacity-50">
-                Images cycle automatically • {images.length} total
-              </p>
-            </div>
-          )}
         </div>
 
         <button
           type="button"
           onClick={handleBack}
           aria-label="Back to albums"
-          className="absolute top-2 sm:top-4 left-2 sm:left-4 bg-gray-900 bg-opacity-80 text-white px-3 sm:px-4 py-2 rounded-lg shadow-lg text-sm sm:text-base font-semibold hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white z-50"
+          className="absolute top-2 sm:top-4 left-2 sm:left-4 bg-gray-900 bg-opacity-80 text-white px-3 sm:px-4 py-2 rounded-lg shadow-lg text-sm sm:text-base font-semibold hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white z-50 font-calligraphy"
         >
-          ←
+          Back
         </button>
       </div>
     );
@@ -423,15 +417,15 @@ const SlideshowPage: React.FC = () => {
           />
         </div>
       ) : (
-        <div className="text-white">No images in album.</div>
+        <div className="text-white font-calligraphy">No images in album.</div>
       )}
       <div className="absolute bottom-2 sm:bottom-4 w-full text-center z-40 px-4">
-        <h1 className="text-sm sm:text-base font-medium text-white opacity-70">
+        <h1 className="text-sm sm:text-base font-medium text-white opacity-70 font-calligraphy">
           {album?.title || "Untitled Album"}
         </h1>
         {currentImageDescription && currentImageDescription.trim() && (
           <div className="mt-2 sm:mt-3 px-4 sm:px-6 py-2 sm:py-3 bg-black/60 backdrop-blur-sm rounded-xl mx-auto max-w-2xl">
-            <p className="text-white text-sm sm:text-base leading-relaxed drop-shadow-lg">
+            <p className="text-white text-sm sm:text-base leading-relaxed drop-shadow-lg font-calligraphy">
               {currentImageDescription}
             </p>
           </div>
@@ -441,9 +435,9 @@ const SlideshowPage: React.FC = () => {
         type="button"
         onClick={handleBack}
         aria-label="Back to albums"
-        className="absolute top-2 sm:top-4 left-2 sm:left-4 bg-gray-900 bg-opacity-80 text-white px-3 sm:px-4 py-2 rounded-lg shadow-lg text-sm sm:text-base font-semibold hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white z-50"
+        className="absolute top-2 sm:top-4 left-2 sm:left-4 bg-gray-900 bg-opacity-80 text-white px-3 sm:px-4 py-2 rounded-lg shadow-lg text-sm sm:text-base font-semibold hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white z-50 font-calligraphy"
       >
-        ←
+        Back
       </button>
     </div>
   );

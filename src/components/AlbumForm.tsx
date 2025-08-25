@@ -7,6 +7,7 @@ import { Save, Eye } from "lucide-react";
 import { ImageGrid, ImageItem } from "@/components/ImageGrid";
 import { FormSection, FormField, Button } from "@/components/FormComponents";
 import { EnhancedMatBoard, MatConfig } from "@/components/EnhancedMatBoard";
+import { SmartLayoutSelector } from "@/components/SmartLayoutSelector";
 import {
   ALBUM_LAYOUTS,
   AlbumLayout as AlbumLayoutType,
@@ -51,7 +52,7 @@ export function AlbumForm({
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [showPreview, setShowPreview] = useState(false);
+  const [showPreview, setShowPreview] = useState(true);
 
   // Generate preview image URLs
   const previewImageUrls = useMemo(() => {
@@ -199,9 +200,21 @@ export function AlbumForm({
     try {
       await onSave(formData);
     } catch (error) {
+      let errorMessage =
+        error instanceof Error ? error.message : "Failed to save album";
+
+      // If it's a rate limit error, provide a helpful suggestion in development
+      if (
+        errorMessage.includes("Rate limit") &&
+        process.env.NODE_ENV === "development"
+      ) {
+        errorMessage +=
+          " (In development, you can clear rate limits using window.clearRateLimit() in the browser console)";
+      }
+
       setErrors((prev) => ({
         ...prev,
-        submit: error instanceof Error ? error.message : "Failed to save album",
+        submit: errorMessage,
       }));
     }
   };
@@ -331,6 +344,16 @@ export function AlbumForm({
                   <span className="text-gray-400 text-sm">ms</span>
                 </div>
               </FormField>
+            </div>
+
+            {/* Smart Layout Recommendations */}
+            <div className="space-y-4">
+              <SmartLayoutSelector
+                images={formData.images}
+                currentLayout={formData.layout}
+                onLayoutChange={(layout) => updateFormData({ layout })}
+                className="h-fit"
+              />
             </div>
           </div>
         </FormSection>
