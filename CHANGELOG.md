@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/dimitriosdev/chrono-lens/compare/v1.8.1...v1.9.0) (2025-08-26)
+
+
+### Features
+
+* add customizable background color picker for album viewing ([f230878](https://github.com/dimitriosdev/chrono-lens/commit/f2308780f88901fa3ebe01b390ad5b830450388d))
+
 ## [1.8.1](https://github.com/dimitriosdev/chrono-lens/compare/v1.8.0...v1.8.1) (2025-08-26)
 
 
