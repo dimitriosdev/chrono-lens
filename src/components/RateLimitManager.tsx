@@ -1,7 +1,11 @@
 "use client";
 
 import React from "react";
-import { clearRateLimit, checkRateLimit } from "@/utils/security";
+import {
+  clearRateLimit,
+  checkRateLimit,
+  forceResetRateLimits,
+} from "@/utils/security";
 
 /**
  * Development utility component for managing rate limits.
@@ -19,6 +23,12 @@ export function RateLimitManager() {
   const handleClearAll = () => {
     clearRateLimit();
     setStatus("All rate limits cleared");
+    setTimeout(() => setStatus(""), 3000);
+  };
+
+  const handleForceReset = () => {
+    forceResetRateLimits();
+    setStatus("Force reset: All limits and cache cleared");
     setTimeout(() => setStatus(""), 3000);
   };
 
@@ -79,6 +89,13 @@ export function RateLimitManager() {
           className="w-full bg-red-600 hover:bg-red-700 rounded px-2 py-1 text-xs"
         >
           Clear All Limits
+        </button>
+
+        <button
+          onClick={handleForceReset}
+          className="w-full bg-red-800 hover:bg-red-900 rounded px-2 py-1 text-xs font-bold"
+        >
+          🚨 Force Reset Everything
         </button>
 
         {status && (

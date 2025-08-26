@@ -6,14 +6,16 @@
 // Configuration constants
 export const IMAGE_OPTIMIZATION_CONFIG = {
   // Maximum dimensions for optimized images
-  MAX_WIDTH: 1920,
-  MAX_HEIGHT: 1920,
+  MAX_WIDTH: process.env.NODE_ENV === "development" ? 1200 : 1920, // Lower in dev for testing
+  MAX_HEIGHT: process.env.NODE_ENV === "development" ? 1200 : 1920, // Lower in dev for testing
   // JPEG quality (0.1 to 1.0)
   JPEG_QUALITY: 0.85,
   // Maximum file size before optimization (in bytes)
-  MAX_FILE_SIZE_BEFORE_OPTIMIZATION: 2 * 1024 * 1024, // 2MB
+  MAX_FILE_SIZE_BEFORE_OPTIMIZATION:
+    process.env.NODE_ENV === "development" ? 500 * 1024 : 2 * 1024 * 1024, // 500KB in dev, 2MB in prod
   // Target file size after optimization (in bytes)
-  TARGET_FILE_SIZE: 1 * 1024 * 1024, // 1MB
+  TARGET_FILE_SIZE:
+    process.env.NODE_ENV === "development" ? 300 * 1024 : 1 * 1024 * 1024, // 300KB in dev, 1MB in prod
 };
 
 export interface ProcessedImage {
@@ -66,6 +68,23 @@ export async function needsOptimization(file: File): Promise<boolean> {
       const needsResize =
         img.naturalWidth > IMAGE_OPTIMIZATION_CONFIG.MAX_WIDTH ||
         img.naturalHeight > IMAGE_OPTIMIZATION_CONFIG.MAX_HEIGHT;
+
+      // Debug logging in development
+      if (process.env.NODE_ENV === "development") {
+        console.log(`Image analysis for ${file.name}:`, {
+          dimensions: `${img.naturalWidth}x${img.naturalHeight}`,
+          size: `${Math.round(file.size / 1024)}KB`,
+          maxDimensions: `${IMAGE_OPTIMIZATION_CONFIG.MAX_WIDTH}x${IMAGE_OPTIMIZATION_CONFIG.MAX_HEIGHT}`,
+          maxSize: `${Math.round(
+            IMAGE_OPTIMIZATION_CONFIG.MAX_FILE_SIZE_BEFORE_OPTIMIZATION / 1024
+          )}KB`,
+          needsResize,
+          needsSizeOptimization:
+            file.size >
+            IMAGE_OPTIMIZATION_CONFIG.MAX_FILE_SIZE_BEFORE_OPTIMIZATION,
+        });
+      }
+
       resolve(needsResize);
     };
 

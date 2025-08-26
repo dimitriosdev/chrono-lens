@@ -53,9 +53,10 @@ const NewAlbumPage: React.FC = () => {
       // Get userId from localStorage (temporary solution until proper auth)
       const userId = localStorage.getItem("userId") || `user_${Date.now()}`;
 
-      // Check rate limit before proceeding (max 5 albums per minute)
+      // Check rate limit before proceeding (max 5 albums per minute, higher in development)
       const { checkRateLimit } = await import("@/utils/security");
-      if (!checkRateLimit(userId, 5, 60000)) {
+      const maxAlbums = process.env.NODE_ENV === "development" ? 20 : 5;
+      if (!checkRateLimit(userId, maxAlbums, 60000)) {
         throw new Error(
           "Too many album creation requests. Please wait a minute before creating another album."
         );

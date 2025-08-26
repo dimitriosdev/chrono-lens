@@ -222,7 +222,7 @@ const requestCounts = new Map<string, { count: number; timestamp: number }>();
 
 export function checkRateLimit(
   userId: string,
-  maxRequests: number = 10,
+  maxRequests: number = process.env.NODE_ENV === "development" ? 50 : 10, // Higher limit in dev
   windowMs: number = 60000
 ): boolean {
   const now = Date.now();
@@ -248,6 +248,38 @@ export function clearRateLimit(userId?: string): void {
   } else {
     requestCounts.clear();
   }
+
+  // Also clear any localStorage cache that might be persisting
+  if (typeof window !== "undefined") {
+    try {
+      localStorage.removeItem("rate_limit_cache");
+      localStorage.removeItem("album_creation_cache");
+    } catch {
+      // Ignore localStorage errors
+    }
+  }
+}
+
+// Force clear all rate limits and reset everything
+export function forceResetRateLimits(): void {
+  requestCounts.clear();
+
+  if (typeof window !== "undefined") {
+    try {
+      // Clear all possible rate limit related items
+      Object.keys(localStorage).forEach((key) => {
+        if (
+          key.includes("rate") ||
+          key.includes("limit") ||
+          key.includes("album")
+        ) {
+          localStorage.removeItem(key);
+        }
+      });
+    } catch {
+      // Ignore localStorage errors
+    }
+  }
 }
 
 // Add to global window object in development for easy debugging
@@ -255,9 +287,11 @@ if (typeof window !== "undefined" && process.env.NODE_ENV === "development") {
   interface DevWindow extends Window {
     clearRateLimit?: typeof clearRateLimit;
     checkRateLimit?: typeof checkRateLimit;
+    forceResetRateLimits?: typeof forceResetRateLimits;
   }
 
   const devWindow = window as DevWindow;
   devWindow.clearRateLimit = clearRateLimit;
   devWindow.checkRateLimit = checkRateLimit;
+  devWindow.forceResetRateLimits = forceResetRateLimits;
 }
