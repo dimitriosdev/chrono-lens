@@ -12,6 +12,7 @@ A modern, intelligent photo album application built with Next.js, featuring smar
 - 🎬 **Slideshow Mode** - Automatic photo transitions with customizable timing
 - 🔄 **Advanced Image Processing** - HEIC conversion and automatic optimization
 - 💾 **Smart Compression** - Intelligent file size reduction while maintaining quality
+- 🌐 **Wide Browser Support** - Compatible with Chrome 92+, Safari 15+, Firefox 100+, Edge 100+
 
 ## 🚀 Quick Start
 
@@ -61,6 +62,7 @@ Comprehensive documentation is available in the [`docs/`](docs/) directory:
 - ✨ **[Features](docs/features/)** - Detailed feature documentation and usage
 - 🚀 **[Deployment](docs/deployment/)** - Production deployment and CI/CD
 - ⚙️ **[Configuration](docs/configuration/)** - Environment and service setup
+- 🌐 **[Browser Compatibility](docs/BROWSER_COMPATIBILITY.md)** - Supported browsers and compatibility details
 
 ## 🛠️ Tech Stack
 

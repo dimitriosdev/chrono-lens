@@ -10,6 +10,6 @@ Safari >= 15
 iOS >= 15
 
 # Support for older browsers that might still be in use
-Chrome >= 100
+Chrome >= 92
 Firefox >= 100
 Edge >= 100
