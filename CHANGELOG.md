@@ -1,3 +1,10 @@
+## [1.9.1](https://github.com/dimitriosdev/chrono-lens/compare/v1.9.0...v1.9.1) (2025-08-26)
+
+
+### Bug Fixes
+
+* allow customizable background color for MatImage component ([7d5bcb7](https://github.com/dimitriosdev/chrono-lens/commit/7d5bcb77453b9d5d60cbab76dc330236358abb69))
+
 # [1.9.0](https://github.com/dimitriosdev/chrono-lens/compare/v1.8.1...v1.9.0) (2025-08-26)
 
 
