@@ -1,0 +1,15 @@
+# Browsers that we support
+
+defaults
+> 0.5%
+last 2 versions
+not dead
+
+# Ensure Safari support back to version 15
+Safari >= 15
+iOS >= 15
+
+# Support for older browsers that might still be in use
+Chrome >= 100
+Firefox >= 100
+Edge >= 100

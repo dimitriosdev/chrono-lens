@@ -171,7 +171,7 @@ export const AlbumTimingSection: React.FC<AlbumTimingSectionProps> = ({
                     <RadioGroup.Item
                       value={key}
                       id={`slideshow-${key}`}
-                      className="w-4 h-4 rounded-full border border-gray-300 data-[state=checked]:border-blue-500 data-[state=checked]:bg-blue-500"
+                      className="radix-radio-item"
                     >
                       <RadioGroup.Indicator className="flex items-center justify-center w-full h-full relative after:content-[''] after:w-2 after:h-2 after:rounded-full after:bg-white" />
                     </RadioGroup.Item>
@@ -187,7 +187,7 @@ export const AlbumTimingSection: React.FC<AlbumTimingSectionProps> = ({
                 <RadioGroup.Item
                   value="custom"
                   id="slideshow-custom"
-                  className="w-4 h-4 rounded-full border border-gray-300 data-[state=checked]:border-blue-500 data-[state=checked]:bg-blue-500"
+                  className="radix-radio-item"
                 >
                   <RadioGroup.Indicator className="flex items-center justify-center w-full h-full relative after:content-[''] after:w-2 after:h-2 after:rounded-full after:bg-white" />
                 </RadioGroup.Item>
@@ -239,9 +239,9 @@ export const AlbumTimingSection: React.FC<AlbumTimingSectionProps> = ({
               <Switch.Root
                 checked={currentAutoAdvance}
                 onCheckedChange={handleAutoAdvanceToggle}
-                className="w-11 h-6 bg-gray-200 rounded-full relative data-[state=checked]:bg-blue-500 transition-colors duration-200 ease-in-out"
+                className="radix-switch-root"
               >
-                <Switch.Thumb className="block w-5 h-5 bg-white rounded-full transition-transform duration-100 ease-in-out data-[state=checked]:translate-x-5 translate-x-0" />
+                <Switch.Thumb className="radix-switch-thumb" />
               </Switch.Root>
             </div>
 
@@ -276,7 +276,7 @@ export const AlbumTimingSection: React.FC<AlbumTimingSectionProps> = ({
                           <RadioGroup.Item
                             value={key}
                             id={`interactive-${key}`}
-                            className="w-4 h-4 rounded-full border border-gray-300 data-[state=checked]:border-blue-500 data-[state=checked]:bg-blue-500"
+                            className="radix-radio-item"
                           >
                             <RadioGroup.Indicator className="flex items-center justify-center w-full h-full relative after:content-[''] after:w-2 after:h-2 after:rounded-full after:bg-white" />
                           </RadioGroup.Item>
@@ -292,7 +292,7 @@ export const AlbumTimingSection: React.FC<AlbumTimingSectionProps> = ({
                       <RadioGroup.Item
                         value="custom"
                         id="interactive-custom"
-                        className="w-4 h-4 rounded-full border border-gray-300 data-[state=checked]:border-blue-500 data-[state=checked]:bg-blue-500"
+                        className="radix-radio-item"
                       >
                         <RadioGroup.Indicator className="flex items-center justify-center w-full h-full relative after:content-[''] after:w-2 after:h-2 after:rounded-full after:bg-white" />
                       </RadioGroup.Item>
@@ -345,7 +345,7 @@ export const AlbumTimingSection: React.FC<AlbumTimingSectionProps> = ({
                         <RadioGroup.Item
                           value={value}
                           id={`speed-${value}`}
-                          className="w-4 h-4 rounded-full border border-gray-300 data-[state=checked]:border-blue-500 data-[state=checked]:bg-blue-500"
+                          className="radix-radio-item"
                         >
                           <RadioGroup.Indicator className="flex items-center justify-center w-full h-full relative after:content-[''] after:w-2 after:h-2 after:rounded-full after:bg-white" />
                         </RadioGroup.Item>
