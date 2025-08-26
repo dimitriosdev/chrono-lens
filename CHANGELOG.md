@@ -1,3 +1,16 @@
+# [1.8.0](https://github.com/dimitriosdev/chrono-lens/compare/v1.7.0...v1.8.0) (2025-08-26)
+
+
+### Bug Fixes
+
+* add Safari-compatible Radix UI styles and update radio/switch components in AlbumTimingSection ([68a7004](https://github.com/dimitriosdev/chrono-lens/commit/68a7004b1095edccd9e438c6ea4b4489dc934a44))
+
+
+### Features
+
+* Add advanced image processing capabilities including HEIC conversion and smart compression ([8b0008e](https://github.com/dimitriosdev/chrono-lens/commit/8b0008e85352fa561da3f1ba8ea21570518d50ba))
+* add timing configuration for albums with slideshow and interactive layouts ([7c37575](https://github.com/dimitriosdev/chrono-lens/commit/7c37575ccd86322775ead9934b682a39b16d0ca5))
+
 # [1.7.0](https://github.com/dimitriosdev/chrono-lens/compare/v1.6.0...v1.7.0) (2025-08-25)
 
 
