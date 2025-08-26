@@ -61,11 +61,13 @@ function MatImage({
   matConfig,
   containerMode = false,
   gridInfo,
+  backgroundColor,
 }: {
   src: string;
   matConfig: { matWidth?: number; matColor?: string };
   containerMode?: boolean;
   gridInfo?: { rows: number; cols: number };
+  backgroundColor?: string;
 }) {
   const matPercent = matConfig?.matWidth ?? 5;
   const matColor = matConfig?.matColor ?? "#000";
@@ -201,7 +203,7 @@ function MatImage({
     <div
       className="relative flex items-center justify-center"
       style={{
-        background: isNoMat ? "#374151" : matColor, // Use gray-700 for no mat
+        background: isNoMat ? backgroundColor || "#374151" : matColor, // Use selected background color for no mat
         width: `${frameW}px`,
         height: `${frameH}px`,
         border: "none",
@@ -743,6 +745,7 @@ const SlideshowPage: React.FC = () => {
                           matConfig={matConfig}
                           containerMode={true}
                           gridInfo={{ rows, cols }}
+                          backgroundColor={backgroundColor}
                         />
 
                         {/* Caption positioned directly on the MatImage */}
@@ -867,6 +870,7 @@ const SlideshowPage: React.FC = () => {
             src={images[current]}
             matConfig={matConfig}
             containerMode={false}
+            backgroundColor={backgroundColor}
           />
         </div>
       ) : (
