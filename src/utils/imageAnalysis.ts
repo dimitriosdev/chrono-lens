@@ -1,4 +1,5 @@
 // Enhanced image analysis utilities for smart layout detection
+import { calculateLayoutScore as strategyCalculateLayoutScore } from "./layout-scoring";
 
 export interface ImageDimensions {
   width: number;
@@ -405,15 +406,14 @@ export const analyzeImages = async (
 };
 
 /**
- * Enhanced layout compatibility scoring with detailed analysis
+ * Calculate layout compatibility score using strategy pattern
+ * Refactored for maintainability and extensibility
  */
 export const calculateLayoutScore = (
   imageAnalyses: ImageAnalysis[],
   layoutName: string
 ): LayoutRecommendation => {
-  const imageCount = imageAnalyses.length;
-
-  if (imageCount === 0) {
+  if (imageAnalyses.length === 0) {
     return {
       layoutName,
       score: 0,
@@ -429,256 +429,30 @@ export const calculateLayoutScore = (
     };
   }
 
-  // Count orientations and calculate metrics
-  const orientationCounts = imageAnalyses.reduce((acc, analysis) => {
-    acc[analysis.dimensions.orientation] =
-      (acc[analysis.dimensions.orientation] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  // Use the new strategy-based scoring system
+  try {
+    return strategyCalculateLayoutScore(imageAnalyses, layoutName);
+  } catch (error) {
+    console.warn(
+      "Failed to load new layout scoring system, using fallback",
+      error
+    );
 
-  const portraitCount = orientationCounts.portrait || 0;
-  const landscapeCount = orientationCounts.landscape || 0;
-  const squareCount = orientationCounts.square || 0;
-
-  // Calculate average aesthetic and visual weight scores
-  const avgAestheticScore =
-    imageAnalyses.reduce((sum, img) => sum + img.dimensions.aestheticScore, 0) /
-    imageCount;
-  const avgVisualWeight =
-    imageAnalyses.reduce((sum, img) => sum + img.dimensions.visualWeight, 0) /
-    imageCount;
-
-  // Calculate orientation dominance (how uniform are the orientations)
-  const maxOrientationCount = Math.max(
-    portraitCount,
-    landscapeCount,
-    squareCount
-  );
-  const orientationDominance = maxOrientationCount / imageCount;
-
-  // Calculate visual balance (distribution of visual weights)
-  const visualWeights = imageAnalyses.map((img) => img.dimensions.visualWeight);
-  const weightVariance =
-    visualWeights.reduce(
-      (sum, weight) => sum + Math.pow(weight - avgVisualWeight, 2),
-      0
-    ) / imageCount;
-  const balanceScore = Math.max(0, 1 - weightVariance * 2); // Lower variance = better balance
-
-  let score = 0;
-  let reason = "";
-  let orientationMatch = 0;
-  let imageCountMatch = 0;
-  let visualImpact = 0;
-  let confidence: "high" | "medium" | "low" = "medium";
-
-  switch (layoutName) {
-    case "3 Portraits":
-      imageCountMatch =
-        imageCount >= 3
-          ? Math.min(100, (3 / imageCount) * 100)
-          : (imageCount / 3) * 100;
-      orientationMatch = (portraitCount / imageCount) * 100;
-      visualImpact = avgVisualWeight * 100;
-
-      score =
-        orientationMatch * 0.5 + imageCountMatch * 0.3 + visualImpact * 0.2;
-      if (portraitCount === imageCount && imageCount >= 3) {
-        score += 20; // Bonus for perfect match
-        confidence = "high";
-      } else if (orientationMatch < 50) {
-        confidence = "low";
-      }
-
-      reason =
-        imageCount === 3
-          ? `Perfect for ${portraitCount} portrait images`
-          : `${portraitCount}/${imageCount} images are portrait (optimal: 3 portraits)`;
-      break;
-
-    case "6 Portraits":
-      imageCountMatch =
-        imageCount >= 6
-          ? Math.min(100, (6 / imageCount) * 100)
-          : (imageCount / 6) * 100;
-      orientationMatch = (portraitCount / imageCount) * 100;
-      visualImpact = avgVisualWeight * 100;
-
-      score =
-        orientationMatch * 0.5 + imageCountMatch * 0.3 + visualImpact * 0.2;
-      if (portraitCount === imageCount && imageCount >= 6) {
-        score += 25; // Higher bonus for 6-image layout
-        confidence = "high";
-      } else if (imageCount < 4) {
-        confidence = "low";
-        score *= 0.5; // Penalize heavily for too few images
-      }
-
-      reason =
-        imageCount >= 6
-          ? `Excellent for ${portraitCount} portrait images in gallery style`
-          : `Need more images for optimal display (have ${imageCount}, ideal: 6+)`;
-      break;
-
-    case "2x2 Grid":
-      imageCountMatch = imageCount >= 4 ? 100 : (imageCount / 4) * 100;
-      orientationMatch = orientationDominance < 0.8 ? 90 : 60; // Prefer mixed orientations
-      visualImpact = balanceScore * 100;
-
-      score =
-        orientationMatch * 0.4 + imageCountMatch * 0.4 + visualImpact * 0.2;
-      if (imageCount === 4 && orientationDominance < 0.8) {
-        score += 15; // Bonus for variety
-        confidence = "high";
-      }
-
-      reason = `Good for ${imageCount} images with balanced composition`;
-      break;
-
-    case "Single Row":
-      imageCountMatch =
-        imageCount <= 8 ? 100 : Math.max(50, 100 - (imageCount - 8) * 5);
-      orientationMatch = 80; // Works with any orientation
-      visualImpact = avgAestheticScore * 100;
-
-      score =
-        orientationMatch * 0.3 + imageCountMatch * 0.4 + visualImpact * 0.3;
-      if (imageCount >= 3 && imageCount <= 6) {
-        score += 15; // Bonus for ideal count
-        confidence = "high";
-      }
-
-      reason =
-        imageCount <= 8
-          ? `Great horizontal flow for ${imageCount} images`
-          : `Too many images for single row (have ${imageCount}, ideal: 3-8)`;
-      break;
-
-    case "3x2 Landscape":
-      imageCountMatch =
-        imageCount >= 6
-          ? Math.min(100, (6 / imageCount) * 100)
-          : (imageCount / 6) * 100;
-      orientationMatch = (landscapeCount / imageCount) * 100;
-      visualImpact = avgAestheticScore * 100;
-
-      score =
-        orientationMatch * 0.5 + imageCountMatch * 0.3 + visualImpact * 0.2;
-      if (landscapeCount >= imageCount * 0.7 && imageCount >= 6) {
-        score += 20; // Bonus for mostly landscape
-        confidence = "high";
-      }
-
-      reason = `${landscapeCount}/${imageCount} landscape images (optimal for wide photos)`;
-      break;
-
-    case "Mixed Grid":
-      const diversityScore =
-        ((Math.min(portraitCount, 1) +
-          Math.min(landscapeCount, 1) +
-          Math.min(squareCount, 1)) /
-          3) *
-        100;
-      imageCountMatch = imageCount >= 4 ? 90 : (imageCount / 4) * 100;
-      orientationMatch = diversityScore;
-      visualImpact = balanceScore * 100;
-
-      score =
-        orientationMatch * 0.4 + imageCountMatch * 0.3 + visualImpact * 0.3;
-      if (diversityScore > 66 && imageCount >= 6) {
-        score += 15; // Bonus for good variety
-        confidence = "high";
-      }
-
-      reason = `Great variety (P:${portraitCount}, L:${landscapeCount}, S:${squareCount})`;
-      break;
-
-    case "Column Stack":
-      imageCountMatch =
-        imageCount <= 10 ? 90 : Math.max(60, 90 - (imageCount - 10) * 3);
-      orientationMatch = (portraitCount / imageCount) * 80 + 20; // Prefer portraits but works with any
-      visualImpact = balanceScore * 100;
-
-      score =
-        orientationMatch * 0.4 + imageCountMatch * 0.3 + visualImpact * 0.3;
-      if (portraitCount >= imageCount * 0.6) {
-        score += 20; // Bonus for portrait-heavy collections
-        confidence = "high";
-      }
-
-      reason = `Vertical layout ${
-        portraitCount >= imageCount * 0.6 ? "perfect" : "good"
-      } for mobile viewing`;
-      break;
-
-    case "Slideshow":
-      score = 70; // Base score - always decent option
-      imageCountMatch = 100; // Works with any count
-      orientationMatch = 90; // Works with any orientation
-      visualImpact = avgAestheticScore * 100;
-
-      if (imageCount > 10) {
-        score += 15; // Bonus for many images
-        confidence = "high";
-      } else if (imageCount < 3) {
-        score += 10; // Good for few images
-      }
-
-      reason =
-        imageCount > 10
-          ? `Perfect for large collection (${imageCount} images)`
-          : `Classic presentation for ${imageCount} images`;
-      break;
-
-    case "Mosaic":
-      imageCountMatch =
-        imageCount >= 8
-          ? Math.min(100, 70 + (imageCount - 8) * 2)
-          : (imageCount / 8) * 100;
-      orientationMatch = (1 - orientationDominance) * 100; // Prefer variety
-      visualImpact = balanceScore * 100;
-
-      score =
-        orientationMatch * 0.3 + imageCountMatch * 0.5 + visualImpact * 0.2;
-      if (imageCount >= 12 && orientationDominance < 0.7) {
-        score += 20; // Bonus for large varied collections
-        confidence = "high";
-      } else if (imageCount < 6) {
-        confidence = "low";
-      }
-
-      reason =
-        imageCount >= 8
-          ? `Dynamic layout showcases ${imageCount} diverse images`
-          : `Better with more images (have ${imageCount}, ideal: 8+)`;
-      break;
-
-    default:
-      score = 0;
-      reason = "Unknown layout";
-      confidence = "low";
+    // Fallback scoring for unknown layouts
+    return {
+      layoutName,
+      score: 50, // Default moderate score
+      reason: "Layout scoring system unavailable",
+      detailedAnalysis: {
+        orientationMatch: 50,
+        imageCountMatch: 50,
+        aestheticScore: 50,
+        balanceScore: 50,
+        visualImpact: 50,
+      },
+      confidence: "low",
+    };
   }
-
-  // Determine confidence level
-  if (score > 85 && confidence !== "low") {
-    confidence = "high";
-  } else if (score < 40) {
-    confidence = "low";
-  }
-
-  return {
-    layoutName,
-    score: Math.min(100, Math.max(0, score)),
-    reason,
-    detailedAnalysis: {
-      orientationMatch,
-      imageCountMatch,
-      aestheticScore: avgAestheticScore * 100,
-      balanceScore: balanceScore * 100,
-      visualImpact,
-    },
-    confidence,
-  };
 };
 
 /**
