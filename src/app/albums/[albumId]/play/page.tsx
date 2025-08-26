@@ -7,6 +7,7 @@ import { getAlbum } from "@/lib/firestore";
 import { useAuth } from "@/context/AuthContext";
 import { AlbumLayout } from "@/features/albums/AlbumLayout";
 import Image from "next/image";
+import { Maximize, Minimize, ArrowLeft } from "lucide-react";
 
 // Hook to track screen size
 function useScreenSize() {
@@ -25,6 +26,18 @@ function useScreenSize() {
 
   return screenSize;
 }
+
+// Mat colors definition (same as in EnhancedMatBoard)
+const matColors = [
+  { name: "No Mat", color: "#000" },
+  { name: "Classic White", color: "#f8f8f8" },
+  { name: "Soft Yellow", color: "#ffe88a" },
+  { name: "Modern Grey", color: "#bfc2c3" },
+  { name: "Blush Pink", color: "#f8e1ea" },
+  { name: "Deep Black", color: "#1a1a1a" },
+  { name: "Cream", color: "#f5f5dc" },
+  { name: "Sage Green", color: "#9caf88" },
+];
 
 // Utility function to determine if a color is light or dark
 function isLightColor(color: string): boolean {
@@ -252,6 +265,46 @@ const SlideshowPage: React.FC = () => {
   const [nextSlotIndex, setNextSlotIndex] = React.useState(0);
   const [globalImageIndex, setGlobalImageIndex] = React.useState(3); // Start from image 3 (after initial 0,1,2)
 
+  // Background color state
+  const [backgroundColor, setBackgroundColor] = React.useState("#000000");
+  const [showColorPicker, setShowColorPicker] = React.useState(false);
+
+  // Fullscreen state
+  const [isFullscreen, setIsFullscreen] = React.useState(false);
+
+  // Sync background color with album's mat color when album loads
+  React.useEffect(() => {
+    if (album?.matConfig?.matColor) {
+      setBackgroundColor(album.matConfig.matColor);
+    }
+  }, [album?.matConfig?.matColor]);
+
+  // Load saved background color preference (only if no album mat color)
+  React.useEffect(() => {
+    if (!album?.matConfig?.matColor) {
+      const savedColor = localStorage.getItem("chrono-lens-bg-color");
+      if (savedColor) {
+        setBackgroundColor(savedColor);
+      }
+    }
+  }, [album?.matConfig?.matColor]);
+
+  // Save background color preference
+  React.useEffect(() => {
+    localStorage.setItem("chrono-lens-bg-color", backgroundColor);
+  }, [backgroundColor]);
+
+  // Fullscreen change handler
+  React.useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener("fullscreenchange", handleFullscreenChange);
+    return () =>
+      document.removeEventListener("fullscreenchange", handleFullscreenChange);
+  }, []);
+
   React.useEffect(() => {
     if (!loading && !isSignedIn) {
       router.replace("/");
@@ -351,6 +404,19 @@ const SlideshowPage: React.FC = () => {
     router.push("/albums");
   }, [router]);
 
+  // Fullscreen toggle function
+  const toggleFullscreen = async () => {
+    try {
+      if (!isFullscreen) {
+        await document.documentElement.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch (error) {
+      console.log("Fullscreen not supported or failed:", error);
+    }
+  };
+
   // Slideshow interval effect (hook placement fix)
   React.useEffect(() => {
     if (layout?.type === "slideshow" && images.length > 1) {
@@ -366,7 +432,85 @@ const SlideshowPage: React.FC = () => {
 
   if (loading || !isSignedIn) return null;
 
-  // Grid layout: 3 Portraits, 6 Portraits, or custom layouts like Mosaic
+  // Background color picker component
+  const ColorPicker = () => {
+    return (
+      <div className="absolute top-16 left-4 z-50">
+        <div className="bg-gray-900/95 backdrop-blur-sm rounded-xl p-4 shadow-2xl border border-gray-700/50 min-w-[280px]">
+          <h3 className="text-white text-sm font-medium mb-3 font-calligraphy">
+            Mat Background Colors
+          </h3>
+
+          {/* Mat colors grid */}
+          <div className="grid grid-cols-4 gap-2 mb-4">
+            {matColors.map((matOption) => (
+              <button
+                key={matOption.color}
+                type="button"
+                onClick={() => setBackgroundColor(matOption.color)}
+                className={`w-12 h-12 rounded-lg border-2 transition-all duration-200 hover:scale-105 flex flex-col items-center justify-center ${
+                  backgroundColor === matOption.color
+                    ? "border-white shadow-lg ring-2 ring-white/30"
+                    : "border-gray-600 hover:border-gray-400"
+                }`}
+                style={{ backgroundColor: matOption.color }}
+                aria-label={`Set background to ${matOption.name}`}
+              >
+                {/* Show current mat selection indicator */}
+                {album?.matConfig?.matColor === matOption.color && (
+                  <div className="w-2 h-2 rounded-full bg-blue-400 border border-white shadow-sm" />
+                )}
+              </button>
+            ))}
+          </div>
+
+          {/* Mat color names for selected color */}
+          <div className="mb-3">
+            <p className="text-white/80 text-xs font-calligraphy text-center">
+              {matColors.find((c) => c.color === backgroundColor)?.name ||
+                "Custom Color"}
+              {album?.matConfig?.matColor === backgroundColor && (
+                <span className="text-blue-400"> • Album Mat</span>
+              )}
+            </p>
+          </div>
+
+          {/* Custom color picker */}
+          <div className="space-y-3">
+            <label className="text-white text-xs font-medium font-calligraphy">
+              Custom Color:
+            </label>
+            <input
+              type="color"
+              value={backgroundColor}
+              onChange={(e) => setBackgroundColor(e.target.value)}
+              className="w-full h-10 rounded-lg border border-gray-600 bg-transparent cursor-pointer"
+            />
+          </div>
+
+          {/* Action buttons */}
+          <div className="flex gap-2 mt-4">
+            <button
+              type="button"
+              onClick={() =>
+                setBackgroundColor(album?.matConfig?.matColor || "#000")
+              }
+              className="flex-1 px-3 py-2 bg-blue-800 hover:bg-blue-700 text-white text-xs rounded-lg transition-colors font-calligraphy"
+            >
+              Use Album Mat
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowColorPicker(false)}
+              className="flex-1 px-3 py-2 bg-gray-800 hover:bg-gray-700 text-white text-xs rounded-lg transition-colors font-calligraphy"
+            >
+              Done
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }; // Grid layout: 3 Portraits, 6 Portraits, or custom layouts like Mosaic
   if (layout?.type === "grid" || layout?.type === "custom") {
     const rows = layout?.grid?.rows || 1;
     const cols = layout?.grid?.cols || 3;
@@ -381,7 +525,48 @@ const SlideshowPage: React.FC = () => {
     const is6Portrait = requiredCount === 6;
 
     return (
-      <div className="fixed inset-0 bg-gray-900 flex flex-col items-center justify-center z-50">
+      <div
+        className="fixed inset-0 flex flex-col items-center justify-center z-50"
+        style={{ backgroundColor }}
+      >
+        {/* Fullscreen toggle button */}
+        <button
+          type="button"
+          onClick={toggleFullscreen}
+          aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+          className="absolute top-2 sm:top-4 left-2 sm:left-4 bg-gray-900/80 hover:bg-gray-800 text-white p-2 rounded-lg shadow-lg transition-colors z-50"
+        >
+          {isFullscreen ? (
+            <Minimize className="w-5 h-5" />
+          ) : (
+            <Maximize className="w-5 h-5" />
+          )}
+        </button>
+
+        {/* Background color controls */}
+        <button
+          type="button"
+          onClick={() => setShowColorPicker(!showColorPicker)}
+          aria-label="Change background color"
+          className="absolute top-2 sm:top-4 right-2 sm:right-4 bg-gray-900/80 hover:bg-gray-800 text-white p-2 rounded-lg shadow-lg transition-colors z-50"
+        >
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a4 4 0 004 4h4a2 2 0 002-2V5z"
+            />
+          </svg>
+        </button>
+
+        {/* Color picker overlay */}
+        {showColorPicker && <ColorPicker />}
         <style jsx>{`
           @keyframes fadeIn {
             from {
@@ -621,9 +806,9 @@ const SlideshowPage: React.FC = () => {
           type="button"
           onClick={handleBack}
           aria-label="Back to albums"
-          className="absolute top-2 sm:top-4 left-2 sm:left-4 bg-gray-900 bg-opacity-80 text-white px-3 sm:px-4 py-2 rounded-lg shadow-lg text-sm sm:text-base font-semibold hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white z-50 font-calligraphy"
+          className="absolute bottom-2 sm:bottom-4 left-2 sm:left-4 bg-gray-900 bg-opacity-80 text-white p-2 rounded-lg shadow-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white z-50"
         >
-          &lt;
+          <ArrowLeft className="w-5 h-5" />
         </button>
       </div>
     );
@@ -633,7 +818,49 @@ const SlideshowPage: React.FC = () => {
   const isNoMat = matConfig.matColor === "#000";
 
   return (
-    <div className="fixed inset-0 bg-black flex flex-col items-center justify-center z-50">
+    <div
+      className="fixed inset-0 flex flex-col items-center justify-center z-50"
+      style={{ backgroundColor }}
+    >
+      {/* Fullscreen toggle button */}
+      <button
+        type="button"
+        onClick={toggleFullscreen}
+        aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+        className="absolute top-2 sm:top-4 left-2 sm:left-4 bg-gray-900/80 hover:bg-gray-800 text-white p-2 rounded-lg shadow-lg transition-colors z-50"
+      >
+        {isFullscreen ? (
+          <Minimize className="w-5 h-5" />
+        ) : (
+          <Maximize className="w-5 h-5" />
+        )}
+      </button>
+
+      {/* Background color controls */}
+      <button
+        type="button"
+        onClick={() => setShowColorPicker(!showColorPicker)}
+        aria-label="Change background color"
+        className="absolute top-2 sm:top-4 right-2 sm:right-4 bg-gray-900/80 hover:bg-gray-800 text-white p-2 rounded-lg shadow-lg transition-colors z-50"
+      >
+        <svg
+          className="w-5 h-5"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a4 4 0 004 4h4a2 2 0 002-2V5z"
+          />
+        </svg>
+      </button>
+
+      {/* Color picker overlay */}
+      {showColorPicker && <ColorPicker />}
+
       {images.length > 0 ? (
         <div className="w-screen h-screen flex items-center justify-center">
           <MatImage
@@ -680,9 +907,9 @@ const SlideshowPage: React.FC = () => {
         type="button"
         onClick={handleBack}
         aria-label="Back to albums"
-        className="absolute top-2 sm:top-4 left-2 sm:left-4 bg-gray-900 bg-opacity-80 text-white px-3 sm:px-4 py-2 rounded-lg shadow-lg text-sm sm:text-base font-semibold hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white z-50 font-calligraphy"
+        className="absolute bottom-2 sm:bottom-4 left-2 sm:left-4 bg-gray-900 bg-opacity-80 text-white p-2 rounded-lg shadow-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white z-50"
       >
-        Back
+        <ArrowLeft className="w-5 h-5" />
       </button>
     </div>
   );

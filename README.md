@@ -1,4 +1,4 @@
-# 📸 Chrono Lens
+# 📸 Chrono Le- 🌈 **Mat Background Colors** - Background colors that sync with album mat board colorss
 
 A modern, intelligent photo album application built with Next.js, featuring smart layout algorithms and intuitive album management.
 
@@ -12,7 +12,8 @@ A modern, intelligent photo album application built with Next.js, featuring smar
 - 🎬 **Slideshow Mode** - Automatic photo transitions with customizable timing
 - 🔄 **Advanced Image Processing** - HEIC conversion and automatic optimization
 - 💾 **Smart Compression** - Intelligent file size reduction while maintaining quality
-- 🌐 **Wide Browser Support** - Compatible with Chrome 92+, Safari 15+, Firefox 100+, Edge 100+
+- � **Background Color Picker** - Customizable background colors for optimal viewing
+- �🌐 **Wide Browser Support** - Compatible with Chrome 92+, Safari 15+, Firefox 100+, Edge 100+
 
 ## 🚀 Quick Start
 
