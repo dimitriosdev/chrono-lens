@@ -21,6 +21,16 @@ interface AlbumFormData {
   layout: AlbumLayout;
   matConfig: MatConfig;
   cycleDuration: number;
+  timing?: {
+    slideshow?: {
+      cycleDuration: number;
+    };
+    interactive?: {
+      autoAdvance: boolean;
+      autoAdvanceDuration: number;
+      transitionSpeed: "fast" | "normal" | "smooth";
+    };
+  };
 }
 
 const NewAlbumPage: React.FC = () => {
@@ -83,6 +93,7 @@ const NewAlbumPage: React.FC = () => {
           ...formData.matConfig,
           cycleDuration: formData.cycleDuration,
         },
+        timing: formData.timing,
         coverUrl: albumImages[0]?.url,
         userId,
         createdAt: new Date(),

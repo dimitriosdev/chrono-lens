@@ -6,7 +6,7 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import { Save, Eye } from "lucide-react";
+import { Save } from "lucide-react";
 
 import { Button } from "@/components/FormComponents";
 import { useAlbumForm } from "@/hooks/useAlbumForm";
@@ -17,6 +17,7 @@ import {
   AlbumSlideshowSettings,
   AlbumMatBoardSection,
   AlbumImagesSection,
+  AlbumTimingSection,
 } from "@/components/forms";
 
 export function AlbumForm({
@@ -44,11 +45,6 @@ export function AlbumForm({
 
   const handleCancel = () => {
     router.back();
-  };
-
-  const handlePreview = () => {
-    // TODO: Implement preview functionality
-    console.log("Preview functionality to be implemented");
   };
 
   return (
@@ -85,6 +81,15 @@ export function AlbumForm({
         isVisible={albumForm.isSlideshow}
       />
 
+      {/* Timing Configuration */}
+      {albumForm.formData.layout && (
+        <AlbumTimingSection
+          layout={albumForm.formData.layout}
+          timing={albumForm.formData.timing || {}}
+          onTimingChange={(timing) => albumForm.updateField("timing", timing)}
+        />
+      )}
+
       {/* Mat Board Configuration */}
       <AlbumMatBoardSection
         matConfig={albumForm.formData.matConfig}
@@ -106,16 +111,6 @@ export function AlbumForm({
         >
           <Save size={16} />
           {mode === "create" ? "Create Album" : "Save Changes"}
-        </Button>
-
-        <Button
-          variant="secondary"
-          onClick={handlePreview}
-          disabled={albumForm.formData.images.length === 0}
-          className="flex-1 sm:flex-none"
-        >
-          <Eye size={16} />
-          Preview
         </Button>
 
         <Button

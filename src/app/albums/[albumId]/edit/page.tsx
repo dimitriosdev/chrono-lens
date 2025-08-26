@@ -21,6 +21,16 @@ interface AlbumFormData {
   layout: AlbumLayout;
   matConfig: MatConfig;
   cycleDuration: number;
+  timing?: {
+    slideshow?: {
+      cycleDuration: number;
+    };
+    interactive?: {
+      autoAdvance: boolean;
+      autoAdvanceDuration: number;
+      transitionSpeed: "fast" | "normal" | "smooth";
+    };
+  };
 }
 
 const EditAlbumPage: React.FC = () => {
@@ -119,6 +129,7 @@ const EditAlbumPage: React.FC = () => {
           matColor: formData.matConfig.matColor || "#000",
           cycleDuration: formData.cycleDuration,
         },
+        timing: formData.timing,
         updatedAt: new Date(),
       });
 
@@ -144,6 +155,16 @@ const EditAlbumPage: React.FC = () => {
     layout: album.layout || ALBUM_LAYOUTS[0],
     matConfig: album.matConfig || { matWidth: 40, matColor: "#000" },
     cycleDuration: album.matConfig?.cycleDuration || 2000,
+    timing: album.timing || {
+      slideshow: {
+        cycleDuration: 5,
+      },
+      interactive: {
+        autoAdvance: false,
+        autoAdvanceDuration: 5,
+        transitionSpeed: "normal" as const,
+      },
+    },
     coverUrl: album.coverUrl,
   };
 

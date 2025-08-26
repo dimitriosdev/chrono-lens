@@ -41,6 +41,16 @@ export interface AlbumFormData {
   matConfig: import("./album").MatConfig;
   cycleDuration: number;
   coverUrl?: string;
+  timing?: {
+    slideshow?: {
+      cycleDuration: number;
+    };
+    interactive?: {
+      autoAdvance: boolean;
+      autoAdvanceDuration: number;
+      transitionSpeed: "fast" | "normal" | "smooth";
+    };
+  };
 }
 
 export interface AlbumFormProps {

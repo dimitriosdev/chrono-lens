@@ -16,5 +16,16 @@ export interface Album {
   userId?: string; // Owner user ID for security and isolation (optional for backward compatibility)
   createdAt?: Date;
   updatedAt?: Date;
+  // Timing configuration for different layout types
+  timing?: {
+    slideshow?: {
+      cycleDuration: number; // seconds between slides
+    };
+    interactive?: {
+      autoAdvance: boolean; // enable auto-advance in non-slideshow layouts
+      autoAdvanceDuration: number; // seconds before auto-advance
+      transitionSpeed: "fast" | "normal" | "smooth"; // animation speed
+    };
+  };
   // Add more fields as needed (e.g., tags, etc.)
 }

@@ -23,6 +23,16 @@ export function useAlbumForm({ mode, initialData = {} }: UseAlbumFormOptions) {
     matConfig: { matWidth: 40, matColor: "#000" },
     cycleDuration: 2000,
     coverUrl: initialData.coverUrl,
+    timing: {
+      slideshow: {
+        cycleDuration: 5,
+      },
+      interactive: {
+        autoAdvance: false,
+        autoAdvanceDuration: 5,
+        transitionSpeed: 'normal',
+      },
+    },
   };
 
   // Initialize form state with merged data

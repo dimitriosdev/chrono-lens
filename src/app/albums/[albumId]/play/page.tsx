@@ -317,7 +317,14 @@ const SlideshowPage: React.FC = () => {
     if (layout?.type === "grid" || layout?.type === "custom") {
       const requiredCount =
         (layout?.grid?.rows || 1) * (layout?.grid?.cols || 3);
-      if (images.length > requiredCount) {
+
+      // Only cycle if auto-advance is enabled and there are more images than grid slots
+      const autoAdvanceEnabled =
+        album?.timing?.interactive?.autoAdvance ?? false;
+      const cycleDuration =
+        album?.timing?.interactive?.autoAdvanceDuration ?? 5;
+
+      if (images.length > requiredCount && autoAdvanceEnabled) {
         const timer = setInterval(() => {
           setGridImages((prevGrid) => {
             const newGrid = [...prevGrid];
@@ -327,7 +334,7 @@ const SlideshowPage: React.FC = () => {
           });
           setNextSlotIndex((prev) => (prev + 1) % requiredCount);
           setGlobalImageIndex((prev) => prev + 1);
-        }, matConfig.cycleDuration ?? 2000);
+        }, cycleDuration * 1000); // Convert seconds to milliseconds
         return () => clearInterval(timer);
       }
     }
@@ -336,7 +343,8 @@ const SlideshowPage: React.FC = () => {
     layout,
     nextSlotIndex,
     globalImageIndex,
-    matConfig.cycleDuration,
+    album?.timing?.interactive?.autoAdvance,
+    album?.timing?.interactive?.autoAdvanceDuration,
   ]);
 
   const handleBack = React.useCallback(() => {
@@ -346,14 +354,15 @@ const SlideshowPage: React.FC = () => {
   // Slideshow interval effect (hook placement fix)
   React.useEffect(() => {
     if (layout?.type === "slideshow" && images.length > 1) {
+      const slideshowDuration = album?.timing?.slideshow?.cycleDuration ?? 5;
       const timer = setInterval(() => {
         setCurrent((prev) => (prev + 1) % images.length);
-      }, matConfig.cycleDuration ?? 2000);
+      }, slideshowDuration * 1000); // Convert seconds to milliseconds
       return () => clearInterval(timer);
     }
     // No interval for other layouts
     return undefined;
-  }, [layout?.type, images.length, matConfig.cycleDuration]);
+  }, [layout?.type, images.length, album?.timing?.slideshow?.cycleDuration]);
 
   if (loading || !isSignedIn) return null;
 
