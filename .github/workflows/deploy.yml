@@ -29,9 +29,12 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
+          registry-url: 'https://registry.npmjs.org'
 
       - name: 📥 Install dependencies
-        run: npm ci
+        run: |
+          chmod +x .github/scripts/install-deps.sh
+          .github/scripts/install-deps.sh
 
       - name: 🏷️ Run semantic release
         id: semantic
@@ -70,7 +73,9 @@ jobs:
           cache: 'npm'
 
       - name: 📥 Install dependencies
-        run: npm ci
+        run: |
+          chmod +x .github/scripts/install-deps.sh
+          .github/scripts/install-deps.sh
 
       - name: 🏷️ Generate version info
         id: version
@@ -152,7 +157,9 @@ jobs:
           cache: 'npm'
 
       - name: 📥 Install dependencies
-        run: npm ci
+        run: |
+          chmod +x .github/scripts/install-deps.sh
+          .github/scripts/install-deps.sh
 
       - name: 📦 Cache Next.js build
         uses: actions/cache@v4
@@ -188,7 +195,9 @@ jobs:
           cache: 'npm'
 
       - name: 📥 Install dependencies
-        run: npm ci
+        run: |
+          chmod +x .github/scripts/install-deps.sh
+          .github/scripts/install-deps.sh
 
       - name: 📦 Cache Next.js build
         uses: actions/cache@v4
