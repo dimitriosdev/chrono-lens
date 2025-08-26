@@ -1,3 +1,10 @@
+## [1.8.1](https://github.com/dimitriosdev/chrono-lens/compare/v1.8.0...v1.8.1) (2025-08-26)
+
+
+### Bug Fixes
+
+* update browser compatibility documentation and adjust minimum Chrome version to 92 ([427352a](https://github.com/dimitriosdev/chrono-lens/commit/427352abd5bc1f1876646f3bd151aca2b7753177))
+
 # [1.8.0](https://github.com/dimitriosdev/chrono-lens/compare/v1.7.0...v1.8.0) (2025-08-26)
 
 
