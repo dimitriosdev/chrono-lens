@@ -1,34 +1,32 @@
 # Browser Compatibility
 
-This document outlines the browser support for Chrono Lens and any compatibility considerations.
+# Browser Compatibility
 
 ## Supported Browsers
 
-### Chrome
+- **Chrome**: 92+ (July 2021)
+- **Firefox**: 100+ (May 2022)
+- **Edge**: 100+ (March 2022)
+- **Safari**: 15+ (September 2021)
 
-- **Minimum Version**: Chrome 92+ (July 2021)
-- **Status**: ✅ Fully Supported
-- **Features**: All modern JavaScript and CSS features are supported
-
-### Firefox
-
-- **Minimum Version**: Firefox 100+ (May 2022)
-- **Status**: ✅ Fully Supported
-
-### Edge
-
-- **Minimum Version**: Edge 100+ (March 2022)
-- **Status**: ✅ Fully Supported
-
-### Safari
-
-- **Minimum Version**: Safari 15+ (September 2021)
-- **Status**: ✅ Fully Supported
-- **Special Considerations**: Safari-specific CSS classes are used for Radix UI components
-
-### Mobile Browsers
+## Mobile Support
 
 - **iOS Safari**: iOS 15+
+- **Chrome Mobile**: Android 8+
+
+## Key Features
+
+- ES2020+ JavaScript features
+- CSS Grid and Flexbox
+- CSS Custom Properties
+- ResizeObserver API
+- Modern image formats (WebP)
+
+## Known Limitations
+
+- Fullscreen API requires user interaction
+- File drag & drop limited on mobile
+- HEIC support varies by platform
 - **Android Chrome**: Latest versions
 - **Status**: ✅ Fully Supported
 

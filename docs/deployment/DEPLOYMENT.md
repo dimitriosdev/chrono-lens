@@ -62,7 +62,7 @@ npm run deploy          # Deploy to production
 npm run deploy:preview  # Deploy to preview channel
 ```
 
-## � Pre-Deployment Checklist
+## Pre-Deployment Checklist
 
 Before going live, ensure:
 
