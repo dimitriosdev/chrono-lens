@@ -189,6 +189,26 @@ const calculateMatDimensions = (
   };
 };
 
+/**
+ * Get caption styles based on layout mode
+ */
+const getCaptionStyles = (
+  containerMode?: boolean,
+  gridInfo?: GridInfo
+): string => {
+  const isMultiImageLayout =
+    containerMode && gridInfo && (gridInfo.rows > 1 || gridInfo.cols > 1);
+
+  const baseStyles =
+    "font-medium text-white text-center overflow-hidden text-ellipsis whitespace-nowrap drop-shadow-lg";
+
+  if (isMultiImageLayout) {
+    return `${baseStyles} text-[10px] px-2 py-1`;
+  }
+
+  return `${baseStyles} text-xs px-3 py-2`;
+};
+
 // Main MatImage component
 const MatImage: React.FC<MatImageProps> = ({
   src,
@@ -316,17 +336,11 @@ const MatImage: React.FC<MatImageProps> = ({
         />
 
         {/* Caption overlay */}
-        {description && description.trim() && (
+        {description?.trim() && (
           <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
             <div className="bg-black/25 backdrop-blur-sm">
               <p
-                className={`${
-                  containerMode &&
-                  gridInfo &&
-                  (gridInfo.rows > 1 || gridInfo.cols > 1)
-                    ? "text-[10px] px-2 py-1"
-                    : "text-xs px-3 py-2"
-                } font-medium text-white text-center overflow-hidden text-ellipsis whitespace-nowrap drop-shadow-lg`}
+                className={getCaptionStyles(containerMode, gridInfo)}
                 style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.8)" }}
               >
                 {description}

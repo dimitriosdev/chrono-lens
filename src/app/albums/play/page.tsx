@@ -2,9 +2,6 @@
 
 import React from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Album } from "@/features/albums/types/Album";
-import { getAlbum } from "@/shared/lib/firestore";
-import { useAuth } from "@/context/AuthContext";
 import {
   ChevronLeftIcon,
   ArrowsPointingInIcon,
@@ -12,60 +9,80 @@ import {
   Cog6ToothIcon,
 } from "@heroicons/react/24/solid";
 
-// Imported components and hooks (the better approach)
-import { MatImage, EnhancedColorPicker } from "@/features/albums/components";
-import SlideshowErrorBoundary from "@/features/albums/components/SlideshowErrorBoundary";
-import ImageErrorBoundary from "@/features/albums/components/ImageErrorBoundary";
+// Types and API
+import { Album } from "@/features/albums/types/Album";
+import { getAlbum } from "@/shared/lib/firestore";
+
+// Context and hooks
+import { useAuth, useGlobalFullscreen } from "@/context";
+import { useAsyncErrorHandler } from "@/shared/hooks/useErrorHandler";
 import {
   useSlideshow,
   useColorPreferences,
   isLightColor,
 } from "@/features/albums/hooks";
-import { useFullscreen } from "@/shared/hooks/useFullscreen";
-import { useAsyncErrorHandler } from "@/shared/hooks/useErrorHandler";
 
-// Control buttons component
-const ControlButtons: React.FC<{
+// Components
+import { MatImage, EnhancedColorPicker } from "@/features/albums/components";
+import SlideshowErrorBoundary from "@/features/albums/components/SlideshowErrorBoundary";
+import ImageErrorBoundary from "@/features/albums/components/ImageErrorBoundary";
+
+/**
+ * Props for the ControlButtons component
+ */
+interface ControlButtonsProps {
   isFullscreen: boolean;
   onToggleFullscreen: () => void;
   onToggleColorPicker: () => void;
-}> = ({ isFullscreen, onToggleFullscreen, onToggleColorPicker }) => {
-  return (
-    <div className="absolute top-2 sm:top-4 right-2 sm:right-4 flex gap-2 z-50">
-      {/* Fullscreen toggle button */}
-      <button
-        type="button"
-        onClick={onToggleFullscreen}
-        aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-        className={`bg-gray-900/80 hover:bg-gray-800 text-white p-2 rounded-lg shadow-lg transition-all duration-300 ${
-          isFullscreen
-            ? "opacity-30 hover:opacity-80"
-            : "opacity-80 hover:opacity-100"
-        }`}
-      >
-        {isFullscreen ? (
-          <ArrowsPointingInIcon className="w-5 h-5" />
-        ) : (
-          <ArrowsPointingOutIcon className="w-5 h-5" />
-        )}
-      </button>
+}
 
-      {/* Color picker toggle button */}
-      <button
-        type="button"
-        onClick={onToggleColorPicker}
-        aria-label="Change mat color"
-        className={`bg-gray-900/80 hover:bg-gray-800 text-white p-2 rounded-lg shadow-lg transition-all duration-300 ${
-          isFullscreen
-            ? "opacity-30 hover:opacity-80"
-            : "opacity-80 hover:opacity-100"
-        }`}
-      >
-        <Cog6ToothIcon className="w-5 h-5" />
-      </button>
-    </div>
-  );
+/**
+ * Common button styles for control buttons
+ */
+const getControlButtonStyles = (isFullscreen: boolean): string => {
+  const baseStyles =
+    "bg-gray-900/80 hover:bg-gray-800 text-white p-2 rounded-lg shadow-lg transition-all duration-300";
+  const opacityStyles = isFullscreen
+    ? "opacity-30 hover:opacity-80"
+    : "opacity-80 hover:opacity-100";
+
+  return `${baseStyles} ${opacityStyles}`;
 };
+
+/**
+ * Control buttons component for slideshow interface
+ */
+const ControlButtons: React.FC<ControlButtonsProps> = ({
+  isFullscreen,
+  onToggleFullscreen,
+  onToggleColorPicker,
+}) => (
+  <div className="absolute top-2 sm:top-4 right-2 sm:right-4 flex gap-2 z-50">
+    {/* Fullscreen toggle button */}
+    <button
+      type="button"
+      onClick={onToggleFullscreen}
+      aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+      className={getControlButtonStyles(isFullscreen)}
+    >
+      {isFullscreen ? (
+        <ArrowsPointingInIcon className="w-5 h-5" />
+      ) : (
+        <ArrowsPointingOutIcon className="w-5 h-5" />
+      )}
+    </button>
+
+    {/* Configuration toggle button */}
+    <button
+      type="button"
+      onClick={onToggleColorPicker}
+      aria-label="Open configuration"
+      className={getControlButtonStyles(isFullscreen)}
+    >
+      <Cog6ToothIcon className="w-5 h-5" />
+    </button>
+  </div>
+);
 
 const SlideshowPage: React.FC = () => {
   const { isSignedIn, loading } = useAuth();
@@ -78,7 +95,7 @@ const SlideshowPage: React.FC = () => {
   // Custom hooks (the better approach!)
   const slideshow = useSlideshow({ album });
   const colorPrefs = useColorPreferences(album);
-  const fullscreen = useFullscreen();
+  const fullscreen = useGlobalFullscreen();
   const { handleAsyncError } = useAsyncErrorHandler("Album Loading");
 
   // Load album data

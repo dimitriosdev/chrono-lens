@@ -7,7 +7,7 @@ import {
   EB_Garamond,
 } from "next/font/google";
 import "./globals.css";
-import { AuthProvider } from "../context/AuthContext";
+import { AuthProvider, FullscreenProvider } from "../context";
 import { Navigation } from "../features/navigation";
 import {
   ErrorBoundary,
@@ -107,18 +107,20 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${cinzel.variable} ${playfairDisplay.variable} ${ebGaramond.variable} antialiased`}
       >
         <AuthProvider>
-          <ErrorBoundary>
-            <VersionLogger />
-            <div className="flex min-h-screen w-full bg-gray-950 antialiased">
-              <Navigation />
-              <main className="flex-1 w-full transition-smooth">
-                <div className="px-4 sm:px-6 lg:px-8 pt-16 pb-8 sm:pt-8 sm:ml-20">
-                  <div className="max-w-7xl mx-auto">{children}</div>
-                </div>
-              </main>
-              <UserDebugPanel />
-            </div>
-          </ErrorBoundary>
+          <FullscreenProvider>
+            <ErrorBoundary>
+              <VersionLogger />
+              <div className="flex min-h-screen w-full bg-gray-950 antialiased">
+                <Navigation />
+                <main className="flex-1 w-full transition-smooth">
+                  <div className="px-4 sm:px-6 lg:px-8 pt-16 pb-8 sm:pt-8 sm:ml-20">
+                    <div className="max-w-7xl mx-auto">{children}</div>
+                  </div>
+                </main>
+                <UserDebugPanel />
+              </div>
+            </ErrorBoundary>
+          </FullscreenProvider>
         </AuthProvider>
       </body>
     </html>

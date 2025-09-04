@@ -1,75 +1,104 @@
 "use client";
 
-import React from "react";
-import { useFullscreen } from "@/shared/hooks/useFullscreen";
+import { memo, useState, useEffect } from "react";
+import {
+  ArrowsPointingInIcon,
+  ArrowsPointingOutIcon,
+} from "@heroicons/react/24/solid";
+import { useGlobalFullscreen } from "@/context";
+import { helpers } from "@/shared/constants/designSystem";
 
-interface FullscreenButtonProps {
+export interface FullscreenButtonProps {
+  /** Additional CSS classes */
   className?: string;
+  /** Button size variant */
   size?: "sm" | "md" | "lg";
+  /** Custom aria-label override */
+  "aria-label"?: string;
 }
 
-export default function FullscreenButton({
-  className = "",
-  size = "md",
-}: FullscreenButtonProps) {
-  const { isFullscreen, toggleFullscreen, isSupported } = useFullscreen();
+/**
+ * Size configuration for the fullscreen button
+ */
+const SIZE_CONFIG = {
+  sm: {
+    icon: "w-4 h-4",
+    button: "p-1",
+  },
+  md: {
+    icon: "w-6 h-6",
+    button: "p-2",
+  },
+  lg: {
+    icon: "w-8 h-8",
+    button: "p-3",
+  },
+} as const;
 
-  if (!isSupported) {
-    return null; // Don't render if fullscreen is not supported
+/**
+ * Fullscreen toggle button component
+ * Uses Heroicons for consistent styling with the rest of the app
+ */
+const FullscreenButton = memo<FullscreenButtonProps>(
+  ({ className, size = "md", "aria-label": ariaLabel }) => {
+    const { isFullscreen, toggleFullscreen, isSupported } =
+      useGlobalFullscreen();
+    const [isMounted, setIsMounted] = useState(false);
+
+    // Prevent hydration mismatch by only rendering interactive content after mount
+    useEffect(() => {
+      setIsMounted(true);
+    }, []);
+
+    // Don't render if fullscreen is not supported or not yet mounted
+    if (!isSupported || !isMounted) {
+      return null;
+    }
+
+    const sizeConfig = SIZE_CONFIG[size];
+    const defaultAriaLabel = isFullscreen
+      ? "Exit fullscreen"
+      : "Enter fullscreen";
+    const buttonAriaLabel = ariaLabel ?? defaultAriaLabel;
+
+    const handleClick = (): void => {
+      // Fire and forget - errors are handled in the hook
+      void toggleFullscreen();
+    };
+
+    return (
+      <button
+        type="button"
+        onClick={handleClick}
+        className={helpers.cn(
+          // Base styles
+          "bg-gray-900 hover:bg-gray-700 text-white rounded-lg shadow-lg",
+          "focus:outline-none focus:ring-2 focus:ring-white",
+          "transition-all duration-300",
+          // Size-specific padding
+          sizeConfig.button,
+          // Custom classes
+          className
+        )}
+        aria-label={buttonAriaLabel}
+        title={buttonAriaLabel}
+      >
+        {isFullscreen ? (
+          <ArrowsPointingInIcon
+            className={sizeConfig.icon}
+            aria-hidden="true"
+          />
+        ) : (
+          <ArrowsPointingOutIcon
+            className={sizeConfig.icon}
+            aria-hidden="true"
+          />
+        )}
+      </button>
+    );
   }
+);
 
-  const sizeClasses = {
-    sm: "w-4 h-4",
-    md: "w-6 h-6",
-    lg: "w-8 h-8",
-  };
+FullscreenButton.displayName = "FullscreenButton";
 
-  const buttonSizeClasses = {
-    sm: "p-1",
-    md: "p-2",
-    lg: "p-3",
-  };
-
-  return (
-    <button
-      onClick={toggleFullscreen}
-      className={`bg-gray-900 hover:bg-gray-700 text-white rounded-lg shadow-lg focus:outline-none focus:ring-2 focus:ring-white transition-all duration-300 ${buttonSizeClasses[size]} ${className}`}
-      aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-      title={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-    >
-      {isFullscreen ? (
-        // Exit fullscreen icon (compress/minimize)
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={1.5}
-          stroke="currentColor"
-          className={sizeClasses[size]}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M9 9V4.5M9 9H4.5M9 9L3.75 3.75M15 15v4.5M15 15h4.5M15 15l5.25 5.25"
-          />
-        </svg>
-      ) : (
-        // Enter fullscreen icon (expand)
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={1.5}
-          stroke="currentColor"
-          className={sizeClasses[size]}
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"
-          />
-        </svg>
-      )}
-    </button>
-  );
-}
+export default FullscreenButton;

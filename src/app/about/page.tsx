@@ -37,10 +37,10 @@ export default function AboutPage() {
                 to reach out:
                 <br />
                 <Link
-                  href="mailto:contact@chronolens.app"
+                  href="mailto:dimitrios.dev@gmail.com"
                   style={{ color: "#0070f3", textDecoration: "underline" }}
                 >
-                  contact@chronolens.app
+                  dimitrios.dev@gmail.com
                 </Link>
               </p>
             </div>
