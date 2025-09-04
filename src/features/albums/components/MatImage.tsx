@@ -20,6 +20,7 @@ interface MatImageProps {
   containerMode?: boolean;
   gridInfo?: GridInfo;
   alt?: string;
+  description?: string;
 }
 
 interface ScreenSize {
@@ -195,6 +196,7 @@ const MatImage: React.FC<MatImageProps> = ({
   containerMode = false,
   gridInfo,
   alt = "Artwork",
+  description,
 }) => {
   const matPercent = matConfig?.matWidth ?? 5;
   const matColor = matConfig?.matColor ?? "#000";
@@ -225,15 +227,27 @@ const MatImage: React.FC<MatImageProps> = ({
   const imgAspect = imgDims.width / imgDims.height;
 
   const { artworkWidth, artworkHeight, matHorizontal, matVertical } =
-    React.useMemo(
-      () =>
-        calculateMatDimensions(frameW, frameH, imgAspect, adjustedMatPercent),
-      [frameW, frameH, imgAspect, adjustedMatPercent]
-    );
+    React.useMemo(() => {
+      if (isNoMat) {
+        // When there's no mat, use full frame dimensions
+        return {
+          artworkWidth: frameW,
+          artworkHeight: frameH,
+          matHorizontal: 0,
+          matVertical: 0,
+        };
+      }
+      return calculateMatDimensions(
+        frameW,
+        frameH,
+        imgAspect,
+        adjustedMatPercent
+      );
+    }, [frameW, frameH, imgAspect, adjustedMatPercent, isNoMat]);
 
   const containerStyle = React.useMemo(
     () => ({
-      background: isNoMat ? "#374151" : matColor,
+      background: isNoMat ? "#000000" : matColor,
       width: `${frameW}px`,
       height: `${frameH}px`,
       border: "none",
@@ -300,6 +314,26 @@ const MatImage: React.FC<MatImageProps> = ({
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           priority={!containerMode} // Prioritize slideshow images
         />
+
+        {/* Caption overlay */}
+        {description && description.trim() && (
+          <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
+            <div className="bg-black/25 backdrop-blur-sm">
+              <p
+                className={`${
+                  containerMode &&
+                  gridInfo &&
+                  (gridInfo.rows > 1 || gridInfo.cols > 1)
+                    ? "text-[10px] px-2 py-1"
+                    : "text-xs px-3 py-2"
+                } font-medium text-white text-center overflow-hidden text-ellipsis whitespace-nowrap drop-shadow-lg`}
+                style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.8)" }}
+              >
+                {description}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

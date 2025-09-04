@@ -48,16 +48,12 @@ export const useSlideshow = ({
   // Extract images and descriptions from album
   const images = React.useMemo(() => {
     const albumImages = album?.images || [];
-    // Handle both old format (string[]) and new format (AlbumImage[])
-    return albumImages.map((img) => (typeof img === "string" ? img : img.url));
+    return albumImages.map((img) => img.url);
   }, [album?.images]);
 
   const imageDescriptions = React.useMemo(() => {
     const albumImages = album?.images || [];
-    // Get descriptions for new format, empty string for old format
-    return albumImages.map((img) =>
-      typeof img === "string" ? "" : img.description || ""
-    );
+    return albumImages.map((img) => img.description || "");
   }, [album?.images]);
 
   const layout: AlbumLayout = React.useMemo(

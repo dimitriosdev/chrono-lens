@@ -153,6 +153,10 @@ const SlideshowPage: React.FC = () => {
     const cols = slideshow.layout?.grid?.cols || 3;
     const requiredCount = rows * cols;
     const displayImages = slideshow.images.slice(0, requiredCount);
+    const displayDescriptions = slideshow.imageDescriptions.slice(
+      0,
+      requiredCount
+    );
 
     return (
       <div
@@ -179,6 +183,8 @@ const SlideshowPage: React.FC = () => {
             onBackgroundColorSelect={colorPrefs.selectBackgroundColor}
             onMatReset={colorPrefs.resetMatColor}
             onBackgroundReset={colorPrefs.resetBackgroundColor}
+            showAlbumTitle={colorPrefs.showAlbumTitle}
+            onToggleAlbumTitle={colorPrefs.toggleAlbumTitle}
             onClose={handleCloseColorPicker}
           />
         )}
@@ -207,6 +213,7 @@ const SlideshowPage: React.FC = () => {
                 }}
                 containerMode={true}
                 gridInfo={{ rows, cols }}
+                description={displayDescriptions[index]}
               />
             ))}
 
@@ -229,11 +236,13 @@ const SlideshowPage: React.FC = () => {
         </div>
 
         {/* Album title */}
-        <div className="absolute bottom-16 sm:bottom-20 w-full text-center z-40">
-          <h1 className="text-lg sm:text-xl font-bold tracking-wide font-calligraphy drop-shadow-lg text-white">
-            {album?.title || "Untitled Album"}
-          </h1>
-        </div>
+        {colorPrefs.showAlbumTitle && (
+          <div className="absolute bottom-16 sm:bottom-20 w-full text-center z-40">
+            <h1 className="text-lg sm:text-xl font-bold tracking-wide font-calligraphy drop-shadow-lg text-white">
+              {album?.title || "Untitled Album"}
+            </h1>
+          </div>
+        )}
 
         <button
           type="button"
@@ -280,6 +289,8 @@ const SlideshowPage: React.FC = () => {
             onBackgroundColorSelect={colorPrefs.selectBackgroundColor}
             onMatReset={colorPrefs.resetMatColor}
             onBackgroundReset={colorPrefs.resetBackgroundColor}
+            showAlbumTitle={colorPrefs.showAlbumTitle}
+            onToggleAlbumTitle={colorPrefs.toggleAlbumTitle}
             onClose={handleCloseColorPicker}
           />
         )}
@@ -300,6 +311,7 @@ const SlideshowPage: React.FC = () => {
                   matColor: colorPrefs.effectiveMatColor,
                 }}
                 containerMode={false}
+                description={slideshow.currentDescription}
               />
             </ImageErrorBoundary>
           </div>
@@ -314,35 +326,19 @@ const SlideshowPage: React.FC = () => {
 
         <div className="absolute bottom-4 sm:bottom-6 w-full text-center z-40 px-6">
           {/* Album title with elegant styling */}
-          <div className="mb-4">
-            <h1
-              className={`text-lg sm:text-xl font-bold tracking-wide font-calligraphy drop-shadow-lg ${
-                isLightColor(matConfig.matColor || "#000") && !isNoMat
-                  ? "text-gray-900"
-                  : "text-white"
-              }`}
-            >
-              {album?.title || "Untitled Album"}
-            </h1>
-          </div>
-
-          {/* Image description with premium design */}
-          {slideshow.currentDescription &&
-            slideshow.currentDescription.trim() && (
-              <div className="flex justify-center">
-                <div
-                  className={`px-6 py-4 backdrop-blur-lg rounded-2xl shadow-2xl border max-w-3xl ${
-                    isLightColor(matConfig.matColor || "#000") && !isNoMat
-                      ? "bg-white/95 text-gray-900 border-white/30"
-                      : "bg-black/95 text-white border-white/20"
-                  }`}
-                >
-                  <p className="text-base sm:text-lg leading-relaxed font-medium font-calligraphy tracking-wide">
-                    {slideshow.currentDescription}
-                  </p>
-                </div>
-              </div>
-            )}
+          {colorPrefs.showAlbumTitle && (
+            <div className="mb-4">
+              <h1
+                className={`text-lg sm:text-xl font-bold tracking-wide font-calligraphy drop-shadow-lg ${
+                  isLightColor(matConfig.matColor || "#000") && !isNoMat
+                    ? "text-gray-900"
+                    : "text-white"
+                }`}
+              >
+                {album?.title || "Untitled Album"}
+              </h1>
+            </div>
+          )}
         </div>
 
         <button

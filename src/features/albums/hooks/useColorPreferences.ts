@@ -8,6 +8,7 @@ interface ColorPreferences {
   effectiveBackgroundColor: string;
   albumMatColor?: string;
   albumBackgroundColor?: string;
+  showAlbumTitle: boolean;
 }
 
 interface ColorActions {
@@ -15,6 +16,7 @@ interface ColorActions {
   selectBackgroundColor: (color: string) => void;
   resetMatColor: () => void;
   resetBackgroundColor: () => void;
+  toggleAlbumTitle: () => void;
 }
 
 interface ColorPreferencesHookReturn extends ColorPreferences, ColorActions {
@@ -24,6 +26,7 @@ interface ColorPreferencesHookReturn extends ColorPreferences, ColorActions {
 // Storage keys
 const MAT_COLOR_KEY = "chrono-lens-mat-color";
 const BACKGROUND_COLOR_KEY = "chrono-lens-background-color";
+const SHOW_ALBUM_TITLE_KEY = "chrono-lens-show-album-title";
 
 export const useColorPreferences = (
   album?: Album
@@ -34,6 +37,7 @@ export const useColorPreferences = (
   const [selectedBackgroundColor, setSelectedBackgroundColor] = React.useState<
     string | null
   >(null);
+  const [showAlbumTitle, setShowAlbumTitle] = React.useState<boolean>(true);
   const [isInitialized, setIsInitialized] = React.useState(false);
 
   // Album colors
@@ -48,6 +52,7 @@ export const useColorPreferences = (
       // Load saved preferences
       const savedMatColor = localStorage.getItem(MAT_COLOR_KEY);
       const savedBackgroundColor = localStorage.getItem(BACKGROUND_COLOR_KEY);
+      const savedShowTitle = localStorage.getItem(SHOW_ALBUM_TITLE_KEY);
 
       if (savedMatColor) {
         setSelectedMatColor(savedMatColor);
@@ -55,6 +60,10 @@ export const useColorPreferences = (
 
       if (savedBackgroundColor) {
         setSelectedBackgroundColor(savedBackgroundColor);
+      }
+
+      if (savedShowTitle !== null) {
+        setShowAlbumTitle(savedShowTitle === "true");
       }
 
       setIsInitialized(true);
@@ -74,6 +83,13 @@ export const useColorPreferences = (
       localStorage.setItem(BACKGROUND_COLOR_KEY, selectedBackgroundColor);
     }
   }, [selectedBackgroundColor, isInitialized]);
+
+  // Save show album title to localStorage (only after initialization)
+  React.useEffect(() => {
+    if (isInitialized) {
+      localStorage.setItem(SHOW_ALBUM_TITLE_KEY, showAlbumTitle.toString());
+    }
+  }, [showAlbumTitle, isInitialized]);
 
   // Computed effective colors
   const effectiveMatColor = selectedMatColor || albumMatColor || "#000";
@@ -99,6 +115,10 @@ export const useColorPreferences = (
     localStorage.removeItem(BACKGROUND_COLOR_KEY);
   }, []);
 
+  const toggleAlbumTitle = React.useCallback(() => {
+    setShowAlbumTitle((prev) => !prev);
+  }, []);
+
   return {
     // State
     selectedMatColor,
@@ -107,6 +127,7 @@ export const useColorPreferences = (
     effectiveBackgroundColor,
     albumMatColor,
     albumBackgroundColor,
+    showAlbumTitle,
     isInitialized,
 
     // Actions
@@ -114,6 +135,7 @@ export const useColorPreferences = (
     selectBackgroundColor,
     resetMatColor,
     resetBackgroundColor,
+    toggleAlbumTitle,
   };
 };
 

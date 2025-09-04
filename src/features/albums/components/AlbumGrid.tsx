@@ -112,10 +112,8 @@ const AlbumGrid: React.FC = () => {
     dragAlbumIndex.current = null;
   };
   const renderCardBackground = (album: Album) => {
-    // Handle both old format (string[]) and new format (AlbumImage[])
     const firstImage = album.images[0];
-    const imageUrl =
-      typeof firstImage === "string" ? firstImage : firstImage?.url || "";
+    const imageUrl = firstImage?.url || "";
 
     return (
       <div className="absolute inset-0 group">

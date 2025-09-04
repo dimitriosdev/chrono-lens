@@ -9,6 +9,7 @@ export { VersionDisplay } from "./ui/VersionDisplay";
 export { VersionLogger } from "./ui/VersionLogger";
 export { UserDebugPanel } from "./ui/UserDebugPanel";
 export { RateLimitManager } from "./ui/RateLimitManager";
+export * from "./ui/UIComponents";
 
 // Form Components
 export * from "./form/FormComponents";

@@ -109,10 +109,12 @@ export default function RootLayout({
         <AuthProvider>
           <ErrorBoundary>
             <VersionLogger />
-            <div className="flex min-h-screen w-full bg-gray-950">
+            <div className="flex min-h-screen w-full bg-gray-950 antialiased">
               <Navigation />
-              <main className="flex-1 px-2 pt-14 sm:pt-0 w-full sm:ml-20">
-                {children}
+              <main className="flex-1 w-full transition-smooth">
+                <div className="px-4 sm:px-6 lg:px-8 pt-16 pb-8 sm:pt-8 sm:ml-20">
+                  <div className="max-w-7xl mx-auto">{children}</div>
+                </div>
               </main>
               <UserDebugPanel />
             </div>

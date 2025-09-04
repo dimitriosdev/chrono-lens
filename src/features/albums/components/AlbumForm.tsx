@@ -102,24 +102,26 @@ export function AlbumForm({
       />
 
       {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-700">
-        <Button
-          onClick={handleSave}
-          loading={loading}
-          disabled={albumForm.hasErrors}
-          className="flex-1 sm:flex-none"
-        >
-          <Save size={16} />
-          {mode === "create" ? "Create Album" : "Save Changes"}
-        </Button>
+      <div className="sticky bottom-0 bg-gray-900 p-4 -mx-4 border-t border-gray-700 mt-8">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <Button
+            onClick={handleSave}
+            loading={loading}
+            disabled={albumForm.hasErrors}
+            className="flex-1 sm:flex-none"
+          >
+            <Save size={16} />
+            {mode === "create" ? "Create Album" : "Save Changes"}
+          </Button>
 
-        <Button
-          variant="ghost"
-          onClick={handleCancel}
-          className="flex-1 sm:flex-none"
-        >
-          Cancel
-        </Button>
+          <Button
+            variant="ghost"
+            onClick={handleCancel}
+            className="flex-1 sm:flex-none"
+          >
+            Cancel
+          </Button>
+        </div>
       </div>
     </div>
   );

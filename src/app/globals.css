@@ -1,8 +1,41 @@
 @import "tailwindcss";
 
+/* ==================================================================
+   CSS CUSTOM PROPERTIES & VARIABLES
+   ================================================================== */
+
 :root {
+  /* Core theme colors */
   --background: #ffffff;
   --foreground: #171717;
+  
+  /* Semantic colors */
+  --primary: #0ea5e9;
+  --primary-hover: #0284c7;
+  --secondary: #374151;
+  --secondary-hover: #4b5563;
+  
+  /* Status colors */
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #3b82f6;
+  
+  /* Surface colors */
+  --surface: #f8fafc;
+  --surface-elevated: #ffffff;
+  --border: #e2e8f0;
+  --border-hover: #cbd5e1;
+  
+  /* Text colors */
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
 
 @theme inline {
@@ -10,41 +43,211 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-cinzel), var(--font-playfair), var(--font-eb-garamond), 'Times New Roman', serif;
   --font-mono: var(--font-geist-mono);
+  
+  /* Brand color palette */
+  --color-brand-50: #f0f9ff;
+  --color-brand-100: #e0f2fe;
+  --color-brand-200: #bae6fd;
+  --color-brand-300: #7dd3fc;
+  --color-brand-400: #38bdf8;
+  --color-brand-500: #0ea5e9;
+  --color-brand-600: #0284c7;
+  --color-brand-700: #0369a1;
+  --color-brand-800: #075985;
+  --color-brand-900: #0c4a6e;
+  --color-brand-950: #082f49;
+  
+  /* Enhanced gray scale */
+  --color-gray-750: #2d3748;
+  --color-gray-850: #1a202c;
+  --color-gray-925: #0f1419;
+  
+  /* Semantic colors */
+  --color-success-50: #f0fdf4;
+  --color-success-100: #dcfce7;
+  --color-success-200: #bbf7d0;
+  --color-success-300: #86efac;
+  --color-success-400: #4ade80;
+  --color-success-500: #22c55e;
+  --color-success-600: #16a34a;
+  --color-success-700: #15803d;
+  --color-success-800: #166534;
+  --color-success-900: #14532d;
+  
+  --color-warning-50: #fffbeb;
+  --color-warning-100: #fef3c7;
+  --color-warning-200: #fde68a;
+  --color-warning-300: #fcd34d;
+  --color-warning-400: #fbbf24;
+  --color-warning-500: #f59e0b;
+  --color-warning-600: #d97706;
+  --color-warning-700: #b45309;
+  --color-warning-800: #92400e;
+  --color-warning-900: #78350f;
+  
+  --color-danger-50: #fef2f2;
+  --color-danger-100: #fee2e2;
+  --color-danger-200: #fecaca;
+  --color-danger-300: #fca5a5;
+  --color-danger-400: #f87171;
+  --color-danger-500: #ef4444;
+  --color-danger-600: #dc2626;
+  --color-danger-700: #b91c1c;
+  --color-danger-800: #991b1b;
+  --color-danger-900: #7f1d1d;
 }
 
-/* Calligraphy caption styles with Greek support */
+/* Dark theme overrides */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+    
+    /* Dark theme semantic colors */
+    --primary: #0ea5e9;
+    --primary-hover: #38bdf8;
+    --secondary: #374151;
+    --secondary-hover: #4b5563;
+    
+    /* Dark surface colors */
+    --surface: #111827;
+    --surface-elevated: #1f2937;
+    --border: #374151;
+    --border-hover: #4b5563;
+    
+    /* Dark text colors */
+    --text-primary: #f8fafc;
+    --text-secondary: #e2e8f0;
+    --text-muted: #94a3b8;
+    
+    /* Dark shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.3);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.3);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.3), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+  }
+}
+
+/* ==================================================================
+   BASE STYLES
+   ================================================================== */
+
+html {
+  scroll-behavior: smooth;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html, body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-cinzel), var(--font-playfair), var(--font-eb-garamond), 'Times New Roman', serif;
+  font-weight: 400;
+  letter-spacing: 0.25px;
+  overflow: hidden;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+/* Typography defaults */
+* {
+  font-family: var(--font-cinzel), var(--font-playfair), var(--font-eb-garamond), 'Times New Roman', serif;
+}
+
+/* Monospace overrides */
+code, pre, .font-mono {
+  font-family: var(--font-geist-mono), 'Courier New', monospace;
+}
+
+/* ==================================================================
+   COMPONENT-SPECIFIC STYLES
+   ================================================================== */
+
+/* Calligraphy caption styles with enhanced typography */
 .font-calligraphy {
   font-family: var(--font-cinzel), var(--font-playfair), var(--font-eb-garamond), 'Times New Roman', serif;
   font-weight: 400;
   letter-spacing: 0.5px;
   text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+  line-height: 1.4;
 }
 
-/* Safari-compatible Radix UI styles */
+/* Enhanced focus styles */
+.focus-ring {
+  outline: none;
+  border-radius: 0.375rem;
+  box-shadow: 0 0 0 2px var(--color-brand-500), 0 0 0 4px rgba(14, 165, 233, 0.1);
+}
+
+/* Glass morphism effects */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-panel-dark {
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* ==================================================================
+   THIRD-PARTY COMPONENT OVERRIDES
+   ================================================================== */
+
+/* Radix UI - Radio Button Styles */
 .radix-radio-item {
   width: 1rem;
   height: 1rem;
   border-radius: 50%;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border);
   background-color: transparent;
+  transition: all 0.2s ease-in-out;
+  position: relative;
+}
+
+.radix-radio-item:hover {
+  border-color: var(--border-hover);
 }
 
 .radix-radio-item[data-state="checked"] {
-  border-color: #3b82f6 !important;
-  background-color: #3b82f6 !important;
+  border-color: var(--primary) !important;
+  background-color: var(--primary) !important;
+  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.2);
 }
 
+.radix-radio-item[data-state="checked"]::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0.375rem;
+  height: 0.375rem;
+  background-color: white;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+/* Radix UI - Switch Styles */
 .radix-switch-root {
   width: 2.75rem;
   height: 1.5rem;
-  background-color: #e5e7eb;
+  background-color: var(--secondary);
   border-radius: 9999px;
   position: relative;
   transition: background-color 200ms ease-in-out;
+  border: 1px solid var(--border);
+}
+
+.radix-switch-root:hover {
+  background-color: var(--secondary-hover);
 }
 
 .radix-switch-root[data-state="checked"] {
-  background-color: #3b82f6 !important;
+  background-color: var(--primary) !important;
+  border-color: var(--primary) !important;
 }
 
 .radix-switch-thumb {
@@ -55,34 +258,148 @@
   border-radius: 50%;
   transition: transform 100ms ease-in-out;
   transform: translateX(0);
+  box-shadow: var(--shadow-sm);
 }
 
 .radix-switch-root[data-state="checked"] .radix-switch-thumb {
   transform: translateX(1.25rem) !important;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ==================================================================
+   UTILITY CLASSES
+   ================================================================== */
+
+/* Custom scrollbar styles */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: #4b5563 #1f2937;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #1f2937;
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #4b5563;
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #6b7280;
+}
+
+/* Smooth transitions */
+.transition-smooth {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Text gradient utilities */
+.text-gradient {
+  background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Button animation effects */
+.btn-scale-hover {
+  transition: transform 0.2s ease-in-out;
+}
+
+.btn-scale-hover:hover {
+  transform: scale(1.02);
+}
+
+.btn-scale-hover:active {
+  transform: scale(0.98);
+}
+
+/* Image aspect ratio utilities */
+.aspect-photo {
+  aspect-ratio: 4/3;
+}
+
+.aspect-portrait {
+  aspect-ratio: 3/4;
+}
+
+.aspect-panorama {
+  aspect-ratio: 16/9;
+}
+
+/* Loading states */
+.skeleton {
+  background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+}
+
+@keyframes skeleton-loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
   }
 }
 
-html, body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-cinzel), var(--font-playfair), var(--font-eb-garamond), 'Times New Roman', serif;
-  font-weight: 400;
-  letter-spacing: 0.25px;
-  overflow: hidden;
+/* ==================================================================
+   ACCESSIBILITY IMPROVEMENTS
+   ================================================================== */
+
+/* Focus indicators */
+@media (prefers-reduced-motion: no-preference) {
+  .focus-visible:focus {
+    outline: none;
+    border-radius: 0.375rem;
+    box-shadow: 0 0 0 2px var(--color-brand-500), 0 0 0 4px rgba(14, 165, 233, 0.1);
+  }
 }
 
-/* Ensure all elements use calligraphy fonts by default */
-* {
-  font-family: var(--font-cinzel), var(--font-playfair), var(--font-eb-garamond), 'Times New Roman', serif;
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
-/* Override for specific elements that should use monospace */
-code, pre, .font-mono {
-  font-family: var(--font-geist-mono), 'Courier New', monospace;
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .radix-radio-item,
+  .radix-switch-root {
+    border-width: 2px;
+  }
+  
+  .glass-panel,
+  .glass-panel-dark {
+    background: rgba(0, 0, 0, 0.8);
+    border-width: 2px;
+  }
+}
+
+/* ==================================================================
+   PRINT STYLES
+   ================================================================== */
+
+@media print {
+  * {
+    background: transparent !important;
+    color: black !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
 }

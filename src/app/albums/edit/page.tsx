@@ -167,8 +167,10 @@ export default function EditAlbumPage() {
   }
 
   return (
-    <div className="min-h-screen">
-      <AlbumForm mode="edit" initialData={initialData} onSave={handleSubmit} />
+    <div className="min-h-screen bg-gray-900">
+      <div className="container mx-auto px-4 py-8 pb-24">
+        <AlbumForm mode="edit" initialData={initialData} onSave={handleSubmit} />
+      </div>
     </div>
   );
 }
