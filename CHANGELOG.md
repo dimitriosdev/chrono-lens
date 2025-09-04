@@ -1,3 +1,11 @@
+# [2.5.0](https://github.com/dimitriosdev/chrono-lens/compare/v2.4.1...v2.5.0) (2025-09-04)
+
+
+### Features
+
+* Add confirmation modals for album deletion and implement bulk delete functionality ([5659de3](https://github.com/dimitriosdev/chrono-lens/commit/5659de32bab5077823d8a1ed65ebebdf75ff5e9c))
+* Implement auto-advance functionality for slideshow images and improve key uniqueness ([f993ba2](https://github.com/dimitriosdev/chrono-lens/commit/f993ba2699bd3c3fd9105c8a11e9bf7b3fb414cf))
+
 ## [2.4.1](https://github.com/dimitriosdev/chrono-lens/compare/v2.4.0...v2.4.1) (2025-09-04)
 
 
