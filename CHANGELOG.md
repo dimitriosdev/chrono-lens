@@ -1,3 +1,10 @@
+# [2.3.0](https://github.com/dimitriosdev/chrono-lens/compare/v2.2.0...v2.3.0) (2025-09-04)
+
+
+### Features
+
+* Add FullscreenButton component and integrate into navigation and sidebar ([b8bf409](https://github.com/dimitriosdev/chrono-lens/commit/b8bf409fc27da9f41b892f9620be498941d02f64))
+
 # [2.2.0](https://github.com/dimitriosdev/chrono-lens/compare/v2.1.0...v2.2.0) (2025-09-04)
 
 
