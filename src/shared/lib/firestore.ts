@@ -119,7 +119,62 @@ export async function getAlbums(): Promise<Album[]> {
         console.log("Found user albums:", userAlbums.length);
       }
 
-      // If we found user-specific albums, return them
+      // In development or single-user scenarios, also fetch albums without userId or with different userId
+      if (process.env.NODE_ENV === "development") {
+        console.log("Fetching additional albums (legacy/other users)...");
+
+        const additionalQuery = query(
+          albumsCollection,
+          orderBy("createdAt", "desc"),
+          limit(MAX_ALBUMS_PER_USER * 3) // Increased limit to catch more albums
+        );
+
+        const additionalSnapshot = await getDocs(additionalQuery);
+        firebaseUsageMonitor.recordOperation(
+          "read",
+          additionalSnapshot.docs.length
+        );
+
+        const allAlbums = additionalSnapshot.docs.map(
+          (doc: QueryDocumentSnapshot<DocumentData>) => {
+            const albumData = { id: doc.id, ...doc.data() } as Album;
+            return albumData;
+          }
+        );
+
+        console.log("All albums found in database:", allAlbums.length);
+        allAlbums.forEach((album, index) => {
+          console.log(`DB Album ${index + 1}:`, {
+            id: album.id,
+            title: album.title,
+            userId: album.userId || "NO_USER_ID",
+            imagesCount: album.images?.length || 0,
+          });
+        });
+
+        // Combine and deduplicate albums
+        const albumMap = new Map();
+        [...userAlbums, ...allAlbums].forEach((album) => {
+          albumMap.set(album.id, album);
+        });
+
+        const combinedAlbums = Array.from(albumMap.values()).sort((a, b) => {
+          const aDate =
+            a.createdAt instanceof Date
+              ? a.createdAt
+              : new Date(a.createdAt || 0);
+          const bDate =
+            b.createdAt instanceof Date
+              ? b.createdAt
+              : new Date(b.createdAt || 0);
+          return bDate.getTime() - aDate.getTime();
+        });
+
+        console.log("Combined albums (user + legacy):", combinedAlbums.length);
+        return combinedAlbums;
+      }
+
+      // If we found user-specific albums, return them (production behavior)
       if (userAlbums.length > 0) {
         return userAlbums;
       }

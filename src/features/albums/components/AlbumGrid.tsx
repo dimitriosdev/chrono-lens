@@ -9,58 +9,114 @@ import {
 } from "@heroicons/react/24/solid";
 import { Album } from "@/features/albums/types/Album";
 import { getAlbums, deleteAlbum } from "@/shared/lib/firestore";
+import { executeDeleteAll } from "@/shared/utils/deleteAllData";
+import ConfirmationModal from "@/shared/components/ConfirmationModal";
 const AlbumGrid: React.FC = () => {
   const [albums, setAlbums] = React.useState<Album[]>([]);
   const [loading, setLoading] = React.useState(true);
+  const [showDeleteAllModal, setShowDeleteAllModal] = React.useState(false);
+  const [showDeleteModal, setShowDeleteModal] = React.useState(false);
+  const [showResultModal, setShowResultModal] = React.useState(false);
+  const [resultMessage, setResultMessage] = React.useState("");
+  const [resultType, setResultType] = React.useState<"info" | "danger">("info");
+  const [albumToDelete, setAlbumToDelete] = React.useState<{
+    album: Album;
+    index: number;
+  } | null>(null);
   const dragAlbumIndex = React.useRef<number | null>(null);
   const router = useRouter();
 
   const handleDeleteClick = async (e: React.MouseEvent, idx: number) => {
     e.stopPropagation();
     const album = albums[idx];
+    setAlbumToDelete({ album, index: idx });
+    setShowDeleteModal(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!albumToDelete) return;
+
+    setShowDeleteModal(false);
+    const { album } = albumToDelete;
     const albumId = album.id;
 
-    if (
-      window.confirm(
-        `Are you sure you want to delete "${album.title}"? This will permanently remove all images and cannot be undone.`
-      )
-    ) {
-      try {
-        if (process.env.NODE_ENV === "development") {
-          console.log(`Deleting album: ${album.title} (${albumId})`);
-        }
-
-        await deleteAlbum(albumId);
-        setAlbums((prev: Album[]) =>
-          prev.filter((a: Album) => a.id !== albumId)
-        );
-
-        if (process.env.NODE_ENV === "development") {
-          console.log("Album deleted successfully");
-        }
-      } catch (error) {
-        if (process.env.NODE_ENV === "development") {
-          console.error("Failed to delete album:", error);
-        }
-
-        // Provide more specific error messages
-        let errorMessage = "Failed to delete album. Please try again.";
-        if (error instanceof Error) {
-          if (error.message.includes("Unauthorized")) {
-            errorMessage = "You don't have permission to delete this album.";
-          } else if (error.message.includes("not found")) {
-            errorMessage = "Album not found. It may have already been deleted.";
-            // Remove from UI anyway since it doesn't exist
-            setAlbums((prev: Album[]) =>
-              prev.filter((a: Album) => a.id !== albumId)
-            );
-          } else if (error.message.includes("not authenticated")) {
-            errorMessage = "Please log in to delete albums.";
-          }
-        }
-
-        alert(errorMessage);
+    try {
+      if (process.env.NODE_ENV === "development") {
+        console.log(`Deleting album: ${album.title} (${albumId})`);
       }
+
+      await deleteAlbum(albumId);
+      setAlbums((prev: Album[]) => prev.filter((a: Album) => a.id !== albumId));
+
+      if (process.env.NODE_ENV === "development") {
+        console.log("Album deleted successfully");
+      }
+    } catch (error) {
+      if (process.env.NODE_ENV === "development") {
+        console.error("Failed to delete album:", error);
+      }
+
+      // Provide more specific error messages
+      let errorMessage = "Failed to delete album. Please try again.";
+      if (error instanceof Error) {
+        if (error.message.includes("Unauthorized")) {
+          errorMessage = "You don't have permission to delete this album.";
+        } else if (error.message.includes("not found")) {
+          errorMessage = "Album not found. It may have already been deleted.";
+          // Remove from UI anyway since it doesn't exist
+          setAlbums((prev: Album[]) =>
+            prev.filter((a: Album) => a.id !== albumId)
+          );
+        } else if (error.message.includes("not authenticated")) {
+          errorMessage = "Please log in to delete albums.";
+        }
+      }
+
+      setResultMessage(errorMessage);
+      setResultType("danger");
+      setShowResultModal(true);
+    } finally {
+      setAlbumToDelete(null);
+    }
+  };
+
+  const handleDeleteAllClick = async () => {
+    console.log("Delete all clicked, albums count:", albums.length);
+
+    if (albums.length === 0) {
+      setResultMessage("No albums to delete.");
+      setResultType("info");
+      setShowResultModal(true);
+      return;
+    }
+
+    console.log("Opening delete all modal");
+    setShowDeleteAllModal(true);
+  };
+
+  const handleDeleteAllConfirm = async () => {
+    setShowDeleteAllModal(false);
+
+    try {
+      const result = await executeDeleteAll();
+
+      if (result.success) {
+        setAlbums([]);
+        setResultMessage(
+          `Successfully deleted ${result.albumsDeleted} albums and ${result.filesDeleted} files!`
+        );
+        setResultType("info");
+        setShowResultModal(true);
+      } else {
+        setResultMessage(`Error during deletion: ${result.error}`);
+        setResultType("danger");
+        setShowResultModal(true);
+      }
+    } catch (error) {
+      console.error("Delete all failed:", error);
+      setResultMessage("Failed to delete all data. Please try again.");
+      setResultType("danger");
+      setShowResultModal(true);
     }
   };
 
@@ -76,6 +132,19 @@ const AlbumGrid: React.FC = () => {
 
         if (process.env.NODE_ENV === "development") {
           console.log("Albums fetched:", data.length, data);
+          // Log each album's details for debugging
+          data.forEach((album, index) => {
+            console.log(`Album ${index + 1}:`, {
+              id: album.id,
+              title: album.title,
+              userId: album.userId,
+              imagesCount: album.images?.length || 0,
+              createdAt: album.createdAt,
+            });
+          });
+
+          // Also log full album objects for detailed inspection
+          console.log("Full album objects:", JSON.stringify(data, null, 2));
         }
 
         setAlbums(data);
@@ -149,6 +218,18 @@ const AlbumGrid: React.FC = () => {
   return (
     <section className="pt-4 sm:pt-8 pb-4 sm:pb-8 w-full flex flex-col items-center">
       <div className="w-full max-w-screen-xl px-3 sm:px-4 lg:px-0">
+        {/* Header with Delete All button for development */}
+        {process.env.NODE_ENV === "development" && albums.length > 0 && (
+          <div className="flex justify-end mb-4">
+            <button
+              onClick={handleDeleteAllClick}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors duration-200 font-medium"
+            >
+              🗑️ Delete All Albums
+            </button>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 justify-center">
           {albums.length === 0 ? (
             <div className="col-span-full text-center text-gray-400 py-12">
@@ -197,6 +278,48 @@ const AlbumGrid: React.FC = () => {
           )}
         </div>
       </div>
+
+      <ConfirmationModal
+        isOpen={showDeleteAllModal}
+        onClose={() => setShowDeleteAllModal(false)}
+        onConfirm={handleDeleteAllConfirm}
+        title="Delete All Albums"
+        message="This will permanently delete ALL albums and images. This action cannot be undone."
+        requireTextConfirmation={true}
+        requiredText="delete all albums"
+        confirmButtonText="Delete All"
+        type="danger"
+      />
+
+      <ConfirmationModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        onConfirm={handleDeleteConfirm}
+        title="Delete Album"
+        message={
+          albumToDelete
+            ? `Are you sure you want to delete "${albumToDelete.album.title}"? This will permanently remove all images and cannot be undone.`
+            : ""
+        }
+        requireTextConfirmation={true}
+        requiredText={
+          albumToDelete ? albumToDelete.album.title.toLowerCase() : ""
+        }
+        confirmButtonText="Delete Album"
+        type="danger"
+      />
+
+      <ConfirmationModal
+        isOpen={showResultModal}
+        onClose={() => setShowResultModal(false)}
+        onConfirm={() => setShowResultModal(false)}
+        title={resultType === "info" ? "Success" : "Error"}
+        message={resultMessage}
+        requireTextConfirmation={false}
+        confirmButtonText="OK"
+        cancelButtonText=""
+        type={resultType}
+      />
     </section>
   );
 };
