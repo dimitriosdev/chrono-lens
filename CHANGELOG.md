@@ -1,3 +1,10 @@
+## [2.6.1](https://github.com/dimitriosdev/chrono-lens/compare/v2.6.0...v2.6.1) (2025-09-04)
+
+
+### Bug Fixes
+
+* Add SlideshowDebugInfo component for development debugging and enhance viewport meta tag ([1558e9f](https://github.com/dimitriosdev/chrono-lens/commit/1558e9f715721b0c4c820c70479c7b58f2eb493b))
+
 # [2.6.0](https://github.com/dimitriosdev/chrono-lens/compare/v2.5.0...v2.6.0) (2025-09-04)
 
 
