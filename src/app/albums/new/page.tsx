@@ -2,13 +2,13 @@
 import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { addAlbum } from "@/lib/firestore";
-import { uploadImage } from "@/lib/storage";
-import { AlbumForm } from "@/components/AlbumForm";
-import { RateLimitManager } from "@/components/RateLimitManager";
-import { AlbumImage } from "@/entities/Album";
-import { AlbumLayout } from "@/features/albums/AlbumLayout";
-import { MatConfig } from "@/components/EnhancedMatBoard";
+import { addAlbum } from "@/shared/lib/firestore";
+import { uploadImage } from "@/shared/lib/storage";
+import { AlbumForm } from "@/features/albums/components/AlbumForm";
+import { RateLimitManager } from "@/shared/components";
+import { AlbumImage } from "@/features/albums/types/Album";
+import { AlbumLayout } from "@/features/albums/constants/AlbumLayout";
+import { MatConfig } from "@/features/albums/components/EnhancedMatBoard";
 
 interface AlbumFormData {
   title: string;
@@ -54,7 +54,7 @@ const NewAlbumPage: React.FC = () => {
       const userId = localStorage.getItem("userId") || `user_${Date.now()}`;
 
       // Check rate limit before proceeding (max 5 albums per minute, higher in development)
-      const { checkRateLimit } = await import("@/utils/security");
+      const { checkRateLimit } = await import("@/shared/utils/security");
       const maxAlbums = process.env.NODE_ENV === "development" ? 20 : 5;
       if (!checkRateLimit(userId, maxAlbums, 60000)) {
         throw new Error(

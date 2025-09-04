@@ -3,8 +3,8 @@
 import { useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
 // import { useRouter } from "next/navigation";
-import Navigation from "../components/Navigation";
-import BackgroundImage from "../components/BackgroundImage";
+import Navigation from "../features/navigation/components/Navigation";
+import { BackgroundImage } from "../shared/components";
 // import Layout from "../components/Layout";
 import { signInWithGoogle } from "../features/auth";
 

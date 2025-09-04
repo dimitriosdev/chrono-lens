@@ -3,12 +3,12 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { getAlbum, updateAlbum } from "@/lib/firestore";
-import { uploadImage } from "@/lib/storage";
-import { AlbumForm } from "@/components/AlbumForm";
-import { AlbumImage } from "@/entities/Album";
-import { ALBUM_LAYOUTS } from "@/features/albums/AlbumLayout";
-import { AlbumFormData } from "@/types/form";
+import { getAlbum, updateAlbum } from "@/shared/lib/firestore";
+import { uploadImage } from "@/shared/lib/storage";
+import { AlbumForm } from "@/features/albums/components/AlbumForm";
+import { AlbumImage } from "@/features/albums/types/Album";
+import { ALBUM_LAYOUTS } from "@/features/albums/constants/AlbumLayout";
+import { AlbumFormData } from "@/shared/types/form";
 
 export default function EditAlbumPage() {
   const { isSignedIn, loading } = useAuth();

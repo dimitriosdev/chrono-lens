@@ -8,10 +8,12 @@ import {
 } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "../context/AuthContext";
-import Navigation from "../components/Navigation";
-import { ErrorBoundary } from "../components/ErrorBoundary";
-import { VersionLogger } from "../components/VersionLogger";
-import { UserDebugPanel } from "../components/UserDebugPanel";
+import { Navigation } from "../features/navigation";
+import {
+  ErrorBoundary,
+  VersionLogger,
+  UserDebugPanel,
+} from "../shared/components";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

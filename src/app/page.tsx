@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import Layout from "../components/Layout";
+import Layout from "../shared/components/layout/Layout";
 import RootPage from "./root";
 
 export const metadata: Metadata = {

@@ -1,7 +1,11 @@
 "use client";
 import React, { useState } from "react";
-import Navigation, { NAV_LINKS } from "../../components/Navigation";
-import MobileMenu from "../../features/navigation/MobileMenu";
+import type { Metadata } from "next";
+import "../globals.css";
+import Navigation, {
+  NAV_LINKS,
+} from "../../features/navigation/components/Navigation";
+import MobileMenu from "../../features/navigation/components/MobileMenu";
 import { useAuth } from "@/context/AuthContext";
 
 type AlbumsLayoutProps = {

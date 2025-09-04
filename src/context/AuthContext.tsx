@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Then check Firebase auth state
     const initializeFirebaseAuth = async () => {
       try {
-        const { getFirebaseAuth } = await import("../lib/firebase");
+        const { getFirebaseAuth } = await import("../shared/lib/firebase");
         const auth = getFirebaseAuth();
 
         if (auth) {

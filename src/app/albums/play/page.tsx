@@ -2,10 +2,10 @@
 
 import React from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Album } from "@/entities/Album";
-import { getAlbum } from "@/lib/firestore";
+import { Album } from "@/features/albums/types/Album";
+import { getAlbum } from "@/shared/lib/firestore";
 import { useAuth } from "@/context/AuthContext";
-import { AlbumLayout } from "@/features/albums/AlbumLayout";
+import { AlbumLayout } from "@/features/albums/constants/AlbumLayout";
 import Image from "next/image";
 import { Maximize, Minimize, ArrowLeft } from "lucide-react";
 
