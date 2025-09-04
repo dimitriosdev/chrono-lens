@@ -199,11 +199,53 @@ export async function getCurrentUserId(): Promise<string> {
     const { getFirebaseAuth } = await import("../lib/firebase");
     const auth = getFirebaseAuth();
     if (auth?.currentUser) {
-      return auth.currentUser.uid;
+      const firebaseUid = auth.currentUser.uid;
+
+      // If we have a Firebase UID, ensure localStorage doesn't have a conflicting userId
+      // This helps prevent confusion between authenticated and anonymous users
+      const storedUserId = localStorage.getItem("userId");
+      if (
+        storedUserId &&
+        storedUserId !== firebaseUid &&
+        storedUserId.startsWith("user_")
+      ) {
+        if (process.env.NODE_ENV === "development") {
+          console.log(
+            "Clearing anonymous user ID, now using Firebase UID:",
+            firebaseUid
+          );
+        }
+        localStorage.removeItem("userId");
+      }
+
+      return firebaseUid;
     }
   } catch (error) {
     if (process.env.NODE_ENV === "development") {
       console.warn("Could not get Firebase user ID:", error);
+    }
+  }
+
+  // Check if user is supposed to be signed in but Firebase auth failed
+  const isSignedIn = localStorage.getItem("isSignedIn") === "true";
+  if (isSignedIn) {
+    if (process.env.NODE_ENV === "development") {
+      console.warn(
+        "User marked as signed in but Firebase auth unavailable - this may cause separate user accounts"
+      );
+    }
+    // Wait a bit for Firebase to initialize and try again
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      const { getFirebaseAuth } = await import("../lib/firebase");
+      const auth = getFirebaseAuth();
+      if (auth?.currentUser) {
+        return auth.currentUser.uid;
+      }
+    } catch (error) {
+      if (process.env.NODE_ENV === "development") {
+        console.warn("Firebase auth retry failed:", error);
+      }
     }
   }
 
@@ -213,6 +255,10 @@ export async function getCurrentUserId(): Promise<string> {
     // Generate a unique user ID
     userId = `user_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
     localStorage.setItem("userId", userId);
+
+    if (process.env.NODE_ENV === "development") {
+      console.log("Generated anonymous user ID:", userId);
+    }
   }
   return userId;
 }

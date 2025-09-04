@@ -12,6 +12,7 @@ import Navigation from "../components/Navigation";
 import { ErrorBoundary } from "../components/ErrorBoundary";
 import { VersionDisplay } from "../components/VersionDisplay";
 import { VersionLogger } from "../components/VersionLogger";
+import { UserDebugPanel } from "../components/UserDebugPanel";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -113,6 +114,7 @@ export default function RootLayout({
                 {children}
               </main>
               <VersionDisplay />
+              <UserDebugPanel />
             </div>
           </ErrorBoundary>
         </AuthProvider>
