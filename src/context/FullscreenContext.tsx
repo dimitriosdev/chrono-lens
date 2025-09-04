@@ -118,21 +118,37 @@ export const FullscreenProvider: React.FC<{ children: React.ReactNode }> = ({
       const actualIsFullscreen = !!fullscreenElement;
 
       // If user intended to be in fullscreen but navigation exited it, re-enter
+      // Add throttling to prevent browser rate limiting
       if (fullscreenIntent && !actualIsFullscreen && isSupported) {
-        console.log("Auto re-entering fullscreen after navigation");
-        try {
-          const element = document.documentElement as ExtendedHTMLElement;
-          if (element.requestFullscreen) {
-            await element.requestFullscreen();
-          } else if (element.webkitRequestFullscreen) {
-            await element.webkitRequestFullscreen();
-          } else if (element.mozRequestFullScreen) {
-            await element.mozRequestFullScreen();
-          } else if (element.msRequestFullscreen) {
-            await element.msRequestFullscreen();
+        // Check if we recently made a fullscreen request (throttling)
+        const lastRequest = sessionStorage.getItem('lastFullscreenRequest');
+        const now = Date.now();
+        const minInterval = 1000; // Minimum 1 second between requests
+        
+        if (!lastRequest || now - parseInt(lastRequest) > minInterval) {
+          console.log("Auto re-entering fullscreen after navigation");
+          sessionStorage.setItem('lastFullscreenRequest', now.toString());
+          
+          try {
+            const element = document.documentElement as ExtendedHTMLElement;
+            if (element.requestFullscreen) {
+              await element.requestFullscreen();
+            } else if (element.webkitRequestFullscreen) {
+              await element.webkitRequestFullscreen();
+            } else if (element.mozRequestFullScreen) {
+              await element.mozRequestFullScreen();
+            } else if (element.msRequestFullscreen) {
+              await element.msRequestFullscreen();
+            }
+          } catch (error) {
+            console.warn("Failed to auto re-enter fullscreen:", error);
+            // If rate limited, clear intent to prevent infinite retries
+            if (error instanceof Error && error.message.includes('rate')) {
+              setFullscreenIntent(false);
+            }
           }
-        } catch (error) {
-          console.warn("Failed to auto re-enter fullscreen:", error);
+        } else {
+          console.log('Skipping fullscreen re-entry due to rate limiting');
         }
       }
 
@@ -148,7 +164,7 @@ export const FullscreenProvider: React.FC<{ children: React.ReactNode }> = ({
         }
         return prev;
       });
-    }, 200); // Increased delay to ensure navigation is complete
+    }, 500); // Increased delay to ensure navigation is complete and reduce rapid requests
 
     return () => clearTimeout(timeoutId);
   }, [pathname, isMounted, fullscreenIntent, isSupported]);

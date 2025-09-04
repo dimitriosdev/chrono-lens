@@ -1,4 +1,5 @@
 import { getFirebaseStorage } from "./firebase";
+import { firebaseUsageMonitor } from "./firebaseUsageMonitor";
 import {
   ref,
   uploadBytes,
@@ -27,6 +28,18 @@ export async function uploadImage(
     throw new Error("User not authenticated");
   }
 
+  // Validate original file
+  const validation = validateFile(file);
+  if (!validation.isValid) {
+    throw new Error(validation.error);
+  }
+
+  // Check storage limits before processing
+  const storageCheck = firebaseUsageMonitor.recordFileUpload(file.size);
+  if (!storageCheck.allowed) {
+    throw new Error(storageCheck.reason);
+  }
+
   // Rate limiting check
   if (!checkRateLimit(userId, 20, 60000)) {
     // 20 uploads per minute
@@ -35,18 +48,30 @@ export async function uploadImage(
     );
   }
 
-  // Validate original file
-  const validation = validateFile(file);
-  if (!validation.isValid) {
-    throw new Error(validation.error);
-  }
-
   // Process image (convert HEIC, optimize size) - only in browser
   let processedImage: ProcessedImage;
   try {
     // Check if we're in a browser environment before processing
     if (typeof window !== "undefined") {
       processedImage = await processImage(file);
+
+      // Update storage tracking with actual processed size
+      const sizeDifference = processedImage.processedSize - file.size;
+      if (sizeDifference !== 0) {
+        if (sizeDifference > 0) {
+          // File got bigger (rare), check if we still have space
+          const additionalCheck =
+            firebaseUsageMonitor.recordFileUpload(sizeDifference);
+          if (!additionalCheck.allowed) {
+            throw new Error(
+              `Storage limit would be exceeded after processing: ${additionalCheck.reason}`
+            );
+          }
+        } else {
+          // File got smaller (common), free up the saved space
+          firebaseUsageMonitor.recordFileDeletion(-sizeDifference);
+        }
+      }
 
       // Log processing results in development
       if (process.env.NODE_ENV === "development") {

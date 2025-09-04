@@ -8,7 +8,8 @@ export { default as BackgroundImage } from "./ui/BackgroundImage";
 export { VersionDisplay } from "./ui/VersionDisplay";
 export { VersionLogger } from "./ui/VersionLogger";
 export { UserDebugPanel } from "./ui/UserDebugPanel";
-export { RateLimitManager } from "./ui/RateLimitManager";
+export { FirebaseUsageDashboard } from "./ui/FirebaseUsageDashboard";
+export { UsageLimitError } from "./ui/UsageLimitError";
 export * from "./ui/UIComponents";
 
 // Form Components

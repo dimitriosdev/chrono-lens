@@ -18,6 +18,7 @@ import {
   QueryDocumentSnapshot,
 } from "firebase/firestore";
 import { getFirebaseApp } from "@/shared/lib/firebase";
+import { firebaseUsageMonitor } from "@/shared/lib/firebaseUsageMonitor";
 import { Album } from "@/features/albums/types/Album";
 import {
   validateAlbumTitle,
@@ -50,8 +51,18 @@ export async function getAlbum(id: string): Promise<Album | null> {
     throw new Error("User not authenticated");
   }
 
+  // Check if read operation is allowed
+  const canRead = firebaseUsageMonitor.canPerformOperation("read", 1);
+  if (!canRead.allowed) {
+    throw new Error(`Firebase quota exceeded: ${canRead.reason}`);
+  }
+
   const { albumsCollection } = getDB();
   const albumDoc = await getDoc(doc(albumsCollection, id));
+
+  // Record the read operation
+  firebaseUsageMonitor.recordOperation("read", 1);
+
   if (!albumDoc.exists()) return null;
 
   const albumData = albumDoc.data() as Album;
@@ -72,6 +83,12 @@ export async function getAlbums(): Promise<Album[]> {
   const userId = await getCurrentUserId();
   const { albumsCollection } = getDB();
 
+  // Check if read operation is allowed (estimate up to 20 reads for safety)
+  const canRead = firebaseUsageMonitor.canPerformOperation("read", 20);
+  if (!canRead.allowed) {
+    throw new Error(`Firebase quota exceeded: ${canRead.reason}`);
+  }
+
   if (process.env.NODE_ENV === "development") {
     console.log("Current userId:", userId);
   }
@@ -87,6 +104,10 @@ export async function getAlbums(): Promise<Album[]> {
       );
 
       const snapshot: QuerySnapshot<DocumentData> = await getDocs(userQuery);
+
+      // Record actual reads performed
+      firebaseUsageMonitor.recordOperation("read", snapshot.docs.length);
+
       const userAlbums = snapshot.docs.map(
         (doc: QueryDocumentSnapshot<DocumentData>) => {
           const albumData = { id: doc.id, ...doc.data() } as Album;
@@ -115,6 +136,10 @@ export async function getAlbums(): Promise<Album[]> {
       limit(MAX_ALBUMS_PER_USER * 2) // Slightly higher limit for fallback
     );
     const snapshot = await getDocs(allQuery);
+
+    // Record actual reads performed
+    firebaseUsageMonitor.recordOperation("read", snapshot.docs.length);
+
     const allAlbums = snapshot.docs.map(
       (doc: QueryDocumentSnapshot<DocumentData>) => {
         const albumData = { id: doc.id, ...doc.data() } as Album;
@@ -140,6 +165,10 @@ export async function getAlbums(): Promise<Album[]> {
     try {
       const fallbackQuery = query(albumsCollection);
       const snapshot = await getDocs(fallbackQuery);
+
+      // Record actual reads performed
+      firebaseUsageMonitor.recordOperation("read", snapshot.docs.length);
+
       return snapshot.docs.map((doc: QueryDocumentSnapshot<DocumentData>) => {
         const albumData = { id: doc.id, ...doc.data() } as Album;
         return albumData;
@@ -157,6 +186,18 @@ export async function addAlbum(album: Omit<Album, "id">): Promise<string> {
   const userId = await getCurrentUserId();
   if (!userId) {
     throw new Error("User not authenticated");
+  }
+
+  // Check if write operation is allowed
+  const canWrite = firebaseUsageMonitor.canPerformOperation("write", 1);
+  if (!canWrite.allowed) {
+    throw new Error(`Firebase quota exceeded: ${canWrite.reason}`);
+  }
+
+  // Check album creation limits
+  const albumCreationCheck = firebaseUsageMonitor.recordAlbumCreation();
+  if (!albumCreationCheck.allowed) {
+    throw new Error(albumCreationCheck.reason);
   }
 
   // Check rate limit (max 5 albums per minute per user, higher in development)
@@ -195,6 +236,10 @@ export async function addAlbum(album: Omit<Album, "id">): Promise<string> {
 
   const { albumsCollection } = getDB();
   const docRef = await addDoc(albumsCollection, secureAlbum);
+
+  // Record the write operation
+  firebaseUsageMonitor.recordOperation("write", 1);
+
   return docRef.id;
 }
 
@@ -202,14 +247,34 @@ export async function updateAlbum(
   id: string,
   album: Partial<Album>
 ): Promise<void> {
+  // Check if write operation is allowed
+  const canWrite = firebaseUsageMonitor.canPerformOperation("write", 1);
+  if (!canWrite.allowed) {
+    throw new Error(`Firebase quota exceeded: ${canWrite.reason}`);
+  }
+
   const { albumsCollection } = getDB();
   await updateDoc(doc(albumsCollection, id), album);
+
+  // Record the write operation
+  firebaseUsageMonitor.recordOperation("write", 1);
 }
 
 export async function deleteAlbum(id: string): Promise<void> {
   const userId = await getCurrentUserId();
   if (!userId) {
     throw new Error("User not authenticated");
+  }
+
+  // Check if read and write operations are allowed
+  const canRead = firebaseUsageMonitor.canPerformOperation("read", 1);
+  if (!canRead.allowed) {
+    throw new Error(`Firebase quota exceeded: ${canRead.reason}`);
+  }
+
+  const canWrite = firebaseUsageMonitor.canPerformOperation("write", 1);
+  if (!canWrite.allowed) {
+    throw new Error(`Firebase quota exceeded: ${canWrite.reason}`);
   }
 
   const { albumsCollection } = getDB();
@@ -284,6 +349,20 @@ export async function deleteAlbum(id: string): Promise<void> {
     });
   }
 
+  // Calculate storage freed by successful deletions
+  const successfulDeletions = deletionResults.filter(
+    (result) => result.status === "fulfilled"
+  );
+
+  // Estimate storage freed (we don't have exact file sizes, so use average estimate)
+  const estimatedBytesFreed = successfulDeletions.length * (2 * 1024 * 1024); // 2MB average
+  if (estimatedBytesFreed > 0) {
+    firebaseUsageMonitor.recordFileDeletion(estimatedBytesFreed);
+  }
+
   // Finally, delete the album document
   await deleteDoc(doc(albumsCollection, id));
+
+  // Record the write operation (delete)
+  firebaseUsageMonitor.recordOperation("write", 1);
 }

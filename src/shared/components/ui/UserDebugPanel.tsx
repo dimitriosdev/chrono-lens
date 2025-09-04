@@ -11,6 +11,13 @@ import {
   migrateFromAnonymousUser,
 } from "@/shared/utils/userMigration";
 import { getVersionInfo } from "@/shared/lib/version";
+import { FirebaseUsageDashboard } from "./FirebaseUsageDashboard";
+import {
+  clearRateLimit,
+  checkRateLimit,
+  forceResetRateLimits,
+} from "@/shared/utils/security";
+import { firebaseUsageMonitor } from "@/shared/lib/firebaseUsageMonitor";
 
 interface UserDebugInfo {
   currentUserId: string;
@@ -25,7 +32,13 @@ export function UserDebugPanel() {
   const [migrationStatus, setMigrationStatus] = useState<string>("");
   const [isVisible, setIsVisible] = useState(false);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"debug" | "version">("debug");
+  const [activeTab, setActiveTab] = useState<
+    "debug" | "version" | "usage" | "limits"
+  >("debug");
+
+  // Rate limit management state
+  const [rateLimitUserId, setRateLimitUserId] = useState("");
+  const [rateLimitStatus, setRateLimitStatus] = useState("");
 
   const versionInfo = getVersionInfo();
 
@@ -106,6 +119,48 @@ export function UserDebugPanel() {
     }
   };
 
+  // Rate limit management functions
+  const handleClearAllRateLimits = () => {
+    clearRateLimit();
+    setRateLimitStatus("All rate limits cleared");
+    setTimeout(() => setRateLimitStatus(""), 3000);
+  };
+
+  const handleForceResetAll = () => {
+    forceResetRateLimits();
+    firebaseUsageMonitor.resetUsageStats();
+    setRateLimitStatus(
+      "Force reset: All limits, usage stats, and cache cleared"
+    );
+    setTimeout(() => setRateLimitStatus(""), 3000);
+  };
+
+  const handleClearUserRateLimit = () => {
+    if (!rateLimitUserId.trim()) {
+      setRateLimitStatus("Please enter a user ID");
+      setTimeout(() => setRateLimitStatus(""), 3000);
+      return;
+    }
+    clearRateLimit(rateLimitUserId.trim());
+    setRateLimitStatus(`Rate limit cleared for user: ${rateLimitUserId}`);
+    setTimeout(() => setRateLimitStatus(""), 3000);
+  };
+
+  const handleCheckUserRateLimit = () => {
+    if (!rateLimitUserId.trim()) {
+      setRateLimitStatus("Please enter a user ID");
+      setTimeout(() => setRateLimitStatus(""), 3000);
+      return;
+    }
+    const canProceed = checkRateLimit(rateLimitUserId.trim(), 5, 60000);
+    setRateLimitStatus(
+      `User ${rateLimitUserId} can ${
+        canProceed ? "create" : "NOT create"
+      } albums`
+    );
+    setTimeout(() => setRateLimitStatus(""), 3000);
+  };
+
   if (!isVisible) {
     return null;
   }
@@ -158,6 +213,26 @@ export function UserDebugPanel() {
               }`}
             >
               📋 Version
+            </button>
+            <button
+              onClick={() => setActiveTab("usage")}
+              className={`flex-1 px-2 py-2 text-xs rounded-md transition-colors ${
+                activeTab === "usage"
+                  ? "bg-yellow-600 text-white"
+                  : "text-gray-300 hover:text-white"
+              }`}
+            >
+              📊 Usage
+            </button>
+            <button
+              onClick={() => setActiveTab("limits")}
+              className={`flex-1 px-2 py-2 text-xs rounded-md transition-colors ${
+                activeTab === "limits"
+                  ? "bg-yellow-600 text-white"
+                  : "text-gray-300 hover:text-white"
+              }`}
+            >
+              ⚙️ Limits
             </button>
           </div>
 
@@ -303,6 +378,67 @@ export function UserDebugPanel() {
                 <span className="ml-2 text-gray-300">
                   {window.location.hostname}
                 </span>
+              </div>
+            </div>
+          )}
+
+          {/* Usage tab content */}
+          {activeTab === "usage" && (
+            <div className="space-y-4">
+              <FirebaseUsageDashboard detailed={true} />
+            </div>
+          )}
+
+          {/* Limits tab content */}
+          {activeTab === "limits" && (
+            <div className="space-y-4">
+              <h4 className="font-semibold text-yellow-400 mb-3">
+                Rate Limit Manager
+              </h4>
+
+              <div className="space-y-3">
+                <input
+                  type="text"
+                  placeholder="User ID"
+                  value={rateLimitUserId}
+                  onChange={(e) => setRateLimitUserId(e.target.value)}
+                  className="w-full bg-gray-700 border border-gray-600 rounded px-2 py-1 text-xs text-white placeholder-gray-400"
+                />
+
+                <div className="flex gap-2">
+                  <button
+                    onClick={handleCheckUserRateLimit}
+                    className="flex-1 bg-blue-600 hover:bg-blue-700 rounded px-2 py-1 text-xs"
+                  >
+                    Check User
+                  </button>
+                  <button
+                    onClick={handleClearUserRateLimit}
+                    className="flex-1 bg-yellow-600 hover:bg-yellow-700 rounded px-2 py-1 text-xs"
+                  >
+                    Clear User
+                  </button>
+                </div>
+
+                <button
+                  onClick={handleClearAllRateLimits}
+                  className="w-full bg-red-600 hover:bg-red-700 rounded px-2 py-1 text-xs"
+                >
+                  Clear All Rate Limits
+                </button>
+
+                <button
+                  onClick={handleForceResetAll}
+                  className="w-full bg-red-800 hover:bg-red-900 rounded px-2 py-1 text-xs font-bold"
+                >
+                  🚨 Force Reset Everything
+                </button>
+
+                {rateLimitStatus && (
+                  <div className="text-xs text-green-400 mt-2 break-words bg-gray-900 p-2 rounded">
+                    {rateLimitStatus}
+                  </div>
+                )}
               </div>
             </div>
           )}

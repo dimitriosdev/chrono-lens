@@ -5,7 +5,6 @@ import { useAuth } from "@/context/AuthContext";
 import { addAlbum } from "@/shared/lib/firestore";
 import { uploadImage } from "@/shared/lib/storage";
 import { AlbumForm } from "@/features/albums/components/AlbumForm";
-import { RateLimitManager } from "@/shared/components";
 import { AlbumImage } from "@/features/albums/types/Album";
 import { AlbumLayout } from "@/features/albums/constants/AlbumLayout";
 import { MatConfig } from "@/features/albums/components/EnhancedMatBoard";
@@ -110,7 +109,6 @@ const NewAlbumPage: React.FC = () => {
   return (
     <div className="py-8 px-4">
       <AlbumForm mode="create" onSave={handleSave} loading={albumLoading} />
-      <RateLimitManager />
     </div>
   );
 };
