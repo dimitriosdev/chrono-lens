@@ -172,14 +172,14 @@ const EnhancedColorPicker: React.FC<EnhancedColorPickerProps> = ({
           <button
             type="button"
             onClick={handleReset}
-            className="flex-1 px-3 py-2 bg-blue-800 hover:bg-blue-700 text-white text-xs rounded-lg transition-colors font-calligraphy"
+            className="flex-1 px-3 py-2 bg-gray-800 hover:bg-gray-700 text-white text-xs rounded-lg transition-colors font-calligraphy"
           >
             Use Album Default
           </button>
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 px-3 py-2 bg-gray-800 hover:bg-gray-700 text-white text-xs rounded-lg transition-colors font-calligraphy"
+            className="flex-1 px-3 py-2 bg-blue-800 hover:bg-blue-700 text-white text-xs rounded-lg transition-colors font-calligraphy"
           >
             Done
           </button>

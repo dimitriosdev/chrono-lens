@@ -91,6 +91,7 @@ const SlideshowPage: React.FC = () => {
   const albumId = searchParams.get("id");
   const [album, setAlbum] = React.useState<Album | undefined>(undefined);
   const [showColorPicker, setShowColorPicker] = React.useState(false);
+  const [imageRotationIndex, setImageRotationIndex] = React.useState(0);
 
   // Custom hooks (the better approach!)
   const slideshow = useSlideshow({ album });
@@ -111,6 +112,44 @@ const SlideshowPage: React.FC = () => {
     }
     if (albumId) fetchAlbum();
   }, [albumId, handleAsyncError]);
+
+  // Auto-advance for grid/custom layouts - rotate individual images
+  React.useEffect(() => {
+    if (!album || !slideshow.layout) return;
+
+    const isGridOrCustom =
+      slideshow.layout.type === "grid" || slideshow.layout.type === "custom";
+    const hasAutoAdvance = album.timing?.interactive?.autoAdvance;
+    const autoAdvanceDuration =
+      album.timing?.interactive?.autoAdvanceDuration || 5;
+
+    if (isGridOrCustom && hasAutoAdvance) {
+      const rows = slideshow.layout.grid?.rows || 1;
+      const cols = slideshow.layout.grid?.cols || 3;
+      const requiredCount = rows * cols;
+      const totalImages = slideshow.images.length;
+
+      // Only start auto-advance if there are more images than grid slots
+      if (totalImages > requiredCount) {
+        const timer = setInterval(() => {
+          setImageRotationIndex((prevIndex) => (prevIndex + 1) % totalImages);
+        }, autoAdvanceDuration * 1000);
+
+        return () => clearInterval(timer);
+      }
+    }
+  }, [
+    album,
+    slideshow.layout,
+    slideshow.images.length,
+    album?.timing?.interactive?.autoAdvance,
+    album?.timing?.interactive?.autoAdvanceDuration,
+  ]);
+
+  // Reset image rotation index when album changes
+  React.useEffect(() => {
+    setImageRotationIndex(0);
+  }, [albumId]);
 
   // Authentication check
   React.useEffect(() => {
@@ -162,11 +201,16 @@ const SlideshowPage: React.FC = () => {
     const rows = slideshow.layout?.grid?.rows || 1;
     const cols = slideshow.layout?.grid?.cols || 3;
     const requiredCount = rows * cols;
-    const displayImages = slideshow.images.slice(0, requiredCount);
-    const displayDescriptions = slideshow.imageDescriptions.slice(
-      0,
-      requiredCount
-    );
+
+    // Calculate which images to show based on rotation - cycle through all images
+    const displayImages: string[] = [];
+    const displayDescriptions: string[] = [];
+
+    for (let i = 0; i < requiredCount; i++) {
+      const imageIndex = (imageRotationIndex + i) % slideshow.images.length;
+      displayImages.push(slideshow.images[imageIndex]);
+      displayDescriptions.push(slideshow.imageDescriptions[imageIndex] || "");
+    }
 
     return (
       <div
@@ -215,7 +259,7 @@ const SlideshowPage: React.FC = () => {
           >
             {displayImages.map((image, index) => (
               <MatImage
-                key={index}
+                key={`${imageRotationIndex}-${index}`} // Use rotation index for better key uniqueness
                 src={image}
                 matConfig={{
                   ...matConfig,
@@ -225,22 +269,6 @@ const SlideshowPage: React.FC = () => {
                 gridInfo={{ rows, cols }}
                 description={displayDescriptions[index]}
               />
-            ))}
-
-            {/* Fill empty slots if we have fewer images than grid slots */}
-            {Array.from({
-              length: Math.max(0, requiredCount - displayImages.length),
-            }).map((_, index) => (
-              <div
-                key={`empty-${index}`}
-                className="bg-gray-800 rounded-xl flex items-center justify-center"
-                style={{
-                  minHeight: "150px",
-                  border: "2px dashed #4B5563",
-                }}
-              >
-                <span className="text-gray-500 text-sm">No image</span>
-              </div>
             ))}
           </div>
         </div>
