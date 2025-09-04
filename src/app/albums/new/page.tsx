@@ -61,20 +61,31 @@ const NewAlbumPage: React.FC = () => {
         );
       }
 
-      // Generate a temporary albumId for storage paths
-      const tempAlbumId = `${Date.now()}-${Math.random()
-        .toString(36)
-        .slice(2)}`;
+      // Create the album document first to get a real albumId
+      const albumId = await addAlbum({
+        title: formData.title,
+        images: [], // Start with empty images array
+        layout: formData.layout,
+        matConfig: {
+          ...formData.matConfig,
+          cycleDuration: formData.cycleDuration,
+        },
+        timing: formData.timing,
+        userId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
       const albumImages: AlbumImage[] = [];
 
-      // Upload images
+      // Upload images using the real albumId
       for (let i = 0; i < formData.images.length; i++) {
         const image = formData.images[i];
         let url = image.url;
 
         // Upload new files
         if (image.file) {
-          url = await uploadImage(image.file, tempAlbumId, i);
+          url = await uploadImage(image.file, albumId, i);
         }
 
         const albumImage: AlbumImage = { url };
@@ -85,18 +96,11 @@ const NewAlbumPage: React.FC = () => {
         albumImages.push(albumImage);
       }
 
-      await addAlbum({
-        title: formData.title,
+      // Update the album with the uploaded images
+      const { updateAlbum } = await import("@/shared/lib/firestore");
+      await updateAlbum(albumId, {
         images: albumImages,
-        layout: formData.layout,
-        matConfig: {
-          ...formData.matConfig,
-          cycleDuration: formData.cycleDuration,
-        },
-        timing: formData.timing,
         coverUrl: albumImages[0]?.url,
-        userId,
-        createdAt: new Date(),
         updatedAt: new Date(),
       });
 
