@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import { execSync } from "child_process";
+import packageJson from "./package.json";
 
 // Get git commit hash for development
 const getGitCommitHash = () => {
@@ -15,6 +16,8 @@ const nextConfig: NextConfig = {
   output: "export",
   trailingSlash: true,
   env: {
+    // Always include the version from package.json
+    NEXT_PUBLIC_VERSION: packageJson.version,
     // Only set these in development - production will use GitHub Actions
     ...(process.env.NODE_ENV === "development" && {
       NEXT_PUBLIC_BUILD_TIME: new Date().toISOString(),

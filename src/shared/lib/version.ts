@@ -3,12 +3,12 @@
  * This file is automatically updated during build/deployment
  */
 
-// Fallback version info when package.json is not available in types
-const fallbackVersion = "2.0.0";
+// Import package.json to get the actual version
+import packageJson from "../../../package.json";
 
 export const APP_VERSION = {
   // Semantic version from package.json or environment variable (for releases)
-  version: process.env.NEXT_PUBLIC_VERSION || fallbackVersion,
+  version: process.env.NEXT_PUBLIC_VERSION || packageJson.version,
 
   // Build timestamp (will be set during build)
   buildTime: process.env.NEXT_PUBLIC_BUILD_TIME || new Date().toISOString(),
