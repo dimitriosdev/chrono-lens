@@ -5,7 +5,12 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Album } from "@/features/albums/types/Album";
 import { getAlbum } from "@/shared/lib/firestore";
 import { useAuth } from "@/context/AuthContext";
-import { Maximize, Minimize, ArrowLeft } from "lucide-react";
+import {
+  ChevronLeftIcon,
+  ArrowsPointingInIcon,
+  ArrowsPointingOutIcon,
+  Cog6ToothIcon,
+} from "@heroicons/react/24/solid";
 
 // Imported components and hooks (the better approach)
 import { MatImage, EnhancedColorPicker } from "@/features/albums/components";
@@ -39,9 +44,9 @@ const ControlButtons: React.FC<{
         }`}
       >
         {isFullscreen ? (
-          <Minimize className="w-5 h-5" />
+          <ArrowsPointingInIcon className="w-5 h-5" />
         ) : (
-          <Maximize className="w-5 h-5" />
+          <ArrowsPointingOutIcon className="w-5 h-5" />
         )}
       </button>
 
@@ -56,19 +61,7 @@ const ControlButtons: React.FC<{
             : "opacity-80 hover:opacity-100"
         }`}
       >
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a4 4 0 004 4h4a2 2 0 002-2V5z"
-          />
-        </svg>
+        <Cog6ToothIcon className="w-5 h-5" />
       </button>
     </div>
   );
@@ -254,7 +247,7 @@ const SlideshowPage: React.FC = () => {
               : "bg-opacity-80 opacity-80 hover:opacity-100"
           }`}
         >
-          <ArrowLeft className="w-5 h-5" />
+          <ChevronLeftIcon className="w-5 h-5" />
         </button>
       </div>
     );
@@ -351,7 +344,7 @@ const SlideshowPage: React.FC = () => {
               : "bg-opacity-80 opacity-80 hover:opacity-100"
           }`}
         >
-          <ArrowLeft className="w-5 h-5" />
+          <ChevronLeftIcon className="w-5 h-5" />
         </button>
       </div>
     </SlideshowErrorBoundary>

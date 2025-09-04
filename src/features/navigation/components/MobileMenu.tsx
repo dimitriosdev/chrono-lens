@@ -66,6 +66,7 @@ const MobileMenu = React.memo(function MobileMenu({
                 {aboutLink.label}
               </a>
             )}
+
             {/* Sign Out button only if signed in */}
             {isLoggedIn && onSignOut && (
               <div className="mt-auto">

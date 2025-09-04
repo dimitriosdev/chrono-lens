@@ -3,6 +3,7 @@ import { PlusIcon } from "@heroicons/react/24/solid";
 import { UserCircleIcon } from "@heroicons/react/24/solid";
 import { Tooltip } from "@/shared/components";
 import { helpers } from "@/shared/constants/designSystem";
+import FullscreenButton from "./FullscreenButton";
 
 interface SidebarProps {
   navLinks: Array<{ href: string; label: string; icon?: React.ReactNode }>;
@@ -57,6 +58,9 @@ const Sidebar = React.memo(function Sidebar({
           </a>
         </Tooltip>
       )}
+
+      {/* Fullscreen button */}
+      <FullscreenButton className="mb-4" />
 
       {/* Sign Out button only if signed in */}
       {onSignOut && (

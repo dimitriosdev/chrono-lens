@@ -32,6 +32,10 @@ export const useFullscreen = (): FullscreenHookReturn => {
 
   // Check if fullscreen API is supported
   const isSupported = React.useMemo(() => {
+    if (typeof window === "undefined" || typeof document === "undefined") {
+      return false; // Not in browser environment
+    }
+
     const doc = document as ExtendedDocument;
     return !!(
       document.fullscreenEnabled ||
@@ -43,6 +47,10 @@ export const useFullscreen = (): FullscreenHookReturn => {
 
   // Handle fullscreen change events
   React.useEffect(() => {
+    if (typeof window === "undefined" || typeof document === "undefined") {
+      return; // Not in browser environment
+    }
+
     const handleFullscreenChange = () => {
       const doc = document as ExtendedDocument;
       const fullscreenElement =
@@ -81,7 +89,12 @@ export const useFullscreen = (): FullscreenHookReturn => {
   }, []);
 
   const enterFullscreen = React.useCallback(async (): Promise<void> => {
-    if (!isSupported) return;
+    if (
+      !isSupported ||
+      typeof window === "undefined" ||
+      typeof document === "undefined"
+    )
+      return;
 
     try {
       const element = document.documentElement as ExtendedHTMLElement;
@@ -101,7 +114,12 @@ export const useFullscreen = (): FullscreenHookReturn => {
   }, [isSupported]);
 
   const exitFullscreen = React.useCallback(async (): Promise<void> => {
-    if (!isSupported) return;
+    if (
+      !isSupported ||
+      typeof window === "undefined" ||
+      typeof document === "undefined"
+    )
+      return;
 
     try {
       const doc = document as ExtendedDocument;

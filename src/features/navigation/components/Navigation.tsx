@@ -4,6 +4,7 @@ import { HomeIcon } from "@heroicons/react/24/solid";
 import { useAuth } from "../../../context/AuthContext";
 import Sidebar from "./Sidebar";
 import MobileMenu from "./MobileMenu";
+import FullscreenButton from "./FullscreenButton";
 import { signOutUser } from "../../auth";
 
 // Shared navigation links
@@ -121,7 +122,7 @@ export default function Navigation() {
   return (
     <>
       {/* Mobile hamburger */}
-      <div className="sm:hidden fixed top-0 left-0 w-full h-14 bg-gray-950 z-40 flex items-center px-4 border-b border-gray-800">
+      <div className="sm:hidden fixed top-0 left-0 w-full h-14 bg-gray-950 z-40 flex items-center justify-between px-4 border-b border-gray-800">
         <button
           onClick={() => setMenuOpen(true)}
           className="bg-gray-900 rounded-full p-2 shadow-lg"
@@ -142,6 +143,9 @@ export default function Navigation() {
             />
           </svg>
         </button>
+
+        {/* Fullscreen button for mobile */}
+        <FullscreenButton size="md" />
       </div>
       {/* Sidebar for desktop */}
       <div className="hidden sm:fixed sm:inset-y-0 sm:left-0 sm:w-20 sm:block">
