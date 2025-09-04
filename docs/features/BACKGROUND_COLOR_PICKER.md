@@ -1,23 +1,23 @@
-# Mat Background Color Picker
+# Background Color Picker
 
-The background color picker allows users to easily customize the background color while viewing albums in play mode, with seamless integration to the album's mat colors.
+The background color picker allows users to easily customize both mat and background colors while viewing albums in play mode, with seamless integration and separate controls for optimal viewing experience.
 
 ## Overview
 
-Users can change the background color of both slideshow and grid layout views in the play page through an intuitive color picker interface that automatically syncs with the album's mat board colors.
+Users can change both the mat color and background color independently in both slideshow and grid layout views through an intuitive tabbed color picker interface. The feature provides automatic persistence and smart defaults based on album settings.
 
 ## Features
 
 ### 🎨 Easy Access
 
 - **Color Picker Button**: Located in the top-right corner of the play page
-- **Toggle Interface**: Click to show/hide the color picker panel
-- **Instant Preview**: Background changes immediately when a color is selected
-- **Mat Sync**: Automatically matches the album's mat color on load
+- **Toggle Interface**: Click to show/hide the enhanced color picker panel
+- **Instant Preview**: Background and mat colors change immediately when selected
+- **Tabbed Interface**: Separate tabs for mat color and background color selection
 
 ### 🌈 Color Options
 
-#### Mat Colors (Primary Options)
+#### Mat Colors (First Tab)
 
 - **No Mat** (#000) - Pure black background
 - **Classic White** (#f8f8f8) - Clean, professional white
@@ -28,23 +28,32 @@ Users can change the background color of both slideshow and grid layout views in
 - **Cream** (#f5f5dc) - Warm, vintage tone
 - **Sage Green** (#9caf88) - Natural, calming color
 
-#### Mat Integration Features
+#### Background Colors (Second Tab)
 
-- **Album Mat Indicator**: Shows which color matches the current album's mat
-- **Quick Mat Sync**: "Use Album Mat" button for instant matching
-- **Visual Indicators**: Blue dot shows current album mat color selection
+- **Same Color Options**: Uses the same professional color palette as mat colors
+- **Independent Selection**: Background color is separate from mat color
+- **Smart Defaults**: Falls back to dark backgrounds for optimal viewing
+- **Layout Optimized**: Especially important for grid layouts where background is visible
+
+#### Integration Features
+
+- **Album Mat Indicator**: Shows which mat color matches the current album's default
+- **Album Background Indicator**: Shows default background color if set in album
+- **Quick Reset**: "Use Album Default" button for both mat and background colors
+- **Visual Indicators**: Blue dots show current album default color selections
 
 #### Custom Color Picker
 
 - **Full Color Spectrum**: HTML5 color input for unlimited color choices
-- **Hex Values**: Direct color code input
-- **Real-time Preview**: Instant background updates
+- **Hex Values**: Direct color code input for both mat and background
+- **Real-time Preview**: Instant background and mat updates
 
-### 💾 Persistence
+### 💾 Enhanced Persistence
 
-- **localStorage**: User's color preference is automatically saved
-- **Session Memory**: Color choice persists across album views
-- **Auto-restore**: Last selected color is restored when reopening the app
+- **localStorage**: User's mat and background color preferences are automatically saved separately
+- **Session Memory**: Color choices persist across album views
+- **Auto-restore**: Last selected colors are restored when reopening the app
+- **Independent Storage**: Mat and background colors stored separately for maximum flexibility
 
 ## User Interface
 

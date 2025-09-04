@@ -27,61 +27,127 @@ function useScreenSize() {
   return screenSize;
 }
 
-// Color picker component
-const ColorPicker: React.FC<{
+// Enhanced Color picker component with both mat and background color support
+const EnhancedColorPicker: React.FC<{
   effectiveMatColor: string;
   selectedMatColor: string | null;
   albumMatColor?: string;
-  onColorSelect: (color: string) => void;
-  onReset: () => void;
+  effectiveBackgroundColor: string;
+  selectedBackgroundColor: string | null;
+  albumBackgroundColor?: string;
+  onMatColorSelect: (color: string) => void;
+  onBackgroundColorSelect: (color: string) => void;
+  onMatReset: () => void;
+  onBackgroundReset: () => void;
   onClose: () => void;
 }> = ({
   effectiveMatColor,
   selectedMatColor,
   albumMatColor,
-  onColorSelect,
-  onReset,
+  effectiveBackgroundColor,
+  selectedBackgroundColor,
+  albumBackgroundColor,
+  onMatColorSelect,
+  onBackgroundColorSelect,
+  onMatReset,
+  onBackgroundReset,
   onClose,
 }) => {
+  const [activeTab, setActiveTab] = React.useState<"mat" | "background">("mat");
+
   return (
     <div className="absolute top-16 left-4 z-50">
       <div className="bg-gray-900/95 backdrop-blur-sm rounded-xl p-4 shadow-2xl border border-gray-700/50 min-w-[280px]">
-        <h3 className="text-white text-sm font-medium mb-3 font-calligraphy">
-          Mat Background Colors
-        </h3>
-
-        {/* Mat colors grid */}
-        <div className="grid grid-cols-4 gap-2 mb-4">
-          {matColors.map((matOption) => (
-            <button
-              key={matOption.color}
-              type="button"
-              onClick={() => onColorSelect(matOption.color)}
-              className={`w-12 h-12 rounded-lg border-2 transition-all duration-200 hover:scale-105 flex flex-col items-center justify-center ${
-                effectiveMatColor === matOption.color
-                  ? "border-white shadow-lg ring-2 ring-white/30"
-                  : "border-gray-600 hover:border-gray-400"
-              }`}
-              style={{ backgroundColor: matOption.color }}
-              aria-label={`Set background to ${matOption.name}`}
-            >
-              {/* Show current mat selection indicator */}
-              {albumMatColor === matOption.color && (
-                <div className="w-2 h-2 rounded-full bg-blue-400 border border-white shadow-sm" />
-              )}
-            </button>
-          ))}
+        {/* Tab selection */}
+        <div className="flex mb-4 bg-gray-800 rounded-lg p-1">
+          <button
+            type="button"
+            onClick={() => setActiveTab("mat")}
+            className={`flex-1 px-3 py-2 text-xs rounded-md transition-colors font-calligraphy ${
+              activeTab === "mat"
+                ? "bg-blue-600 text-white"
+                : "text-gray-300 hover:text-white"
+            }`}
+          >
+            Mat Color
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveTab("background")}
+            className={`flex-1 px-3 py-2 text-xs rounded-md transition-colors font-calligraphy ${
+              activeTab === "background"
+                ? "bg-blue-600 text-white"
+                : "text-gray-300 hover:text-white"
+            }`}
+          >
+            Background
+          </button>
         </div>
 
-        {/* Mat color names for selected color */}
+        <h3 className="text-white text-sm font-medium mb-3 font-calligraphy">
+          {activeTab === "mat" ? "Mat Colors" : "Background Colors"}
+        </h3>
+
+        {/* Colors grid */}
+        <div className="grid grid-cols-4 gap-2 mb-4">
+          {matColors.map((colorOption) => {
+            const effectiveColor =
+              activeTab === "mat"
+                ? effectiveMatColor
+                : effectiveBackgroundColor;
+            const albumColor =
+              activeTab === "mat" ? albumMatColor : albumBackgroundColor;
+
+            return (
+              <button
+                key={colorOption.color}
+                type="button"
+                onClick={() =>
+                  activeTab === "mat"
+                    ? onMatColorSelect(colorOption.color)
+                    : onBackgroundColorSelect(colorOption.color)
+                }
+                className={`w-12 h-12 rounded-lg border-2 transition-all duration-200 hover:scale-105 flex flex-col items-center justify-center ${
+                  effectiveColor === colorOption.color
+                    ? "border-white shadow-lg ring-2 ring-white/30"
+                    : "border-gray-600 hover:border-gray-400"
+                }`}
+                style={{ backgroundColor: colorOption.color }}
+                aria-label={`Set ${activeTab} to ${colorOption.name}`}
+              >
+                {/* Show current album default indicator */}
+                {albumColor === colorOption.color && (
+                  <div className="w-2 h-2 rounded-full bg-blue-400 border border-white shadow-sm" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Color names for selected color */}
         <div className="mb-3">
           <p className="text-white/80 text-xs font-calligraphy text-center">
-            {matColors.find((c) => c.color === effectiveMatColor)?.name ||
-              "Custom Color"}
-            {albumMatColor === effectiveMatColor && !selectedMatColor && (
-              <span className="text-blue-400"> • Album Default</span>
+            {matColors.find(
+              (c) =>
+                c.color ===
+                (activeTab === "mat"
+                  ? effectiveMatColor
+                  : effectiveBackgroundColor)
+            )?.name || "Custom Color"}
+            {activeTab === "mat" &&
+              albumMatColor === effectiveMatColor &&
+              !selectedMatColor && (
+                <span className="text-blue-400"> • Album Default</span>
+              )}
+            {activeTab === "background" &&
+              albumBackgroundColor === effectiveBackgroundColor &&
+              !selectedBackgroundColor && (
+                <span className="text-blue-400"> • Album Default</span>
+              )}
+            {activeTab === "mat" && selectedMatColor && (
+              <span className="text-green-400"> • Custom Selection</span>
             )}
-            {selectedMatColor && (
+            {activeTab === "background" && selectedBackgroundColor && (
               <span className="text-green-400"> • Custom Selection</span>
             )}
           </p>
@@ -94,8 +160,14 @@ const ColorPicker: React.FC<{
           </label>
           <input
             type="color"
-            value={effectiveMatColor}
-            onChange={(e) => onColorSelect(e.target.value)}
+            value={
+              activeTab === "mat" ? effectiveMatColor : effectiveBackgroundColor
+            }
+            onChange={(e) =>
+              activeTab === "mat"
+                ? onMatColorSelect(e.target.value)
+                : onBackgroundColorSelect(e.target.value)
+            }
             className="w-full h-10 rounded-lg border border-gray-600 bg-transparent cursor-pointer"
           />
         </div>
@@ -104,7 +176,7 @@ const ColorPicker: React.FC<{
         <div className="flex gap-2 mt-4">
           <button
             type="button"
-            onClick={onReset}
+            onClick={activeTab === "mat" ? onMatReset : onBackgroundReset}
             className="flex-1 px-3 py-2 bg-blue-800 hover:bg-blue-700 text-white text-xs rounded-lg transition-colors font-calligraphy"
           >
             Use Album Default
@@ -408,6 +480,12 @@ const SlideshowPage: React.FC = () => {
   const [selectedMatColor, setSelectedMatColor] = React.useState<string | null>(
     null
   );
+
+  // Background color state (separate from mat color)
+  const [selectedBackgroundColor, setSelectedBackgroundColor] = React.useState<
+    string | null
+  >(null);
+
   const [showColorPicker, setShowColorPicker] = React.useState(false);
   const [colorInitialized, setColorInitialized] = React.useState(false);
 
@@ -418,10 +496,19 @@ const SlideshowPage: React.FC = () => {
   React.useEffect(() => {
     if (album?.matConfig?.matColor && !colorInitialized) {
       // Check if user has a saved preference first
-      const savedColor = localStorage.getItem("chrono-lens-mat-color");
-      if (savedColor) {
-        setSelectedMatColor(savedColor);
+      const savedMatColor = localStorage.getItem("chrono-lens-mat-color");
+      if (savedMatColor) {
+        setSelectedMatColor(savedMatColor);
       }
+
+      // Initialize background color from localStorage or album default
+      const savedBackgroundColor = localStorage.getItem(
+        "chrono-lens-background-color"
+      );
+      if (savedBackgroundColor) {
+        setSelectedBackgroundColor(savedBackgroundColor);
+      }
+
       // If no saved color, use album's default (selectedMatColor stays null)
       setColorInitialized(true);
     }
@@ -434,17 +521,43 @@ const SlideshowPage: React.FC = () => {
     }
   }, [selectedMatColor, colorInitialized]);
 
-  // Use selected mat color or fall back to album's mat color
+  // Save background color preference when it changes (but only after initialization)
+  React.useEffect(() => {
+    if (colorInitialized && selectedBackgroundColor) {
+      localStorage.setItem(
+        "chrono-lens-background-color",
+        selectedBackgroundColor
+      );
+    }
+  }, [selectedBackgroundColor, colorInitialized]);
+
+  // Use selected colors or fall back to album's colors
   const effectiveMatColor =
     selectedMatColor || album?.matConfig?.matColor || "#000";
 
-  // Callback handlers
-  const handleColorSelect = React.useCallback((color: string) => {
+  // For background color, we use a fallback since albums might not have backgroundColor yet
+  const albumBackgroundColor = (
+    album?.matConfig as { backgroundColor?: string }
+  )?.backgroundColor;
+  const effectiveBackgroundColor =
+    selectedBackgroundColor || albumBackgroundColor || "#1a1a1a";
+
+  // Callback handlers for mat color
+  const handleMatColorSelect = React.useCallback((color: string) => {
     setSelectedMatColor(color);
   }, []);
 
-  const handleResetColor = React.useCallback(() => {
+  const handleMatResetColor = React.useCallback(() => {
     setSelectedMatColor(null);
+  }, []);
+
+  // Callback handlers for background color
+  const handleBackgroundColorSelect = React.useCallback((color: string) => {
+    setSelectedBackgroundColor(color);
+  }, []);
+
+  const handleBackgroundResetColor = React.useCallback(() => {
+    setSelectedBackgroundColor(null);
   }, []);
 
   const handleCloseColorPicker = React.useCallback(() => {
@@ -572,7 +685,7 @@ const SlideshowPage: React.FC = () => {
     return (
       <div
         className="fixed inset-0 flex flex-col items-center justify-center z-50"
-        style={{ backgroundColor: "#374151" }} // Fixed dark background
+        style={{ backgroundColor: effectiveBackgroundColor }}
       >
         {/* Control buttons */}
         <ControlButtons
@@ -583,18 +696,26 @@ const SlideshowPage: React.FC = () => {
 
         {/* Color picker overlay */}
         {showColorPicker && (
-          <ColorPicker
+          <EnhancedColorPicker
             effectiveMatColor={effectiveMatColor}
             selectedMatColor={selectedMatColor}
             albumMatColor={album?.matConfig?.matColor}
-            onColorSelect={handleColorSelect}
-            onReset={handleResetColor}
+            effectiveBackgroundColor={effectiveBackgroundColor}
+            selectedBackgroundColor={selectedBackgroundColor}
+            albumBackgroundColor={albumBackgroundColor}
+            onMatColorSelect={handleMatColorSelect}
+            onBackgroundColorSelect={handleBackgroundColorSelect}
+            onMatReset={handleMatResetColor}
+            onBackgroundReset={handleBackgroundResetColor}
             onClose={handleCloseColorPicker}
           />
         )}
 
         {/* Grid container */}
-        <div className="w-full h-full flex items-center justify-center p-4">
+        <div
+          className="w-full h-full flex items-center justify-center p-4"
+          style={{ backgroundColor: effectiveBackgroundColor }}
+        >
           <div
             className="grid gap-2 sm:gap-4"
             style={{
@@ -657,7 +778,7 @@ const SlideshowPage: React.FC = () => {
   return (
     <div
       className="fixed inset-0 flex flex-col items-center justify-center z-50"
-      style={{ backgroundColor: "#374151" }} // Fixed dark background
+      style={{ backgroundColor: effectiveBackgroundColor }}
     >
       {/* Control buttons */}
       <ControlButtons
@@ -668,18 +789,26 @@ const SlideshowPage: React.FC = () => {
 
       {/* Color picker overlay */}
       {showColorPicker && (
-        <ColorPicker
+        <EnhancedColorPicker
           effectiveMatColor={effectiveMatColor}
           selectedMatColor={selectedMatColor}
           albumMatColor={album?.matConfig?.matColor}
-          onColorSelect={handleColorSelect}
-          onReset={handleResetColor}
+          effectiveBackgroundColor={effectiveBackgroundColor}
+          selectedBackgroundColor={selectedBackgroundColor}
+          albumBackgroundColor={albumBackgroundColor}
+          onMatColorSelect={handleMatColorSelect}
+          onBackgroundColorSelect={handleBackgroundColorSelect}
+          onMatReset={handleMatResetColor}
+          onBackgroundReset={handleBackgroundResetColor}
           onClose={handleCloseColorPicker}
         />
       )}
 
       {images.length > 0 ? (
-        <div className="w-screen h-screen flex items-center justify-center">
+        <div
+          className="w-screen h-screen flex items-center justify-center"
+          style={{ backgroundColor: effectiveBackgroundColor }}
+        >
           <MatImage
             src={images[current]}
             matConfig={{ ...matConfig, matColor: effectiveMatColor }}
@@ -687,7 +816,12 @@ const SlideshowPage: React.FC = () => {
           />
         </div>
       ) : (
-        <div className="text-white font-calligraphy">No images in album.</div>
+        <div
+          className="text-white font-calligraphy w-screen h-screen flex items-center justify-center"
+          style={{ backgroundColor: effectiveBackgroundColor }}
+        >
+          No images in album.
+        </div>
       )}
       <div className="absolute bottom-4 sm:bottom-6 w-full text-center z-40 px-6">
         {/* Album title with elegant styling */}

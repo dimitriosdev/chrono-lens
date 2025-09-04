@@ -44,6 +44,7 @@ const matColors = [
 export type MatConfig = {
   matWidth: number;
   matColor: string;
+  backgroundColor?: string;
   cycleDuration?: number;
 };
 
@@ -99,7 +100,7 @@ export function EnhancedMatBoard({
   return (
     <div className="space-y-6">
       {/* Controls */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <FormField label="Mat Color">
           <select
             value={matColor}
@@ -139,6 +140,45 @@ export function EnhancedMatBoard({
           </div>
         </FormField>
 
+        <FormField label="Background Color">
+          <select
+            value={config.backgroundColor || "#1a1a1a"}
+            onChange={(e) => {
+              setConfig({ ...config, backgroundColor: e.target.value });
+            }}
+            className="w-full bg-gray-700 text-white border border-gray-600 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            {matColors.map((c) => (
+              <option
+                value={c.color}
+                key={`bg-${c.name}`}
+                className="bg-gray-700 text-white"
+              >
+                {c.name}
+              </option>
+            ))}
+          </select>
+
+          {/* Background Color preview swatches */}
+          <div className="flex flex-wrap gap-2 mt-2">
+            {matColors.map((colorOption) => (
+              <button
+                key={`bg-${colorOption.name}`}
+                onClick={() =>
+                  setConfig({ ...config, backgroundColor: colorOption.color })
+                }
+                className={`w-8 h-8 rounded-full border-2 transition ${
+                  (config.backgroundColor || "#1a1a1a") === colorOption.color
+                    ? "border-blue-500 ring-2 ring-blue-500 ring-opacity-50"
+                    : "border-gray-600 hover:border-gray-400"
+                }`}
+                style={{ backgroundColor: colorOption.color }}
+                title={`${colorOption.name} (Background)`}
+              />
+            ))}
+          </div>
+        </FormField>
+
         {!isNoMat && (
           <FormField label="Mat Width" help={`${matPercent}% of frame size`}>
             <input
@@ -166,94 +206,103 @@ export function EnhancedMatBoard({
             Live Preview
           </h4>
           <div className="flex justify-center">
+            {/* Background container to show background color */}
             <div
-              className="relative shadow-lg"
+              className="p-4 rounded-lg"
               style={{
-                width: frameWidth,
-                height: frameHeight,
-                background: isNoMat ? "#374151" : matColor, // Use gray-700 for no mat
-                borderRadius: "0.5rem",
+                backgroundColor: config.backgroundColor || "#1a1a1a",
               }}
             >
-              {/* Mat frame */}
-              {!isNoMat && (
-                <div
-                  className="absolute inset-0 rounded-lg"
-                  style={{ background: matColor }}
-                />
-              )}
-
-              {/* Image grid */}
               <div
-                className="absolute grid gap-1"
+                className="relative shadow-lg"
                 style={{
-                  top: matPx,
-                  left: matPx,
-                  width: `calc(100% - ${matPx * 2}px)`,
-                  height: `calc(100% - ${matPx * 2}px)`,
-                  gridTemplateRows: `repeat(${grid.rows}, 1fr)`,
-                  gridTemplateColumns: `repeat(${grid.cols}, 1fr)`,
-                  borderRadius: "0.375rem",
-                  overflow: "hidden",
+                  width: frameWidth,
+                  height: frameHeight,
+                  background: isNoMat ? "#374151" : matColor, // Use gray-700 for no mat
+                  borderRadius: "0.5rem",
                 }}
               >
-                {Array.from({ length: totalSlots }).map((_, i) => (
+                {/* Mat frame */}
+                {!isNoMat && (
                   <div
-                    key={i}
-                    className="relative bg-gray-800 border border-gray-700 rounded overflow-hidden"
-                    style={{
-                      minHeight: Math.max(artworkHeight, 40),
-                      minWidth: Math.max(artworkWidth, 40),
-                    }}
-                  >
-                    {imagesToShow[i] ? (
-                      <>
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={imagesToShow[i]}
-                          alt={`Preview ${i + 1}`}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            if (process.env.NODE_ENV === "development") {
-                              console.warn(
-                                "Image failed to load:",
-                                imagesToShow[i]
-                              );
-                            }
-                            (e.target as HTMLImageElement).style.display =
-                              "none";
-                          }}
-                        />
-                        {/* Sample caption to show text color */}
-                        <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
-                          <div className="relative">
-                            <div
-                              className={`h-4 bg-gradient-to-t ${
-                                isLightColor(matColor) && !isNoMat
-                                  ? "from-white/20 to-transparent"
-                                  : "from-black/20 to-transparent"
-                              }`}
-                            ></div>
-                            <p
-                              className={`absolute bottom-0 left-0 right-0 text-xs text-center px-1 overflow-hidden text-ellipsis whitespace-nowrap ${getCaptionTextColor(
-                                matColor,
-                                isNoMat
-                              )}`}
-                            >
-                              Sample Caption
-                            </p>
+                    className="absolute inset-0 rounded-lg"
+                    style={{ background: matColor }}
+                  />
+                )}
+
+                {/* Image grid */}
+                <div
+                  className="absolute grid gap-1"
+                  style={{
+                    top: matPx,
+                    left: matPx,
+                    width: `calc(100% - ${matPx * 2}px)`,
+                    height: `calc(100% - ${matPx * 2}px)`,
+                    gridTemplateRows: `repeat(${grid.rows}, 1fr)`,
+                    gridTemplateColumns: `repeat(${grid.cols}, 1fr)`,
+                    borderRadius: "0.375rem",
+                    overflow: "hidden",
+                  }}
+                >
+                  {Array.from({ length: totalSlots }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="relative bg-gray-800 border border-gray-700 rounded overflow-hidden"
+                      style={{
+                        minHeight: Math.max(artworkHeight, 40),
+                        minWidth: Math.max(artworkWidth, 40),
+                      }}
+                    >
+                      {imagesToShow[i] ? (
+                        <>
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={imagesToShow[i]}
+                            alt={`Preview ${i + 1}`}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              if (process.env.NODE_ENV === "development") {
+                                console.warn(
+                                  "Image failed to load:",
+                                  imagesToShow[i]
+                                );
+                              }
+                              (e.target as HTMLImageElement).style.display =
+                                "none";
+                            }}
+                          />
+                          {/* Sample caption to show text color */}
+                          <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
+                            <div className="relative">
+                              <div
+                                className={`h-4 bg-gradient-to-t ${
+                                  isLightColor(matColor) && !isNoMat
+                                    ? "from-white/20 to-transparent"
+                                    : "from-black/20 to-transparent"
+                                }`}
+                              ></div>
+                              <p
+                                className={`absolute bottom-0 left-0 right-0 text-xs text-center px-1 overflow-hidden text-ellipsis whitespace-nowrap ${getCaptionTextColor(
+                                  matColor,
+                                  isNoMat
+                                )}`}
+                              >
+                                Sample Caption
+                              </p>
+                            </div>
                           </div>
+                        </>
+                      ) : (
+                        <div className="flex items-center justify-center h-full text-gray-500 text-xs">
+                          {i < previewImages.length ? "Image" : "Empty"}
                         </div>
-                      </>
-                    ) : (
-                      <div className="flex items-center justify-center h-full text-gray-500 text-xs">
-                        {i < previewImages.length ? "Image" : "Empty"}
-                      </div>
-                    )}
-                  </div>
-                ))}
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
+            </div>{" "}
+            {/* Close background container */}
           </div>
 
           {/* Preview info */}

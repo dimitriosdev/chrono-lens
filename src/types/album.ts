@@ -9,6 +9,12 @@ export interface AlbumImage {
 export interface MatConfig {
   matWidth: number;
   matColor: string;
+  backgroundColor?: string; // Optional background color separate from mat
+}
+
+export interface ViewerSettings {
+  backgroundColor: string;
+  matColor?: string; // Override for album mat color
 }
 
 export interface Album {
