@@ -2,6 +2,7 @@
 export { default as MatImage } from "./MatImage";
 export { default as EnhancedColorPicker } from "./EnhancedColorPicker";
 export { default as ResponsiveMatImage } from "./ResponsiveMatImage";
+export { default as SlideshowDebugInfo } from "./SlideshowDebugInfo";
 export { default as SlideshowErrorBoundary } from "./SlideshowErrorBoundary";
 export { default as ImageErrorBoundary } from "./ImageErrorBoundary";
 

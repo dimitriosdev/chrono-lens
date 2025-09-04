@@ -2,6 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
+import SlideshowDebugInfo from "./SlideshowDebugInfo";
 
 // Types
 interface MatConfig {
@@ -35,9 +36,19 @@ interface FrameDimensions {
 
 // Hook to track screen size (optimized version)
 function useScreenSize(): ScreenSize {
-  const [screenSize, setScreenSize] = React.useState<ScreenSize>({
-    width: 0,
-    height: 0,
+  const [screenSize, setScreenSize] = React.useState<ScreenSize>(() => {
+    // Initialize with actual dimensions if available (client-side)
+    if (typeof window !== "undefined") {
+      return {
+        width: window.innerWidth,
+        height: window.innerHeight,
+      };
+    }
+    // SSR fallback - use reasonable defaults
+    return {
+      width: 1200,
+      height: 800,
+    };
   });
 
   React.useEffect(() => {
@@ -48,6 +59,9 @@ function useScreenSize(): ScreenSize {
       });
     }
 
+    // Immediate update on mount
+    updateSize();
+
     // Throttle resize events for better performance
     let timeoutId: NodeJS.Timeout;
     function throttledUpdate() {
@@ -56,10 +70,15 @@ function useScreenSize(): ScreenSize {
     }
 
     window.addEventListener("resize", throttledUpdate);
-    updateSize(); // Initial call
+    // Also listen for orientation changes on mobile
+    window.addEventListener("orientationchange", () => {
+      // Delay to allow browser to update dimensions
+      setTimeout(updateSize, 250);
+    });
 
     return () => {
       window.removeEventListener("resize", throttledUpdate);
+      window.removeEventListener("orientationchange", updateSize);
       clearTimeout(timeoutId);
     };
   }, []);
@@ -75,10 +94,16 @@ const getFrameDimensions = (
   gridInfo?: GridInfo
 ): FrameDimensions => {
   if (!containerMode) {
-    // Slideshow mode - use full screen
+    // Slideshow mode - use full screen with better fallbacks
+    // Prefer actual screen dimensions but use more reasonable fallbacks
+    const width =
+      screenWidth || (typeof window !== "undefined" ? window.innerWidth : 1200);
+    const height =
+      screenHeight ||
+      (typeof window !== "undefined" ? window.innerHeight : 800);
     return {
-      width: screenWidth || 400,
-      height: screenHeight || 600,
+      width,
+      height,
     };
   }
 
@@ -248,8 +273,8 @@ const MatImage: React.FC<MatImageProps> = ({
 
   const { artworkWidth, artworkHeight, matHorizontal, matVertical } =
     React.useMemo(() => {
-      if (isNoMat) {
-        // When there's no mat, use full frame dimensions
+      if (isNoMat || !containerMode) {
+        // When there's no mat OR in slideshow mode, use full frame dimensions
         return {
           artworkWidth: frameW,
           artworkHeight: frameH,
@@ -263,46 +288,55 @@ const MatImage: React.FC<MatImageProps> = ({
         imgAspect,
         adjustedMatPercent
       );
-    }, [frameW, frameH, imgAspect, adjustedMatPercent, isNoMat]);
+    }, [frameW, frameH, imgAspect, adjustedMatPercent, isNoMat, containerMode]);
 
   const containerStyle = React.useMemo(
     () => ({
       background: isNoMat ? "#000000" : matColor,
-      width: `${frameW}px`,
-      height: `${frameH}px`,
+      width: containerMode ? `${frameW}px` : "100vw",
+      height: containerMode ? `${frameH}px` : "100vh",
+      maxWidth: containerMode ? `${frameW}px` : "100vw",
+      maxHeight: containerMode ? `${frameH}px` : "100vh",
       border: "none",
       boxShadow: "0 4px 24px rgba(0,0,0,0.12)",
       flexShrink: 0,
     }),
-    [isNoMat, matColor, frameW, frameH]
+    [isNoMat, matColor, frameW, frameH, containerMode]
   );
 
   const matStyle = React.useMemo(
     () => ({
       top: 0,
       left: 0,
-      width: `${frameW}px`,
-      height: `${frameH}px`,
+      width: containerMode ? `${frameW}px` : "100%",
+      height: containerMode ? `${frameH}px` : "100%",
       background: matColor,
       boxSizing: "border-box" as const,
       boxShadow: "0 4px 24px rgba(0,0,0,0.12)",
       zIndex: 2,
       border: "none",
     }),
-    [frameW, frameH, matColor]
+    [frameW, frameH, matColor, containerMode]
   );
 
   const artworkStyle = React.useMemo(
     () => ({
-      top: `${matVertical}px`,
-      left: `${matHorizontal}px`,
-      width: `${artworkWidth}px`,
-      height: `${artworkHeight}px`,
+      top: containerMode ? `${matVertical}px` : 0,
+      left: containerMode ? `${matHorizontal}px` : 0,
+      width: containerMode ? `${artworkWidth}px` : "100%",
+      height: containerMode ? `${artworkHeight}px` : "100%",
       background: isNoMat ? "#000" : "#fff",
       boxShadow: !isNoMat ? "0 0 0 1px #ccc" : undefined,
       zIndex: 4,
     }),
-    [matVertical, matHorizontal, artworkWidth, artworkHeight, isNoMat]
+    [
+      matVertical,
+      matHorizontal,
+      artworkWidth,
+      artworkHeight,
+      isNoMat,
+      containerMode,
+    ]
   );
 
   return (
@@ -310,8 +344,17 @@ const MatImage: React.FC<MatImageProps> = ({
       className="relative flex items-center justify-center"
       style={containerStyle}
     >
-      {/* Outer mat (skip if No Mat) */}
-      {!isNoMat && (
+      {/* Debug info - only in development */}
+      <SlideshowDebugInfo
+        screenWidth={screenWidth}
+        screenHeight={screenHeight}
+        frameWidth={frameW}
+        frameHeight={frameH}
+        containerMode={containerMode}
+      />
+
+      {/* Outer mat (skip if No Mat or slideshow mode) */}
+      {!isNoMat && containerMode && (
         <div
           className="absolute rounded-xl"
           style={matStyle}

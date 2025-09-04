@@ -348,7 +348,7 @@ const SlideshowPage: React.FC = () => {
                   ...matConfig,
                   matColor: colorPrefs.effectiveMatColor,
                 }}
-                containerMode={false}
+                containerMode={false} // Explicitly ensure slideshow mode
                 description={slideshow.currentDescription}
               />
             </ImageErrorBoundary>

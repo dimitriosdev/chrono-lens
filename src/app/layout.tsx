@@ -89,7 +89,10 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/favicon.svg" />
         <meta name="theme-color" content="#06b6d4" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no"
+        />
         <meta
           name="robots"
           content="noindex, nofollow, noarchive, nosnippet, noimageindex, nocache"
