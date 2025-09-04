@@ -764,7 +764,7 @@ const SlideshowPage: React.FC = () => {
           type="button"
           onClick={handleBack}
           aria-label="Back to albums"
-          className="absolute bottom-2 sm:bottom-4 left-2 sm:left-4 bg-gray-900 bg-opacity-80 text-white p-2 rounded-lg shadow-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white z-50"
+          className="absolute top-2 sm:top-4 left-2 sm:left-4 bg-gray-900 bg-opacity-80 text-white p-2 rounded-lg shadow-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white z-50"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
@@ -858,7 +858,7 @@ const SlideshowPage: React.FC = () => {
         type="button"
         onClick={handleBack}
         aria-label="Back to albums"
-        className="absolute bottom-2 sm:bottom-4 left-2 sm:left-4 bg-gray-900 bg-opacity-80 text-white p-2 rounded-lg shadow-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white z-50"
+        className="absolute top-2 sm:top-4 left-2 sm:left-4 bg-gray-900 bg-opacity-80 text-white p-2 rounded-lg shadow-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white z-50"
       >
         <ArrowLeft className="w-5 h-5" />
       </button>

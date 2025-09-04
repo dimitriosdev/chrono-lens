@@ -10,7 +10,6 @@ import "./globals.css";
 import { AuthProvider } from "../context/AuthContext";
 import Navigation from "../components/Navigation";
 import { ErrorBoundary } from "../components/ErrorBoundary";
-import { VersionDisplay } from "../components/VersionDisplay";
 import { VersionLogger } from "../components/VersionLogger";
 import { UserDebugPanel } from "../components/UserDebugPanel";
 
@@ -113,7 +112,6 @@ export default function RootLayout({
               <main className="flex-1 px-2 pt-14 sm:pt-0 w-full sm:ml-20">
                 {children}
               </main>
-              <VersionDisplay />
               <UserDebugPanel />
             </div>
           </ErrorBoundary>
