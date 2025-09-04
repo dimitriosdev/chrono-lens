@@ -34,6 +34,7 @@ export function ImageGrid({
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [selectedImages, setSelectedImages] = useState<Set<string>>(new Set());
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDraggingFiles, setIsDraggingFiles] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleDragStart = (e: React.DragEvent, index: number) => {
@@ -63,6 +64,70 @@ export function ImageGrid({
     setDragOverIndex(null);
   };
 
+  // File drop handlers for adding new images
+  const handleContainerDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Check if we're dragging files (not reordering existing images)
+    if (e.dataTransfer.types.includes("Files")) {
+      e.dataTransfer.dropEffect = "copy";
+      setIsDraggingFiles(true);
+    }
+  };
+
+  const handleContainerDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (e.dataTransfer.types.includes("Files")) {
+      setIsDraggingFiles(true);
+    }
+  };
+
+  const handleContainerDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Only reset if we're leaving the container completely
+    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+      setIsDraggingFiles(false);
+    }
+  };
+
+  const handleContainerDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    setIsDraggingFiles(false);
+
+    // Check if files were dropped
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      if (!canAddMore) {
+        alert(`Cannot add images. Maximum ${maxImages} images allowed.`);
+        return;
+      }
+
+      const filesArray = Array.from(e.dataTransfer.files);
+      const imageFiles = filesArray.filter(
+        (file) =>
+          file.type.startsWith("image/") ||
+          file.name.toLowerCase().endsWith(".heic") ||
+          file.name.toLowerCase().endsWith(".heif")
+      );
+
+      if (imageFiles.length > 0) {
+        const fileList = new DataTransfer();
+        imageFiles.forEach((file) => fileList.items.add(file));
+        onFilesAdd(fileList.files);
+      } else {
+        alert(
+          "Please drop only image files (JPEG, PNG, GIF, WebP, HEIC, etc.)"
+        );
+      }
+    }
+  };
+
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       onFilesAdd(e.target.files);
@@ -89,7 +154,17 @@ export function ImageGrid({
   const canAddMore = images.length < maxImages;
 
   return (
-    <div className={`space-y-4 ${className}`}>
+    <div
+      className={`space-y-4 ${className} ${
+        isDraggingFiles
+          ? "ring-2 ring-blue-500 ring-opacity-50 bg-blue-500 bg-opacity-5"
+          : ""
+      }`}
+      onDragOver={handleContainerDragOver}
+      onDragEnter={handleContainerDragEnter}
+      onDragLeave={handleContainerDragLeave}
+      onDrop={handleContainerDrop}
+    >
       {/* Header with actions */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -131,9 +206,20 @@ export function ImageGrid({
 
       {/* Images grid */}
       {images.length === 0 ? (
-        <div className="border-2 border-dashed border-gray-600 rounded-lg p-12 text-center">
+        <div
+          className={`border-2 border-dashed rounded-lg p-12 text-center transition-all ${
+            isDraggingFiles
+              ? "border-blue-500 bg-blue-500 bg-opacity-10"
+              : "border-gray-600"
+          }`}
+        >
           <Upload size={48} className="mx-auto mb-4 text-gray-400" />
-          <p className="text-gray-400 mb-4">No images yet</p>
+          <p className="text-gray-400 mb-4">
+            {isDraggingFiles ? "Drop images here" : "No images yet"}
+          </p>
+          <p className="text-gray-500 text-sm mb-4">
+            Drag and drop images here or click to upload
+          </p>
           <button
             type="button"
             onClick={() => fileInputRef.current?.click()}
@@ -143,25 +229,39 @@ export function ImageGrid({
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {images.map((image, index) => (
-            <ImageCard
-              key={image.id}
-              image={image}
-              index={index}
-              isSelected={selectedImages.has(image.id)}
-              isDraggedOver={dragOverIndex === index}
-              onSelect={() => toggleImageSelection(image.id)}
-              onRemove={() => onRemove(image.id)}
-              onDescriptionChange={(desc) =>
-                onDescriptionChange(image.id, desc)
-              }
-              onDragStart={(e) => handleDragStart(e, index)}
-              onDragEnd={handleDragEnd}
-              onDragOver={(e) => handleDragOver(e, index)}
-              onDrop={(e) => handleDrop(e, index)}
-            />
-          ))}
+        <div className="relative">
+          {/* Drag overlay for file drops */}
+          {isDraggingFiles && (
+            <div className="absolute inset-0 z-10 border-2 border-dashed border-blue-500 bg-blue-500 bg-opacity-10 rounded-lg flex items-center justify-center">
+              <div className="text-center">
+                <Upload size={48} className="mx-auto mb-2 text-blue-500" />
+                <p className="text-blue-500 font-semibold">
+                  Drop images to add them
+                </p>
+              </div>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {images.map((image, index) => (
+              <ImageCard
+                key={image.id}
+                image={image}
+                index={index}
+                isSelected={selectedImages.has(image.id)}
+                isDraggedOver={dragOverIndex === index}
+                onSelect={() => toggleImageSelection(image.id)}
+                onRemove={() => onRemove(image.id)}
+                onDescriptionChange={(desc) =>
+                  onDescriptionChange(image.id, desc)
+                }
+                onDragStart={(e) => handleDragStart(e, index)}
+                onDragEnd={handleDragEnd}
+                onDragOver={(e) => handleDragOver(e, index)}
+                onDrop={(e) => handleDrop(e, index)}
+              />
+            ))}
+          </div>
         </div>
       )}
 
