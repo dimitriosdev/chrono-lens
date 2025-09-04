@@ -1,3 +1,12 @@
+# [2.1.0](https://github.com/dimitriosdev/chrono-lens/compare/v2.0.0...v2.1.0) (2025-09-04)
+
+
+### Features
+
+* Add ResponsiveMatImage component for adaptive image rendering ([3861c3c](https://github.com/dimitriosdev/chrono-lens/commit/3861c3c8a7b6bfde65de9ba9d467596456465e87))
+* enhance background color picker functionality with independent controls for mat and background colors ([22adf2e](https://github.com/dimitriosdev/chrono-lens/commit/22adf2ee3cfbad71f18500820f512011e9dba06e))
+* **security:** Implement comprehensive security utilities for file validation, content filtering, and rate limiting ([596b10a](https://github.com/dimitriosdev/chrono-lens/commit/596b10a4c673f6bd01d5a4dc110ebef4448f5b83))
+
 # [2.0.0](https://github.com/dimitriosdev/chrono-lens/compare/v1.9.1...v2.0.0) (2025-09-04)
 
 
