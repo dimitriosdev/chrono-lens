@@ -1,3 +1,10 @@
+## [2.4.1](https://github.com/dimitriosdev/chrono-lens/compare/v2.4.0...v2.4.1) (2025-09-04)
+
+
+### Bug Fixes
+
+* Update version retrieval to use package.json for accurate versioning ([cb5d22d](https://github.com/dimitriosdev/chrono-lens/commit/cb5d22d9ffc19d245e3ae8d876e46185e905d460))
+
 # [2.4.0](https://github.com/dimitriosdev/chrono-lens/compare/v2.3.0...v2.4.0) (2025-09-04)
 
 
