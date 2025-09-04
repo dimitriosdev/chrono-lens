@@ -1,3 +1,10 @@
+# [2.2.0](https://github.com/dimitriosdev/chrono-lens/compare/v2.1.0...v2.2.0) (2025-09-04)
+
+
+### Features
+
+* Introduce a design system with reusable UI components and constants ([a26584f](https://github.com/dimitriosdev/chrono-lens/commit/a26584f114ebf84a6ae4f51da09afc825a4d9c89))
+
 # [2.1.0](https://github.com/dimitriosdev/chrono-lens/compare/v2.0.0...v2.1.0) (2025-09-04)
 
 
