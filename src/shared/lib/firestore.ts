@@ -69,11 +69,7 @@ export async function getAlbum(id: string): Promise<Album | null> {
 
   // For single-user scenarios: only allow access if album has userId mismatch
   if (albumData.userId && albumData.userId !== userId) {
-    if (process.env.NODE_ENV === "development") {
-      console.warn(
-        `Album ${id} has different userId (${albumData.userId}) than current user (${userId}), but allowing access for single-user scenario`
-      );
-    }
+    // Allow access for single-user scenario
   }
 
   return albumData;
@@ -87,10 +83,6 @@ export async function getAlbums(): Promise<Album[]> {
   const canRead = firebaseUsageMonitor.canPerformOperation("read", 20);
   if (!canRead.allowed) {
     throw new Error(`Firebase quota exceeded: ${canRead.reason}`);
-  }
-
-  if (process.env.NODE_ENV === "development") {
-    console.log("Current userId:", userId);
   }
 
   try {
@@ -115,14 +107,8 @@ export async function getAlbums(): Promise<Album[]> {
         }
       );
 
-      if (process.env.NODE_ENV === "development") {
-        console.log("Found user albums:", userAlbums.length);
-      }
-
       // In development or single-user scenarios, also fetch albums without userId or with different userId
       if (process.env.NODE_ENV === "development") {
-        console.log("Fetching additional albums (legacy/other users)...");
-
         const additionalQuery = query(
           albumsCollection,
           orderBy("createdAt", "desc"),
@@ -142,16 +128,6 @@ export async function getAlbums(): Promise<Album[]> {
           }
         );
 
-        console.log("All albums found in database:", allAlbums.length);
-        allAlbums.forEach((album, index) => {
-          console.log(`DB Album ${index + 1}:`, {
-            id: album.id,
-            title: album.title,
-            userId: album.userId || "NO_USER_ID",
-            imagesCount: album.images?.length || 0,
-          });
-        });
-
         // Combine and deduplicate albums
         const albumMap = new Map();
         [...userAlbums, ...allAlbums].forEach((album) => {
@@ -170,7 +146,6 @@ export async function getAlbums(): Promise<Album[]> {
           return bDate.getTime() - aDate.getTime();
         });
 
-        console.log("Combined albums (user + legacy):", combinedAlbums.length);
         return combinedAlbums;
       }
 
@@ -181,10 +156,6 @@ export async function getAlbums(): Promise<Album[]> {
     }
 
     // Fallback: Get all albums (for single-user scenarios or legacy data)
-    if (process.env.NODE_ENV === "development") {
-      console.log("Fetching all albums as fallback...");
-    }
-
     const allQuery = query(
       albumsCollection,
       orderBy("createdAt", "desc"),
@@ -202,19 +173,11 @@ export async function getAlbums(): Promise<Album[]> {
       }
     );
 
-    if (process.env.NODE_ENV === "development") {
-      console.log("Found all albums:", allAlbums.length);
-    }
-
     return allAlbums;
   } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      console.error("Error fetching albums:", error);
-    }
-
     // Final fallback: get all albums without filtering
     if (process.env.NODE_ENV === "development") {
-      console.log("Using final fallback...");
+      console.error("Error fetching albums:", error);
     }
 
     try {

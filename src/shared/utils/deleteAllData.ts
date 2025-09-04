@@ -30,29 +30,17 @@ export async function executeDeleteAll(): Promise<DeleteAllResult> {
     const db = getFirestore(app);
     const storage = getStorage(app);
 
-    console.log("🧹 Starting cleanup process...");
-
     // 1. Delete all Firestore album documents
-    console.log("📄 Deleting Firestore documents...");
     const albumsCollection = collection(db, "albums");
     const snapshot = await getDocs(albumsCollection);
 
     const deletePromises = snapshot.docs.map((docSnapshot) => {
-      console.log(
-        `Deleting album document: ${docSnapshot.id} (${
-          docSnapshot.data().title || "Untitled"
-        })`
-      );
       return deleteDoc(doc(db, "albums", docSnapshot.id));
     });
 
     await Promise.all(deletePromises);
-    console.log(
-      `✅ Deleted ${snapshot.docs.length} album documents from Firestore`
-    );
 
     // 2. Delete all Storage files and folders recursively
-    console.log("🗂️ Deleting Storage files...");
     let totalFilesDeleted = 0;
 
     // Start from the root users folder
@@ -66,7 +54,6 @@ export async function executeDeleteAll(): Promise<DeleteAllResult> {
 
         // Delete all files in current folder
         const fileDeletePromises = listResult.items.map(async (item) => {
-          console.log(`Deleting file: ${item.fullPath}`);
           await deleteObject(item);
           return 1;
         });
@@ -78,7 +65,6 @@ export async function executeDeleteAll(): Promise<DeleteAllResult> {
 
         // Recursively delete all subfolders
         const folderPromises = listResult.prefixes.map(async (subFolder) => {
-          console.log(`Processing folder: ${subFolder.fullPath}`);
           return await deleteAllInFolder(subFolder);
         });
 
@@ -90,33 +76,20 @@ export async function executeDeleteAll(): Promise<DeleteAllResult> {
         });
 
         return filesDeleted;
-      } catch (error) {
-        console.log(
-          `ℹ️ Folder ${folderRef.fullPath} not found or empty:`,
-          error
-        );
+      } catch {
         return 0;
       }
     }
 
     totalFilesDeleted = await deleteAllInFolder(usersRef);
-    console.log(`✅ Deleted ${totalFilesDeleted} files from Storage`);
 
     // 3. Clear localStorage user data
-    console.log("🗑️ Clearing localStorage...");
     const keysToRemove = ["userId", "isSignedIn"];
     keysToRemove.forEach((key) => {
       if (localStorage.getItem(key)) {
         localStorage.removeItem(key);
-        console.log(`Removed ${key} from localStorage`);
       }
     });
-    console.log("✅ localStorage cleared");
-
-    console.log("🎉 Complete cleanup finished successfully!");
-    console.log(
-      `Summary: ${snapshot.docs.length} albums and ${totalFilesDeleted} files deleted`
-    );
 
     return {
       success: true,
@@ -124,7 +97,6 @@ export async function executeDeleteAll(): Promise<DeleteAllResult> {
       filesDeleted: totalFilesDeleted,
     };
   } catch (error) {
-    console.error("❌ Error during cleanup:", error);
     return {
       success: false,
       albumsDeleted: 0,

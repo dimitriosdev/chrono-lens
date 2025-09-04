@@ -196,9 +196,6 @@ export const getImageDimensionsFromUrl = (
     // First try to extract info from URL pattern
     const urlAnalysis = analyzeFromFirebaseUrl(url);
     if (urlAnalysis) {
-      if (process.env.NODE_ENV === "development") {
-        console.log("Using URL pattern analysis for:", url);
-      }
       resolve(urlAnalysis);
       return;
     }

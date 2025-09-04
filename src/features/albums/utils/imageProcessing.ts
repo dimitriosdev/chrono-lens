@@ -69,22 +69,6 @@ export async function needsOptimization(file: File): Promise<boolean> {
         img.naturalWidth > IMAGE_OPTIMIZATION_CONFIG.MAX_WIDTH ||
         img.naturalHeight > IMAGE_OPTIMIZATION_CONFIG.MAX_HEIGHT;
 
-      // Debug logging in development
-      if (process.env.NODE_ENV === "development") {
-        console.log(`Image analysis for ${file.name}:`, {
-          dimensions: `${img.naturalWidth}x${img.naturalHeight}`,
-          size: `${Math.round(file.size / 1024)}KB`,
-          maxDimensions: `${IMAGE_OPTIMIZATION_CONFIG.MAX_WIDTH}x${IMAGE_OPTIMIZATION_CONFIG.MAX_HEIGHT}`,
-          maxSize: `${Math.round(
-            IMAGE_OPTIMIZATION_CONFIG.MAX_FILE_SIZE_BEFORE_OPTIMIZATION / 1024
-          )}KB`,
-          needsResize,
-          needsSizeOptimization:
-            file.size >
-            IMAGE_OPTIMIZATION_CONFIG.MAX_FILE_SIZE_BEFORE_OPTIMIZATION,
-        });
-      }
-
       resolve(needsResize);
     };
 
@@ -103,8 +87,6 @@ export async function needsOptimization(file: File): Promise<boolean> {
  */
 async function convertHEICToJPEG(file: File): Promise<File> {
   try {
-    console.log("Converting HEIC to JPEG:", file.name);
-
     // Dynamic import to avoid SSR issues
     const { default: heic2any } = await import("heic2any");
 
@@ -124,21 +106,23 @@ async function convertHEICToJPEG(file: File): Promise<File> {
     const newName = file.name.replace(/\.(heic|heif)$/i, "") + ".jpg";
     const convertedFile = new File([blob], newName, { type: "image/jpeg" });
 
-    console.log(`HEIC conversion successful: ${file.name} -> ${newName}`, {
-      originalSize: file.size,
-      convertedSize: convertedFile.size,
-    });
-
     return convertedFile;
   } catch (error) {
-    console.warn("HEIC conversion failed, attempting fallback method:", error);
+    if (process.env.NODE_ENV === "development") {
+      console.warn(
+        "HEIC conversion failed, attempting fallback method:",
+        error
+      );
+    }
 
     // Fallback: try to load HEIC using native browser support (very limited)
     try {
       const img = await createImageFromFile(file);
       return await convertImageToJPEG(img, file.name);
     } catch (fallbackError) {
-      console.error("Both HEIC conversion methods failed:", fallbackError);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Both HEIC conversion methods failed:", fallbackError);
+      }
       throw new Error(
         "HEIC conversion failed. Your browser may not support HEIC files. Please convert to JPEG manually."
       );
@@ -340,14 +324,12 @@ export async function processImage(file: File): Promise<ProcessedImage> {
   try {
     // Step 1: Convert HEIC to JPEG if needed
     if (isHEICImage(file)) {
-      console.log("Converting HEIC image to JPEG:", file.name);
       processedFile = await convertHEICToJPEG(file);
       wasConverted = true;
     }
 
     // Step 2: Optimize image if needed
     if (await needsOptimization(processedFile)) {
-      console.log("Optimizing image:", processedFile.name);
       const optimizedFile = await optimizeImage(processedFile);
       if (optimizedFile.size < processedFile.size) {
         processedFile = optimizedFile;
@@ -365,7 +347,9 @@ export async function processImage(file: File): Promise<ProcessedImage> {
       processedFormat: processedFile.type,
     };
   } catch (error) {
-    console.error("Image processing failed:", error);
+    if (process.env.NODE_ENV === "development") {
+      console.error("Image processing failed:", error);
+    }
     // Return original file if processing fails
     return {
       file,
@@ -402,7 +386,9 @@ export async function processImages(
       const result = await processImage(file);
       results.push(result);
     } catch (error) {
-      console.error(`Failed to process ${file.name}:`, error);
+      if (process.env.NODE_ENV === "development") {
+        console.error(`Failed to process ${file.name}:`, error);
+      }
       // Add original file if processing fails
       results.push({
         file,

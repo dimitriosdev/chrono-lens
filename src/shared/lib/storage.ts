@@ -72,21 +72,6 @@ export async function uploadImage(
           firebaseUsageMonitor.recordFileDeletion(-sizeDifference);
         }
       }
-
-      // Log processing results in development
-      if (process.env.NODE_ENV === "development") {
-        console.log(`Image processing completed for ${file.name}:`, {
-          originalSize: processedImage.originalSize,
-          processedSize: processedImage.processedSize,
-          wasConverted: processedImage.wasConverted,
-          wasOptimized: processedImage.wasOptimized,
-          compressionRatio: Math.round(
-            ((processedImage.originalSize - processedImage.processedSize) /
-              processedImage.originalSize) *
-              100
-          ),
-        });
-      }
     } else {
       // Server-side fallback: use original file
       processedImage = {
@@ -100,7 +85,9 @@ export async function uploadImage(
       };
     }
   } catch (error) {
-    console.warn("Image processing failed, uploading original file:", error);
+    if (process.env.NODE_ENV === "development") {
+      console.warn("Image processing failed, uploading original file:", error);
+    }
     // Fallback to original file if processing fails
     processedImage = {
       file,
@@ -143,9 +130,6 @@ export async function deleteImage(url: string): Promise<void> {
 
   // Skip empty or invalid URLs
   if (!url || typeof url !== "string") {
-    if (process.env.NODE_ENV === "development") {
-      console.warn("Skipping deletion of invalid URL:", url);
-    }
     return;
   }
 
@@ -154,9 +138,6 @@ export async function deleteImage(url: string): Promise<void> {
   try {
     const matches = url.match(/\/o\/(.+)\?/);
     if (!matches || !matches[1]) {
-      if (process.env.NODE_ENV === "development") {
-        console.warn("Invalid storage URL format:", url);
-      }
       return;
     }
 
@@ -164,11 +145,6 @@ export async function deleteImage(url: string): Promise<void> {
 
     // For single-user scenarios: attempt to delete files even if they don't match current userId
     if (!path.startsWith(`users/${userId}/`)) {
-      if (process.env.NODE_ENV === "development") {
-        console.warn(
-          `Attempting to delete file from different user path: ${path} (current user: ${userId})`
-        );
-      }
       // Continue with deletion attempt instead of returning early
     }
 
@@ -179,10 +155,6 @@ export async function deleteImage(url: string): Promise<void> {
 
     const storageRef = ref(storage, path);
     await deleteObject(storageRef);
-
-    if (process.env.NODE_ENV === "development") {
-      console.log("Successfully deleted image from storage:", path);
-    }
   } catch (error) {
     // Log the error but don't throw to avoid breaking the entire deletion process
     if (process.env.NODE_ENV === "development") {

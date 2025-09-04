@@ -27,16 +27,6 @@ export async function debugUserIdentity(): Promise<{
   const isSignedIn = localStorage.getItem("isSignedIn") === "true";
   const isFirebaseAuth = !currentUserId.startsWith("user_");
 
-  if (process.env.NODE_ENV === "development") {
-    console.log("🔍 User Identity Debug:", {
-      currentUserId,
-      isFirebaseAuth,
-      localStorageUserId,
-      isSignedIn,
-      domain: window.location.hostname,
-    });
-  }
-
   return {
     currentUserId,
     isFirebaseAuth,
@@ -117,14 +107,12 @@ export async function migrateFromAnonymousUser(
         // Add the album under the new user
         await addAlbum(albumWithoutId);
         result.migratedAlbums++;
-
-        if (process.env.NODE_ENV === "development") {
-          console.log(`✅ Migrated album: ${album.title}`);
-        }
       } catch (error) {
         const errorMsg = `Failed to migrate album "${album.title}": ${error}`;
         result.errors.push(errorMsg);
-        console.error(errorMsg);
+        if (process.env.NODE_ENV === "development") {
+          console.error(errorMsg);
+        }
       }
     }
 
@@ -162,7 +150,9 @@ export async function checkForMigratableData(): Promise<string[]> {
       }
     }
   } catch (error) {
-    console.warn("Failed to check localStorage for anonymous users:", error);
+    if (process.env.NODE_ENV === "development") {
+      console.warn("Failed to check localStorage for anonymous users:", error);
+    }
   }
 
   // Remove duplicates and current user

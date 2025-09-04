@@ -41,16 +41,8 @@ const AlbumGrid: React.FC = () => {
     const albumId = album.id;
 
     try {
-      if (process.env.NODE_ENV === "development") {
-        console.log(`Deleting album: ${album.title} (${albumId})`);
-      }
-
       await deleteAlbum(albumId);
       setAlbums((prev: Album[]) => prev.filter((a: Album) => a.id !== albumId));
-
-      if (process.env.NODE_ENV === "development") {
-        console.log("Album deleted successfully");
-      }
     } catch (error) {
       if (process.env.NODE_ENV === "development") {
         console.error("Failed to delete album:", error);
@@ -81,8 +73,6 @@ const AlbumGrid: React.FC = () => {
   };
 
   const handleDeleteAllClick = async () => {
-    console.log("Delete all clicked, albums count:", albums.length);
-
     if (albums.length === 0) {
       setResultMessage("No albums to delete.");
       setResultType("info");
@@ -90,7 +80,6 @@ const AlbumGrid: React.FC = () => {
       return;
     }
 
-    console.log("Opening delete all modal");
     setShowDeleteAllModal(true);
   };
 
@@ -113,7 +102,9 @@ const AlbumGrid: React.FC = () => {
         setShowResultModal(true);
       }
     } catch (error) {
-      console.error("Delete all failed:", error);
+      if (process.env.NODE_ENV === "development") {
+        console.error("Delete all failed:", error);
+      }
       setResultMessage("Failed to delete all data. Please try again.");
       setResultType("danger");
       setShowResultModal(true);
@@ -124,29 +115,7 @@ const AlbumGrid: React.FC = () => {
     async function fetchAlbums() {
       setLoading(true);
       try {
-        if (process.env.NODE_ENV === "development") {
-          console.log("Fetching albums...");
-        }
-
         const data = await getAlbums();
-
-        if (process.env.NODE_ENV === "development") {
-          console.log("Albums fetched:", data.length, data);
-          // Log each album's details for debugging
-          data.forEach((album, index) => {
-            console.log(`Album ${index + 1}:`, {
-              id: album.id,
-              title: album.title,
-              userId: album.userId,
-              imagesCount: album.images?.length || 0,
-              createdAt: album.createdAt,
-            });
-          });
-
-          // Also log full album objects for detailed inspection
-          console.log("Full album objects:", JSON.stringify(data, null, 2));
-        }
-
         setAlbums(data);
       } catch (error) {
         if (process.env.NODE_ENV === "development") {
