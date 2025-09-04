@@ -1,3 +1,10 @@
+# [2.4.0](https://github.com/dimitriosdev/chrono-lens/compare/v2.3.0...v2.4.0) (2025-09-04)
+
+
+### Features
+
+* Implement global fullscreen context and provider, update fullscreen button and related components ([aae740e](https://github.com/dimitriosdev/chrono-lens/commit/aae740ee2d79e2526691948ceafab6e56c73c515))
+
 # [2.3.0](https://github.com/dimitriosdev/chrono-lens/compare/v2.2.0...v2.3.0) (2025-09-04)
 
 
