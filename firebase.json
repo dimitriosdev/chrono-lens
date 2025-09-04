@@ -1,9 +1,12 @@
 {
   "hosting": {
-    "source": ".",
+    "public": "out",
     "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-    "frameworksBackend": {
-      "minInstances": 0
-    }
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
   }
 }

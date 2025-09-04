@@ -11,6 +11,9 @@ const getGitCommitHash = () => {
 };
 
 const nextConfig: NextConfig = {
+  // Static export to eliminate Cloud Run/Artifact Registry costs
+  output: "export",
+  trailingSlash: true,
   env: {
     // Only set these in development - production will use GitHub Actions
     ...(process.env.NODE_ENV === "development" && {

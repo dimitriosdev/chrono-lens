@@ -91,11 +91,11 @@ const AlbumGrid: React.FC = () => {
   }, []);
 
   const handleAlbumClick = (idx: number) => {
-    router.push(`/albums/${albums[idx].id}/play`);
+    router.push(`/albums/play?id=${albums[idx].id}`);
   };
   const handleEditClick = (e: React.MouseEvent, idx: number) => {
     e.stopPropagation();
-    router.push(`/albums/${albums[idx].id}/edit`);
+    router.push(`/albums/edit?id=${albums[idx].id}`);
   };
   const handleDragStart = (idx: number) => {
     dragAlbumIndex.current = idx;
