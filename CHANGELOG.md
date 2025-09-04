@@ -1,3 +1,10 @@
+# [2.6.0](https://github.com/dimitriosdev/chrono-lens/compare/v2.5.0...v2.6.0) (2025-09-04)
+
+
+### Features
+
+* Enhance image grid with drag-and-drop file upload support and visual feedback ([728c122](https://github.com/dimitriosdev/chrono-lens/commit/728c12272a82a1f4cba5208f36b182823305633b))
+
 # [2.5.0](https://github.com/dimitriosdev/chrono-lens/compare/v2.4.1...v2.5.0) (2025-09-04)
 
 
