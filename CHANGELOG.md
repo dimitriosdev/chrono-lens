@@ -1,3 +1,26 @@
+# [2.0.0](https://github.com/dimitriosdev/chrono-lens/compare/v1.9.1...v2.0.0) (2025-09-04)
+
+
+### Bug Fixes
+
+* enhance rate limit management with development-specific configurations and force reset functionality ([0dba9e9](https://github.com/dimitriosdev/chrono-lens/commit/0dba9e962d71d97cd4f157bfe6cb779b442dd92d))
+
+
+### Features
+
+* implement user authentication fixes and add migration utilities for anonymous users ([c8a6cd2](https://github.com/dimitriosdev/chrono-lens/commit/c8a6cd25f4286bfa85e5a2815b3e19b7ec1f2c8f))
+* refactor album routing to parameter-based URLs and enhance album management ([c3620b6](https://github.com/dimitriosdev/chrono-lens/commit/c3620b64d421332d655f7c94524a972b9b09c3de))
+
+
+### BREAKING CHANGES
+
+* URLs changed from /albums/play?id=X to /albums/[albumId]/play
+
+- Remove version API endpoint
+- Add dynamic exports for manifest/robots/sitemap
+- Implement album editing with image upload
+- Create responsive slideshow with mat customization
+
 ## [1.9.1](https://github.com/dimitriosdev/chrono-lens/compare/v1.9.0...v1.9.1) (2025-08-26)
 
 
