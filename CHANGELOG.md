@@ -1,3 +1,16 @@
+# [2.7.0](https://github.com/dimitriosdev/chrono-lens/compare/v2.6.1...v2.7.0) (2025-09-16)
+
+
+### Bug Fixes
+
+* Refactor album creation to use real albumId and streamline image upload process ([f2000f6](https://github.com/dimitriosdev/chrono-lens/commit/f2000f65b1563c4b246cefbad631b6ae80bedde1))
+* Remove unused mobile fullscreen support check and streamline device detection logic ([00a3698](https://github.com/dimitriosdev/chrono-lens/commit/00a36980f68e670c3292e56e46b9199e2f799047))
+
+
+### Features
+
+* Implement mobile fullscreen support with device detection and CSS enhancements ([1655fc8](https://github.com/dimitriosdev/chrono-lens/commit/1655fc80b6803948b4a7896c78c0e287d26a35b0))
+
 ## [2.6.1](https://github.com/dimitriosdev/chrono-lens/compare/v2.6.0...v2.6.1) (2025-09-04)
 
 
