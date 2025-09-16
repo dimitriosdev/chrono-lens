@@ -39,8 +39,8 @@ export const isMobileDevice = (): boolean => {
   const hasTouchSupport =
     "ontouchstart" in window ||
     navigator.maxTouchPoints > 0 ||
-    (navigator as unknown as { msMaxTouchPoints?: number }).msMaxTouchPoints >
-      0;
+    ((navigator as unknown as { msMaxTouchPoints?: number }).msMaxTouchPoints ??
+      0) > 0;
 
   // Method 3: Screen size check (mobile-like dimensions)
   const hasSmallScreen =

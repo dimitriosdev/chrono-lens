@@ -9,10 +9,7 @@ import React, {
   useMemo,
 } from "react";
 import { usePathname } from "next/navigation";
-import {
-  isMobileDevice,
-  supportsMobileFullscreen,
-} from "@/shared/utils/device";
+import { isMobileDevice } from "@/shared/utils/device";
 import { mobileFullscreen } from "@/shared/utils/mobileFullscreen";
 
 /**
