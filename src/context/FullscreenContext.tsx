@@ -9,6 +9,11 @@ import React, {
   useMemo,
 } from "react";
 import { usePathname } from "next/navigation";
+import {
+  isMobileDevice,
+  supportsMobileFullscreen,
+} from "@/shared/utils/device";
+import { mobileFullscreen } from "@/shared/utils/mobileFullscreen";
 
 /**
  * Cross-browser fullscreen API types
@@ -56,11 +61,17 @@ const isBrowser = (): boolean => {
 };
 
 /**
- * Get the current fullscreen element across different browsers
+ * Get the current fullscreen element across different browsers and platforms
  */
 const getFullscreenElement = (): Element | null => {
   if (!isBrowser()) return null;
 
+  // For mobile devices, check mobile fullscreen state
+  if (isMobileDevice()) {
+    return mobileFullscreen.isActive() ? document.documentElement : null;
+  }
+
+  // Desktop fullscreen API check
   const doc = document as ExtendedDocument;
   return (
     document.fullscreenElement ||
@@ -78,6 +89,13 @@ const isFullscreenSupported = (): boolean => {
   if (!isBrowser()) return false;
 
   const doc = document as ExtendedDocument;
+
+  // Check if we're on mobile and should use mobile fullscreen instead
+  if (isMobileDevice()) {
+    return true; // We support mobile fullscreen on all mobile devices
+  }
+
+  // Desktop fullscreen API support
   return !!(
     document.fullscreenEnabled ||
     doc.webkitFullscreenEnabled ||
@@ -114,41 +132,54 @@ export const FullscreenProvider: React.FC<{ children: React.ReactNode }> = ({
 
     // Small delay to allow navigation to complete
     const timeoutId = setTimeout(async () => {
-      const fullscreenElement = getFullscreenElement();
-      const actualIsFullscreen = !!fullscreenElement;
+      let actualIsFullscreen = false;
+
+      // Check mobile fullscreen first
+      if (isMobileDevice()) {
+        actualIsFullscreen = mobileFullscreen.isActive();
+      } else {
+        // Desktop fullscreen check
+        const fullscreenElement = getFullscreenElement();
+        actualIsFullscreen = !!fullscreenElement;
+      }
 
       // If user intended to be in fullscreen but navigation exited it, re-enter
       // Add throttling to prevent browser rate limiting
       if (fullscreenIntent && !actualIsFullscreen && isSupported) {
         // Check if we recently made a fullscreen request (throttling)
-        const lastRequest = sessionStorage.getItem('lastFullscreenRequest');
+        const lastRequest = sessionStorage.getItem("lastFullscreenRequest");
         const now = Date.now();
         const minInterval = 1000; // Minimum 1 second between requests
-        
+
         if (!lastRequest || now - parseInt(lastRequest) > minInterval) {
           console.log("Auto re-entering fullscreen after navigation");
-          sessionStorage.setItem('lastFullscreenRequest', now.toString());
-          
+          sessionStorage.setItem("lastFullscreenRequest", now.toString());
+
           try {
-            const element = document.documentElement as ExtendedHTMLElement;
-            if (element.requestFullscreen) {
-              await element.requestFullscreen();
-            } else if (element.webkitRequestFullscreen) {
-              await element.webkitRequestFullscreen();
-            } else if (element.mozRequestFullScreen) {
-              await element.mozRequestFullScreen();
-            } else if (element.msRequestFullscreen) {
-              await element.msRequestFullscreen();
+            if (isMobileDevice()) {
+              await mobileFullscreen.enter();
+            } else {
+              // Desktop fullscreen re-entry
+              const element = document.documentElement as ExtendedHTMLElement;
+              if (element.requestFullscreen) {
+                await element.requestFullscreen();
+              } else if (element.webkitRequestFullscreen) {
+                await element.webkitRequestFullscreen();
+              } else if (element.mozRequestFullScreen) {
+                await element.mozRequestFullScreen();
+              } else if (element.msRequestFullscreen) {
+                await element.msRequestFullscreen();
+              }
             }
           } catch (error) {
             console.warn("Failed to auto re-enter fullscreen:", error);
             // If rate limited, clear intent to prevent infinite retries
-            if (error instanceof Error && error.message.includes('rate')) {
+            if (error instanceof Error && error.message.includes("rate")) {
               setFullscreenIntent(false);
             }
           }
         } else {
-          console.log('Skipping fullscreen re-entry due to rate limiting');
+          console.log("Skipping fullscreen re-entry due to rate limiting");
         }
       }
 
@@ -174,12 +205,20 @@ export const FullscreenProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!isBrowser() || !isMounted) return;
 
     const handleFullscreenChange = (): void => {
-      const fullscreenElement = getFullscreenElement();
-      const newIsFullscreen = !!fullscreenElement;
+      let newIsFullscreen = false;
+
+      // Check mobile fullscreen first
+      if (isMobileDevice()) {
+        newIsFullscreen = mobileFullscreen.isActive();
+      } else {
+        // Desktop fullscreen check
+        const fullscreenElement = getFullscreenElement();
+        newIsFullscreen = !!fullscreenElement;
+      }
+
       setIsFullscreen(newIsFullscreen);
 
       // Only clear intent if user manually exited (not due to navigation)
-      // We detect manual exit by checking if the change happens quickly after intent was set
       if (!newIsFullscreen && fullscreenIntent) {
         console.log(
           "Fullscreen exited - maintaining intent for potential auto re-entry"
@@ -187,10 +226,17 @@ export const FullscreenProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     };
 
-    // Check fullscreen state periodically to catch navigation-based exits
     const checkFullscreenState = (): void => {
-      const fullscreenElement = getFullscreenElement();
-      const actualIsFullscreen = !!fullscreenElement;
+      let actualIsFullscreen = false;
+
+      // Check mobile fullscreen first
+      if (isMobileDevice()) {
+        actualIsFullscreen = mobileFullscreen.isActive();
+      } else {
+        // Desktop fullscreen check
+        const fullscreenElement = getFullscreenElement();
+        actualIsFullscreen = !!fullscreenElement;
+      }
 
       // Update state if it's out of sync
       setIsFullscreen((prev) => {
@@ -221,6 +267,13 @@ export const FullscreenProvider: React.FC<{ children: React.ReactNode }> = ({
         passive: true,
       });
     });
+
+    // Listen for mobile fullscreen changes
+    const mobileFullscreenCleanup = mobileFullscreen.addEventListener(
+      (isFullscreen) => {
+        setIsFullscreen(isFullscreen);
+      }
+    );
 
     // Listen for navigation events that might cause fullscreen to exit
     const handleVisibilityChange = (): void => {
@@ -258,6 +311,7 @@ export const FullscreenProvider: React.FC<{ children: React.ReactNode }> = ({
       eventNames.forEach((eventName) => {
         document.removeEventListener(eventName, handleFullscreenChange);
       });
+      mobileFullscreenCleanup();
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("focus", handleFocus);
       window.removeEventListener("resize", handleResize);
@@ -269,10 +323,17 @@ export const FullscreenProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!isSupported || !isBrowser()) return;
 
     try {
-      const element = document.documentElement as ExtendedHTMLElement;
-
       // Set intent before attempting to enter fullscreen
       setFullscreenIntent(true);
+
+      // Check if we're on mobile and should use mobile fullscreen
+      if (isMobileDevice()) {
+        await mobileFullscreen.enter();
+        return;
+      }
+
+      // Desktop fullscreen implementation
+      const element = document.documentElement as ExtendedHTMLElement;
 
       // Try standard method first, then vendor-specific methods
       if (element.requestFullscreen) {
@@ -295,10 +356,17 @@ export const FullscreenProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!isSupported || !isBrowser()) return;
 
     try {
-      const doc = document as ExtendedDocument;
-
       // Clear intent when user explicitly exits
       setFullscreenIntent(false);
+
+      // Check if we're on mobile and should use mobile fullscreen
+      if (isMobileDevice()) {
+        await mobileFullscreen.exit();
+        return;
+      }
+
+      // Desktop fullscreen implementation
+      const doc = document as ExtendedDocument;
 
       // Try standard method first, then vendor-specific methods
       if (document.exitFullscreen) {

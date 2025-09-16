@@ -24,9 +24,12 @@
 
 ## Known Limitations
 
-- Fullscreen API requires user interaction
-- File drag & drop limited on mobile
-- HEIC support varies by platform
+- **Fullscreen API**: Requires user interaction and has platform-specific behaviors
+  - **Desktop**: Standard Fullscreen API works across all supported browsers
+  - **iOS Safari/Chrome**: Native fullscreen API is limited; uses CSS-based fullscreen simulation
+  - **Android Chrome**: Standard Fullscreen API is supported
+- **File drag & drop**: Limited on mobile
+- **HEIC support**: Varies by platform
 - **Android Chrome**: Latest versions
 - **Status**: ✅ Fully Supported
 
@@ -97,6 +100,17 @@ When testing on Chrome 92:
 - CSS autoprefixer handles vendor prefixes automatically
 - All critical features have been tested to work with the minimum supported versions
 - Safari-specific CSS workarounds also benefit older Chrome versions
+
+### Fullscreen Implementation Notes
+
+The application implements a hybrid fullscreen approach to ensure compatibility across all devices:
+
+1. **Desktop Browsers**: Uses the standard Fullscreen API with vendor prefixes for cross-browser support
+2. **Mobile Devices**:
+   - **iOS (Safari/Chrome)**: Uses CSS-based fullscreen simulation due to API limitations
+   - **Android**: Attempts native Fullscreen API, falls back to CSS simulation if needed
+3. **Auto Re-entry**: Maintains fullscreen state across navigation on supported platforms
+4. **Rate Limiting**: Implements throttling to prevent browser API abuse detection
 
 ## Browser Support Policy
 
