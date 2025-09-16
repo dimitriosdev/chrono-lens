@@ -23,7 +23,6 @@ import { Album } from "@/features/albums/types/Album";
 import {
   validateAlbumTitle,
   sanitizeText,
-  getCurrentUserId,
   validateUserLimits,
   MAX_ALBUMS_PER_USER,
   checkRateLimit,
@@ -46,10 +45,17 @@ const getDB = () => {
 };
 
 export async function getAlbum(id: string): Promise<Album | null> {
-  const userId = await getCurrentUserId();
-  if (!userId) {
-    throw new Error("User not authenticated");
+  // Ensure Firebase Auth is properly initialized and user is authenticated
+  const { getFirebaseAuth } = await import("@/shared/lib/firebase");
+  const auth = getFirebaseAuth();
+
+  if (!auth?.currentUser) {
+    throw new Error(
+      "User must be authenticated with Firebase to access albums"
+    );
   }
+
+  const userId = auth.currentUser.uid;
 
   // Check if read operation is allowed
   const canRead = firebaseUsageMonitor.canPerformOperation("read", 1);
@@ -67,16 +73,26 @@ export async function getAlbum(id: string): Promise<Album | null> {
 
   const albumData = albumDoc.data() as Album;
 
-  // For single-user scenarios: only allow access if album has userId mismatch
+  // Check ownership - only return albums owned by the current user for security
   if (albumData.userId && albumData.userId !== userId) {
-    // Allow access for single-user scenario
+    throw new Error("Permission denied: You can only access your own albums");
   }
 
   return albumData;
 }
 
 export async function getAlbums(): Promise<Album[]> {
-  const userId = await getCurrentUserId();
+  // Ensure Firebase Auth is properly initialized and user is authenticated
+  const { getFirebaseAuth } = await import("@/shared/lib/firebase");
+  const auth = getFirebaseAuth();
+
+  if (!auth?.currentUser) {
+    throw new Error(
+      "User must be authenticated with Firebase to access albums"
+    );
+  }
+
+  const userId = auth.currentUser.uid;
   const { albumsCollection } = getDB();
 
   // Check if read operation is allowed (estimate up to 20 reads for safety)
@@ -86,125 +102,44 @@ export async function getAlbums(): Promise<Album[]> {
   }
 
   try {
-    // If user is authenticated, try to get their albums first
-    if (userId) {
-      const userQuery = query(
-        albumsCollection,
-        where("userId", "==", userId),
-        orderBy("createdAt", "desc"),
-        limit(MAX_ALBUMS_PER_USER)
-      );
-
-      const snapshot: QuerySnapshot<DocumentData> = await getDocs(userQuery);
-
-      // Record actual reads performed
-      firebaseUsageMonitor.recordOperation("read", snapshot.docs.length);
-
-      const userAlbums = snapshot.docs.map(
-        (doc: QueryDocumentSnapshot<DocumentData>) => {
-          const albumData = { id: doc.id, ...doc.data() } as Album;
-          return albumData;
-        }
-      );
-
-      // In development or single-user scenarios, also fetch albums without userId or with different userId
-      if (process.env.NODE_ENV === "development") {
-        const additionalQuery = query(
-          albumsCollection,
-          orderBy("createdAt", "desc"),
-          limit(MAX_ALBUMS_PER_USER * 3) // Increased limit to catch more albums
-        );
-
-        const additionalSnapshot = await getDocs(additionalQuery);
-        firebaseUsageMonitor.recordOperation(
-          "read",
-          additionalSnapshot.docs.length
-        );
-
-        const allAlbums = additionalSnapshot.docs.map(
-          (doc: QueryDocumentSnapshot<DocumentData>) => {
-            const albumData = { id: doc.id, ...doc.data() } as Album;
-            return albumData;
-          }
-        );
-
-        // Combine and deduplicate albums
-        const albumMap = new Map();
-        [...userAlbums, ...allAlbums].forEach((album) => {
-          albumMap.set(album.id, album);
-        });
-
-        const combinedAlbums = Array.from(albumMap.values()).sort((a, b) => {
-          const aDate =
-            a.createdAt instanceof Date
-              ? a.createdAt
-              : new Date(a.createdAt || 0);
-          const bDate =
-            b.createdAt instanceof Date
-              ? b.createdAt
-              : new Date(b.createdAt || 0);
-          return bDate.getTime() - aDate.getTime();
-        });
-
-        return combinedAlbums;
-      }
-
-      // If we found user-specific albums, return them (production behavior)
-      if (userAlbums.length > 0) {
-        return userAlbums;
-      }
-    }
-
-    // Fallback: Get all albums (for single-user scenarios or legacy data)
-    const allQuery = query(
+    // Get albums for the authenticated user only
+    const userQuery = query(
       albumsCollection,
+      where("userId", "==", userId),
       orderBy("createdAt", "desc"),
-      limit(MAX_ALBUMS_PER_USER * 2) // Slightly higher limit for fallback
+      limit(MAX_ALBUMS_PER_USER)
     );
-    const snapshot = await getDocs(allQuery);
+
+    const snapshot: QuerySnapshot<DocumentData> = await getDocs(userQuery);
 
     // Record actual reads performed
     firebaseUsageMonitor.recordOperation("read", snapshot.docs.length);
 
-    const allAlbums = snapshot.docs.map(
+    const userAlbums = snapshot.docs.map(
       (doc: QueryDocumentSnapshot<DocumentData>) => {
         const albumData = { id: doc.id, ...doc.data() } as Album;
         return albumData;
       }
     );
 
-    return allAlbums;
+    return userAlbums;
   } catch (error) {
-    // Final fallback: get all albums without filtering
-    if (process.env.NODE_ENV === "development") {
-      console.error("Error fetching albums:", error);
-    }
-
-    try {
-      const fallbackQuery = query(albumsCollection);
-      const snapshot = await getDocs(fallbackQuery);
-
-      // Record actual reads performed
-      firebaseUsageMonitor.recordOperation("read", snapshot.docs.length);
-
-      return snapshot.docs.map((doc: QueryDocumentSnapshot<DocumentData>) => {
-        const albumData = { id: doc.id, ...doc.data() } as Album;
-        return albumData;
-      });
-    } catch (fallbackError) {
-      if (process.env.NODE_ENV === "development") {
-        console.error("Final fallback also failed:", fallbackError);
-      }
-      return [];
-    }
+    throw error;
   }
 }
 
 export async function addAlbum(album: Omit<Album, "id">): Promise<string> {
-  const userId = await getCurrentUserId();
-  if (!userId) {
-    throw new Error("User not authenticated");
+  // Ensure Firebase Auth is properly initialized and user is authenticated
+  const { getFirebaseAuth } = await import("@/shared/lib/firebase");
+  const auth = getFirebaseAuth();
+
+  if (!auth?.currentUser) {
+    throw new Error(
+      "User must be authenticated with Firebase to create albums"
+    );
   }
+
+  const userId = auth.currentUser.uid;
 
   // Check if write operation is allowed
   const canWrite = firebaseUsageMonitor.canPerformOperation("write", 1);
@@ -265,24 +200,77 @@ export async function updateAlbum(
   id: string,
   album: Partial<Album>
 ): Promise<void> {
+  // Ensure Firebase Auth is properly initialized and user is authenticated
+  const { getFirebaseAuth } = await import("@/shared/lib/firebase");
+  const auth = getFirebaseAuth();
+
+  if (!auth?.currentUser) {
+    throw new Error(
+      "User must be authenticated with Firebase to update albums"
+    );
+  }
+
+  const userId = auth.currentUser.uid;
+
   // Check if write operation is allowed
   const canWrite = firebaseUsageMonitor.canPerformOperation("write", 1);
   if (!canWrite.allowed) {
     throw new Error(`Firebase quota exceeded: ${canWrite.reason}`);
   }
 
+  // Verify ownership before updating
+  const existingAlbum = await getAlbum(id);
+  if (!existingAlbum) {
+    throw new Error("Album not found");
+  }
+
+  // Check ownership - stricter validation for Firestore security rules
+  if (existingAlbum.userId && existingAlbum.userId !== userId) {
+    throw new Error("Permission denied: You can only update your own albums");
+  }
+
+  // Validate album title if it's being updated
+  if (album.title) {
+    const titleValidation = validateAlbumTitle(album.title);
+    if (!titleValidation.isValid) {
+      throw new Error(titleValidation.error);
+    }
+  }
+
+  // Sanitize data and ensure user ownership
+  const secureAlbum = {
+    ...album,
+    userId, // Ensure userId is always set for security rules
+    updatedAt: new Date(),
+  };
+
+  // Sanitize text fields if they exist
+  if (secureAlbum.title) {
+    secureAlbum.title = sanitizeText(secureAlbum.title);
+  }
+  if (secureAlbum.description) {
+    secureAlbum.description = sanitizeText(secureAlbum.description);
+  }
+
   const { albumsCollection } = getDB();
-  await updateDoc(doc(albumsCollection, id), album);
+  await updateDoc(doc(albumsCollection, id), secureAlbum);
 
   // Record the write operation
   firebaseUsageMonitor.recordOperation("write", 1);
 }
 
 export async function deleteAlbum(id: string): Promise<void> {
-  const userId = await getCurrentUserId();
-  if (!userId) {
-    throw new Error("User not authenticated");
+  // Ensure Firebase Auth is properly initialized and user is authenticated
+  const { getFirebaseAuth } = await import("@/shared/lib/firebase");
+  const auth = getFirebaseAuth();
+
+  if (!auth?.currentUser) {
+    throw new Error(
+      "User must be authenticated with Firebase to delete albums"
+    );
   }
+
+  const userId = auth.currentUser.uid;
 
   // Check if read and write operations are allowed
   const canRead = firebaseUsageMonitor.canPerformOperation("read", 1);
@@ -304,15 +292,9 @@ export async function deleteAlbum(id: string): Promise<void> {
     throw new Error("Album not found");
   }
 
-  // For single-user scenarios: only check ownership if album has a userId that doesn't match
-  // This allows deletion of albums without userId (legacy) or with mismatched userId (auth changes)
-  // For single-user scenarios: allow deletion even with userId mismatch
+  // Check ownership - stricter validation for Firestore security rules
   if (albumData.userId && albumData.userId !== userId) {
-    if (process.env.NODE_ENV === "development") {
-      console.warn(
-        `Album ${id} has different userId (${albumData.userId}) than current user (${userId}), but allowing deletion for single-user scenario`
-      );
-    }
+    throw new Error("Permission denied: You can only delete your own albums");
   }
 
   // Import deleteImage function
@@ -340,32 +322,9 @@ export async function deleteAlbum(id: string): Promise<void> {
     (url) => url && typeof url === "string"
   );
 
-  if (process.env.NODE_ENV === "development") {
-    console.log(
-      `Deleting ${validUrls.length} images from storage for album ${id}`
-    );
-  }
-
   const deletionResults = await Promise.allSettled(
     validUrls.map((imageUrl) => deleteImage(imageUrl))
   );
-
-  // Log any failed deletions for debugging but don't throw
-  const failedDeletions = deletionResults.filter(
-    (result) => result.status === "rejected"
-  );
-
-  if (failedDeletions.length > 0 && process.env.NODE_ENV === "development") {
-    console.warn(
-      `Failed to delete ${failedDeletions.length} out of ${validUrls.length} images from storage`
-    );
-    failedDeletions.forEach((result, index) => {
-      console.warn(
-        `Failed to delete image ${validUrls[index]}:`,
-        (result as PromiseRejectedResult).reason
-      );
-    });
-  }
 
   // Calculate storage freed by successful deletions
   const successfulDeletions = deletionResults.filter(

@@ -33,7 +33,6 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   );
 
   useEffect(() => {
-    console.log("Modal isOpen changed:", isOpen, "title:", title);
     if (isOpen) {
       console.log("Modal props:", {
         requireTextConfirmation,

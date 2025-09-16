@@ -9,7 +9,6 @@ import {
 import {
   validateFile,
   sanitizeText,
-  getCurrentUserId,
   checkRateLimit,
 } from "@/shared/utils/security";
 import {
@@ -22,11 +21,17 @@ export async function uploadImage(
   albumId: string,
   idx: number
 ): Promise<string> {
-  // Security validations
-  const userId = await getCurrentUserId();
-  if (!userId) {
-    throw new Error("User not authenticated");
+  // Ensure Firebase Auth is properly initialized and user is authenticated
+  const { getFirebaseAuth } = await import("@/shared/lib/firebase");
+  const auth = getFirebaseAuth();
+
+  if (!auth?.currentUser) {
+    throw new Error(
+      "User must be authenticated with Firebase to upload images"
+    );
   }
+
+  const userId = auth.currentUser.uid;
 
   // Validate original file
   const validation = validateFile(file);
@@ -84,10 +89,7 @@ export async function uploadImage(
         processedFormat: file.type,
       };
     }
-  } catch (error) {
-    if (process.env.NODE_ENV === "development") {
-      console.warn("Image processing failed, uploading original file:", error);
-    }
+  } catch {
     // Fallback to original file if processing fails
     processedImage = {
       file,
@@ -122,11 +124,17 @@ export async function uploadImage(
 }
 
 export async function deleteImage(url: string): Promise<void> {
-  // Security check
-  const userId = await getCurrentUserId();
-  if (!userId) {
-    throw new Error("User not authenticated");
+  // Ensure Firebase Auth is properly initialized and user is authenticated
+  const { getFirebaseAuth } = await import("@/shared/lib/firebase");
+  const auth = getFirebaseAuth();
+
+  if (!auth?.currentUser) {
+    throw new Error(
+      "User must be authenticated with Firebase to delete images"
+    );
   }
+
+  const userId = auth.currentUser.uid;
 
   // Skip empty or invalid URLs
   if (!url || typeof url !== "string") {
@@ -143,9 +151,9 @@ export async function deleteImage(url: string): Promise<void> {
 
     const path = decodeURIComponent(matches[1]);
 
-    // For single-user scenarios: attempt to delete files even if they don't match current userId
+    // Verify that the user owns the file they're trying to delete
     if (!path.startsWith(`users/${userId}/`)) {
-      // Continue with deletion attempt instead of returning early
+      throw new Error("Permission denied: You can only delete your own images");
     }
 
     const storage = getFirebaseStorage();
@@ -156,11 +164,6 @@ export async function deleteImage(url: string): Promise<void> {
     const storageRef = ref(storage, path);
     await deleteObject(storageRef);
   } catch (error) {
-    // Log the error but don't throw to avoid breaking the entire deletion process
-    if (process.env.NODE_ENV === "development") {
-      console.warn("Failed to delete image from storage:", url, error);
-    }
-
     // Only throw if it's a critical error (not authorization or file not found)
     if (
       error instanceof Error &&
