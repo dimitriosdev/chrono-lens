@@ -27,6 +27,9 @@ import {
   MAX_ALBUMS_PER_USER,
   checkRateLimit,
 } from "@/shared/utils/security";
+import { ensureValidLayout } from "@/features/albums/utils/layoutDefaults";
+import { cleanAlbumData } from "@/shared/utils/firebaseUtils";
+import { getShareTokenFromUrl } from "@/shared/utils/albumSharing";
 
 // Initialize Firestore lazily
 let db: Firestore | null = null;
@@ -45,18 +48,6 @@ const getDB = () => {
 };
 
 export async function getAlbum(id: string): Promise<Album | null> {
-  // Ensure Firebase Auth is properly initialized and user is authenticated
-  const { getFirebaseAuth } = await import("@/shared/lib/firebase");
-  const auth = getFirebaseAuth();
-
-  if (!auth?.currentUser) {
-    throw new Error(
-      "User must be authenticated with Firebase to access albums"
-    );
-  }
-
-  const userId = auth.currentUser.uid;
-
   // Check if read operation is allowed
   const canRead = firebaseUsageMonitor.canPerformOperation("read", 1);
   if (!canRead.allowed) {
@@ -71,11 +62,42 @@ export async function getAlbum(id: string): Promise<Album | null> {
 
   if (!albumDoc.exists()) return null;
 
-  const albumData = albumDoc.data() as Album;
+  const albumData = { id: albumDoc.id, ...albumDoc.data() } as Album;
 
-  // Check ownership - only return albums owned by the current user for security
-  if (albumData.userId && albumData.userId !== userId) {
-    throw new Error("Permission denied: You can only access your own albums");
+  // For public albums, allow access without authentication
+  if (albumData.privacy === "public") {
+    return albumData;
+  }
+
+  // For private/shared albums, check authentication
+  const { getFirebaseAuth } = await import("@/shared/lib/firebase");
+  const auth = getFirebaseAuth();
+
+  // For shared albums, also check share token
+  if (albumData.privacy === "shared") {
+    const shareToken = getShareTokenFromUrl();
+    if (shareToken && shareToken === albumData.shareToken) {
+      return albumData; // Allow access with valid share token
+    }
+  }
+
+  // Require authentication for private albums and shared albums without token
+  if (!auth?.currentUser) {
+    throw new Error("User must be authenticated to access this album");
+  }
+
+  const userId = auth.currentUser.uid;
+
+  // Check ownership for private albums
+  if (albumData.privacy === "private" && albumData.userId !== userId) {
+    throw new Error(
+      "Permission denied: You can only access your own private albums"
+    );
+  }
+
+  // Check ownership for shared albums without valid token
+  if (albumData.privacy === "shared" && albumData.userId !== userId) {
+    throw new Error("Permission denied: Invalid share token");
   }
 
   return albumData;
@@ -177,18 +199,32 @@ export async function addAlbum(album: Omit<Album, "id">): Promise<string> {
     throw new Error(limitValidation.error);
   }
 
+  // Generate share token for shared albums if not already provided
+  const { generateShareToken } = await import("@/shared/utils/albumSharing");
+  let shareToken = album.shareToken; // Use existing token if provided
+  if (album.privacy === "shared" && !shareToken) {
+    shareToken = generateShareToken(userId + "_" + Date.now());
+  }
+
   // Sanitize data and add user ownership
+  const imageCount = album.images?.length || 0;
   const secureAlbum = {
     ...album,
     userId,
     title: sanitizeText(album.title),
     description: sanitizeText(album.description || ""),
+    layout: ensureValidLayout(album.layout, imageCount), // Ensure we have a valid layout
+    privacy: album.privacy || "private", // Default to private if not specified
+    shareToken,
     createdAt: new Date(),
     updatedAt: new Date(),
   };
 
+  // Clean undefined values before sending to Firebase
+  const cleanedAlbum = cleanAlbumData(secureAlbum);
+
   const { albumsCollection } = getDB();
-  const docRef = await addDoc(albumsCollection, secureAlbum);
+  const docRef = await addDoc(albumsCollection, cleanedAlbum);
 
   // Record the write operation
   firebaseUsageMonitor.recordOperation("write", 1);
@@ -252,8 +288,11 @@ export async function updateAlbum(
     secureAlbum.description = sanitizeText(secureAlbum.description);
   }
 
+  // Clean undefined values before sending to Firebase
+  const cleanedAlbum = cleanAlbumData(secureAlbum);
+
   const { albumsCollection } = getDB();
-  await updateDoc(doc(albumsCollection, id), secureAlbum);
+  await updateDoc(doc(albumsCollection, id), cleanedAlbum);
 
   // Record the write operation
   firebaseUsageMonitor.recordOperation("write", 1);
@@ -297,44 +336,16 @@ export async function deleteAlbum(id: string): Promise<void> {
     throw new Error("Permission denied: You can only delete your own albums");
   }
 
-  // Import deleteImage function
-  const { deleteImage } = await import("./storage");
+  // Import deleteAlbumFolder function
+  const { deleteAlbumFolder } = await import("./storage");
 
-  // Delete all images from storage
-  const imagesToDelete: string[] = [];
-
-  // Handle images array - now only in AlbumImage[] format
-  if (albumData.images) {
-    albumData.images.forEach((img) => {
-      if (img && img.url) {
-        imagesToDelete.push(img.url);
-      }
-    });
-  }
-
-  // Add cover image if it exists
-  if (albumData.coverUrl) {
-    imagesToDelete.push(albumData.coverUrl);
-  }
-
-  // Filter out any undefined/null URLs and delete images in parallel
-  const validUrls = imagesToDelete.filter(
-    (url) => url && typeof url === "string"
-  );
-
-  const deletionResults = await Promise.allSettled(
-    validUrls.map((imageUrl) => deleteImage(imageUrl))
-  );
-
-  // Calculate storage freed by successful deletions
-  const successfulDeletions = deletionResults.filter(
-    (result) => result.status === "fulfilled"
-  );
-
-  // Estimate storage freed (we don't have exact file sizes, so use average estimate)
-  const estimatedBytesFreed = successfulDeletions.length * (2 * 1024 * 1024); // 2MB average
-  if (estimatedBytesFreed > 0) {
-    firebaseUsageMonitor.recordFileDeletion(estimatedBytesFreed);
+  // Delete the entire album folder from storage
+  // This is more efficient and ensures complete cleanup
+  try {
+    await deleteAlbumFolder(id);
+  } catch (error) {
+    console.warn("Failed to delete album folder from storage:", error);
+    // Continue with album document deletion even if storage cleanup fails
   }
 
   // Finally, delete the album document

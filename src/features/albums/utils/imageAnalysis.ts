@@ -1,6 +1,4 @@
-// Enhanced image analysis utilities for smart layout detection
-import { calculateLayoutScore as strategyCalculateLayoutScore } from "./layout-scoring";
-
+// Simplified image analysis utilities
 export interface ImageDimensions {
   width: number;
   height: number;
@@ -426,30 +424,44 @@ export const calculateLayoutScore = (
     };
   }
 
-  // Use the new strategy-based scoring system
-  try {
-    return strategyCalculateLayoutScore(imageAnalyses, layoutName);
-  } catch (error) {
-    console.warn(
-      "Failed to load new layout scoring system, using fallback",
-      error
-    );
+  // Simple scoring based on our simplified layout system
+  const imageCount = imageAnalyses.length;
 
-    // Fallback scoring for unknown layouts
+  // For slideshow: always good score
+  if (layoutName === "Slideshow") {
     return {
       layoutName,
-      score: 50, // Default moderate score
-      reason: "Layout scoring system unavailable",
+      score: 85,
+      reason: "Slideshow works well for any number of images",
       detailedAnalysis: {
-        orientationMatch: 50,
-        imageCountMatch: 50,
-        aestheticScore: 50,
-        balanceScore: 50,
-        visualImpact: 50,
+        orientationMatch: 90,
+        imageCountMatch: 100,
+        aestheticScore: 80,
+        balanceScore: 85,
+        visualImpact: 85,
       },
-      confidence: "low",
+      confidence: "high" as const,
     };
   }
+
+  // For grid: score based on image count
+  const gridScore = imageCount >= 2 ? 90 : 60;
+  return {
+    layoutName,
+    score: gridScore,
+    reason:
+      imageCount >= 2
+        ? "Grid layout works well with multiple images"
+        : "Consider slideshow for single images",
+    detailedAnalysis: {
+      orientationMatch: 85,
+      imageCountMatch: imageCount >= 2 ? 95 : 50,
+      aestheticScore: 80,
+      balanceScore: 85,
+      visualImpact: gridScore,
+    },
+    confidence: imageCount >= 2 ? ("high" as const) : ("medium" as const),
+  };
 };
 
 /**

@@ -1,14 +1,15 @@
 /**
  * Album Layout Selection Form Section
- * Handles layout selection with traditional dropdown and smart recommendations
+ * Simplified layout selection with just slideshow and grid options
  */
 "use client";
 
 import React from "react";
-import { FormSection, FormField } from "@/shared/components";
-import { SmartLayoutSelector } from "@/features/albums/components/SmartLayoutSelector";
+import { FormSection } from "@/shared/components";
+import { LayoutSelector } from "@/features/albums/components/LayoutSelector";
 import {
-  ALBUM_LAYOUTS,
+  createLayout,
+  LayoutType,
   AlbumLayout,
 } from "@/features/albums/constants/AlbumLayout";
 
@@ -22,6 +23,26 @@ interface AlbumLayoutSectionProps {
   }>;
   currentLayout: AlbumLayout;
   onLayoutChange: (layout: AlbumLayout) => void;
+  timing?: {
+    slideshow?: {
+      cycleDuration: number;
+    };
+    interactive?: {
+      autoAdvance: boolean;
+      autoAdvanceDuration: number;
+      transitionSpeed: "fast" | "normal" | "smooth";
+    };
+  };
+  onTimingChange?: (timing: {
+    slideshow?: {
+      cycleDuration: number;
+    };
+    interactive?: {
+      autoAdvance: boolean;
+      autoAdvanceDuration: number;
+      transitionSpeed: "fast" | "normal" | "smooth";
+    };
+  }) => void;
   className?: string;
 }
 
@@ -29,72 +50,30 @@ export function AlbumLayoutSection({
   images,
   currentLayout,
   onLayoutChange,
+  timing,
+  onTimingChange,
   className = "",
 }: AlbumLayoutSectionProps) {
-  const handleLayoutDropdownChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    const selectedLayout = ALBUM_LAYOUTS.find(
-      (layout) => layout.name === e.target.value
-    );
-    if (selectedLayout) {
-      onLayoutChange(selectedLayout);
-    }
+  const imageCount = images.length;
+
+  const handleLayoutTypeChange = (layoutType: LayoutType) => {
+    const newLayout = createLayout(layoutType, imageCount);
+    onLayoutChange(newLayout);
   };
 
   return (
     <FormSection
       title="Layout Selection"
-      description="Choose how your images will be arranged"
+      description="Choose how your images will be displayed and configure settings"
       className={className}
     >
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Traditional Layout Selection */}
-        <div className="space-y-4">
-          <FormField
-            label="Layout Style"
-            help="Select from predefined layout options"
-          >
-            <select
-              value={currentLayout.name}
-              onChange={handleLayoutDropdownChange}
-              className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              {ALBUM_LAYOUTS.map((layout) => (
-                <option key={layout.name} value={layout.name}>
-                  {layout.name}
-                </option>
-              ))}
-            </select>
-          </FormField>
-
-          {/* Layout Description */}
-          <div className="p-3 bg-gray-700 rounded-lg border border-gray-600">
-            <p className="text-sm text-gray-300">{currentLayout.description}</p>
-            <div className="mt-2 text-xs text-gray-400">
-              Grid: {currentLayout.grid.rows}×{currentLayout.grid.cols}
-              {currentLayout.orientation && (
-                <span className="ml-2">
-                  • Orientation: {currentLayout.orientation}
-                </span>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Smart Layout Recommendations */}
-        <div className="space-y-4">
-          <SmartLayoutSelector
-            images={images.map((img) => ({
-              ...img,
-              id: img.id || `temp-${Math.random()}`,
-            }))}
-            currentLayout={currentLayout}
-            onLayoutChange={onLayoutChange}
-            className="h-fit"
-          />
-        </div>
-      </div>
+      <LayoutSelector
+        imageCount={imageCount}
+        currentLayoutType={currentLayout.type}
+        onLayoutChange={handleLayoutTypeChange}
+        timing={timing}
+        onTimingChange={onTimingChange}
+      />
     </FormSection>
   );
 }

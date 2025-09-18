@@ -10,11 +10,23 @@ export interface MatConfig {
   matWidth: number;
   matColor: string;
   backgroundColor?: string; // Optional background color separate from mat
+  textColor?: string; // Optional text color for captions and titles
 }
 
 export interface ViewerSettings {
   backgroundColor: string;
   matColor?: string; // Override for album mat color
+}
+
+export type LayoutType = "slideshow" | "grid";
+
+export type AlbumPrivacy = "public" | "private" | "shared";
+
+export interface AlbumLayout {
+  type: LayoutType;
+  name: string;
+  description: string;
+  grid?: { rows: number; cols: number }; // Only for grid layouts
 }
 
 export interface Album {
@@ -29,15 +41,10 @@ export interface Album {
   createdAt?: Date;
   updatedAt?: Date;
   cycleDuration?: number;
-}
-
-export interface AlbumLayout {
-  name: string;
-  description: string;
-  grid: { rows: number; cols: number };
-  orientation?: "portrait" | "landscape" | "mixed";
-  type: "grid" | "slideshow" | "custom" | "smart";
-  isSmartLayout?: boolean;
+  // Simple privacy settings
+  privacy: AlbumPrivacy;
+  shareToken?: string; // Simple share token for shared albums
+  tags?: string[]; // Support for tags mentioned in the form
 }
 
 export interface ImageAnalysis {

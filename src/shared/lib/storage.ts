@@ -5,6 +5,7 @@ import {
   uploadBytes,
   getDownloadURL,
   deleteObject,
+  listAll,
 } from "firebase/storage";
 import {
   validateFile,
@@ -110,7 +111,10 @@ export async function uploadImage(
   );
 
   // Generate secure path with user ID for isolation
-  const securePath = `users/${userId}/albums/${albumId}/${Date.now()}_${idx}_${sanitizedName}`;
+  // Use consistent folder structure: users/userId/albums/albumId/filename
+  // Add timestamp prefix to filename to avoid conflicts, but keep same folder
+  const timestamp = Date.now();
+  const securePath = `users/${userId}/albums/${albumId}/${timestamp}_${idx}_${sanitizedName}`;
 
   const storage = getFirebaseStorage();
   if (!storage) {
@@ -168,6 +172,69 @@ export async function deleteImage(url: string): Promise<void> {
     if (
       error instanceof Error &&
       !error.message.includes("Unauthorized") &&
+      !error.message.includes("not found") &&
+      !error.message.includes("does not exist")
+    ) {
+      throw error;
+    }
+  }
+}
+
+/**
+ * Delete an entire album folder from storage
+ * This will remove all images in the album's storage folder
+ */
+export async function deleteAlbumFolder(albumId: string): Promise<void> {
+  // Ensure Firebase Auth is properly initialized and user is authenticated
+  const { getFirebaseAuth } = await import("@/shared/lib/firebase");
+  const auth = getFirebaseAuth();
+
+  if (!auth?.currentUser) {
+    throw new Error(
+      "User must be authenticated with Firebase to delete album folders"
+    );
+  }
+
+  const userId = auth.currentUser.uid;
+
+  const storage = getFirebaseStorage();
+  if (!storage) {
+    throw new Error("Firebase storage not initialized");
+  }
+
+  // Create reference to the album folder
+  const albumFolderRef = ref(storage, `users/${userId}/albums/${albumId}/`);
+
+  try {
+    // List all files in the album folder
+    const listResult = await listAll(albumFolderRef);
+
+    // Delete all files in parallel
+    const deletePromises = listResult.items.map((itemRef) =>
+      deleteObject(itemRef).catch((error) => {
+        // Log but don't fail the entire operation for individual file errors
+        console.warn(`Failed to delete file ${itemRef.fullPath}:`, error);
+      })
+    );
+
+    await Promise.all(deletePromises);
+
+    // Recursively delete any subfolders (if they exist)
+    const subfolderPromises = listResult.prefixes.map(async (folderRef) => {
+      const subResult = await listAll(folderRef);
+      const subDeletePromises = subResult.items.map((itemRef) =>
+        deleteObject(itemRef).catch((error) => {
+          console.warn(`Failed to delete file ${itemRef.fullPath}:`, error);
+        })
+      );
+      await Promise.all(subDeletePromises);
+    });
+
+    await Promise.all(subfolderPromises);
+  } catch (error) {
+    // Only throw if it's a critical error (not folder not found)
+    if (
+      error instanceof Error &&
       !error.message.includes("not found") &&
       !error.message.includes("does not exist")
     ) {

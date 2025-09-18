@@ -1,15 +1,23 @@
 // Barrel export for albums feature components
 export { default as MatImage } from "./MatImage";
 export { default as EnhancedColorPicker } from "./EnhancedColorPicker";
-export { default as ResponsiveMatImage } from "./ResponsiveMatImage";
-export { default as SlideshowDebugInfo } from "./SlideshowDebugInfo";
 export { default as SlideshowErrorBoundary } from "./SlideshowErrorBoundary";
 export { default as ImageErrorBoundary } from "./ImageErrorBoundary";
+
+// New layout system
+export { LayoutViewer } from "./LayoutViewer";
+export { LayoutSelector } from "./LayoutSelector";
+
+// Enhanced Form Components
+export { default as AlbumForm } from "./AlbumForm";
+export { default as AlbumFormLegacy } from "./AlbumFormLegacy";
+export { default as AlbumCreationWizard } from "./AlbumCreationWizard";
+export { default as WizardBasicInfo } from "./WizardBasicInfo";
+export { default as WizardImages } from "./WizardImages";
 
 // Re-export types
 export type { MatImageProps, MatConfig, GridInfo } from "./MatImage";
 export type { EnhancedColorPickerProps } from "./EnhancedColorPicker";
-export type { ResponsiveMatImageProps } from "./ResponsiveMatImage";
 export type {
   SlideshowErrorBoundaryProps,
   ErrorFallbackProps as SlideshowErrorFallbackProps,

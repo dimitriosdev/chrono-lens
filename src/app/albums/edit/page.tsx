@@ -6,9 +6,8 @@ import { useAuth } from "@/context/AuthContext";
 import { getAlbum, updateAlbum } from "@/shared/lib/firestore";
 import { uploadImage } from "@/shared/lib/storage";
 import { AlbumForm } from "@/features/albums/components/AlbumForm";
-import { AlbumImage } from "@/features/albums/types/Album";
-import { ALBUM_LAYOUTS } from "@/features/albums/constants/AlbumLayout";
-import { AlbumFormData } from "@/shared/types/form";
+import { AlbumImage, Album } from "@/features/albums/types/Album";
+import { ErrorBoundary } from "@/shared/components";
 
 export default function EditAlbumPage() {
   const { isSignedIn, loading } = useAuth();
@@ -16,9 +15,7 @@ export default function EditAlbumPage() {
   const searchParams = useSearchParams();
   const albumId = searchParams.get("id");
   const [isLoading, setIsLoading] = useState(true);
-  const [initialData, setInitialData] = useState<Partial<AlbumFormData> | null>(
-    null
-  );
+  const [album, setAlbum] = useState<Album | null>(null);
 
   useEffect(() => {
     if (!loading && !isSignedIn) {
@@ -31,43 +28,9 @@ export default function EditAlbumPage() {
       if (!albumId) return;
 
       try {
-        const album = await getAlbum(albumId);
-        if (album) {
-          const formData: Partial<AlbumFormData> = {
-            title: album.title,
-            images: (album.images || []).map((img, index) => {
-              if (typeof img === "string") {
-                return {
-                  id: `existing-${index}`,
-                  url: img,
-                  description: "",
-                };
-              } else {
-                return {
-                  id: `existing-${index}`,
-                  url: img.url,
-                  description: img.description || "",
-                };
-              }
-            }),
-            layout: album.layout || ALBUM_LAYOUTS[0],
-            matConfig: album.matConfig || {
-              matWidth: 5,
-              matColor: "#f8f8f8",
-            },
-            timing: {
-              slideshow: album.timing?.slideshow || { cycleDuration: 5 },
-              interactive: {
-                autoAdvance: album.timing?.interactive?.autoAdvance || false,
-                autoAdvanceDuration:
-                  album.timing?.interactive?.autoAdvanceDuration || 5,
-                transitionSpeed:
-                  album.timing?.interactive?.transitionSpeed || "normal",
-              },
-            },
-            cycleDuration: album.timing?.slideshow?.cycleDuration || 5,
-          };
-          setInitialData(formData);
+        const fetchedAlbum = await getAlbum(albumId);
+        if (fetchedAlbum) {
+          setAlbum(fetchedAlbum);
         }
       } catch (error) {
         console.error("Error fetching album:", error);
@@ -79,15 +42,17 @@ export default function EditAlbumPage() {
     fetchAlbum();
   }, [albumId]);
 
-  const handleSubmit = async (formData: AlbumFormData) => {
+  const handleSubmit = async (
+    albumData: Omit<Album, "id" | "createdAt" | "updatedAt">
+  ) => {
     if (!albumId) return;
 
     try {
       // Handle image uploads for new files
       const processedImages: AlbumImage[] = [];
 
-      for (let i = 0; i < formData.images.length; i++) {
-        const img = formData.images[i];
+      for (let i = 0; i < albumData.images.length; i++) {
+        const img = albumData.images[i];
         if (img.file) {
           // New image - upload it
           const uploadedUrl = await uploadImage(img.file, albumId, i);
@@ -106,11 +71,15 @@ export default function EditAlbumPage() {
 
       // Update the album
       await updateAlbum(albumId, {
-        title: formData.title,
+        title: albumData.title,
+        description: albumData.description,
+        privacy: albumData.privacy, // Include privacy setting
+        tags: albumData.tags, // Include tags
+        shareToken: albumData.shareToken, // Include share token
         images: processedImages,
-        layout: formData.layout,
-        matConfig: formData.matConfig,
-        timing: formData.timing,
+        layout: albumData.layout,
+        matConfig: albumData.matConfig,
+        cycleDuration: albumData.cycleDuration,
         updatedAt: new Date(),
       });
 
@@ -149,7 +118,7 @@ export default function EditAlbumPage() {
     );
   }
 
-  if (!initialData) {
+  if (!album) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900">
         <div className="text-white text-center">
@@ -169,7 +138,14 @@ export default function EditAlbumPage() {
   return (
     <div className="min-h-screen bg-gray-900">
       <div className="container mx-auto px-4 py-8 pb-24">
-        <AlbumForm mode="edit" initialData={initialData} onSave={handleSubmit} />
+        <ErrorBoundary
+          onError={(error, errorInfo) => {
+            console.error("Album edit form error:", error, errorInfo);
+            // Could add error reporting here
+          }}
+        >
+          <AlbumForm mode="edit" album={album} onSave={handleSubmit} />
+        </ErrorBoundary>
       </div>
     </div>
   );

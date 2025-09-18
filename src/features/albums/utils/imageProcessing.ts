@@ -10,12 +10,12 @@ export const IMAGE_OPTIMIZATION_CONFIG = {
   MAX_HEIGHT: process.env.NODE_ENV === "development" ? 1200 : 1920, // Lower in dev for testing
   // JPEG quality (0.1 to 1.0)
   JPEG_QUALITY: 0.85,
-  // Maximum file size before optimization (in bytes)
+  // Maximum file size before optimization (in bytes) - Made more aggressive
   MAX_FILE_SIZE_BEFORE_OPTIMIZATION:
-    process.env.NODE_ENV === "development" ? 500 * 1024 : 2 * 1024 * 1024, // 500KB in dev, 2MB in prod
-  // Target file size after optimization (in bytes)
+    process.env.NODE_ENV === "development" ? 200 * 1024 : 800 * 1024, // 200KB in dev, 800KB in prod
+  // Target file size after optimization (in bytes) - Made more aggressive to prevent payload limit issues
   TARGET_FILE_SIZE:
-    process.env.NODE_ENV === "development" ? 300 * 1024 : 1 * 1024 * 1024, // 300KB in dev, 1MB in prod
+    process.env.NODE_ENV === "development" ? 150 * 1024 : 500 * 1024, // 150KB in dev, 500KB in prod
 };
 
 export interface ProcessedImage {
@@ -55,7 +55,11 @@ export async function needsOptimization(file: File): Promise<boolean> {
     return false;
   }
 
-  if (file.size > IMAGE_OPTIMIZATION_CONFIG.MAX_FILE_SIZE_BEFORE_OPTIMIZATION) {
+  // Always optimize images larger than target size or above size threshold
+  if (
+    file.size > IMAGE_OPTIMIZATION_CONFIG.TARGET_FILE_SIZE ||
+    file.size > IMAGE_OPTIMIZATION_CONFIG.MAX_FILE_SIZE_BEFORE_OPTIMIZATION
+  ) {
     return true;
   }
 
@@ -428,4 +432,218 @@ export function calculateCompressionRatio(
 ): number {
   if (originalSize === 0) return 0;
   return Math.round(((originalSize - compressedSize) / originalSize) * 100);
+}
+
+/**
+ * Calculate total payload size for a set of images
+ */
+export function calculateTotalPayloadSize(
+  images: Array<{ file?: File; url?: string }>
+): number {
+  return images.reduce((total, image) => {
+    if (image.file) {
+      return total + image.file.size;
+    }
+    return total;
+  }, 0);
+}
+
+/**
+ * Check if the total payload size is within Firebase limits
+ */
+export function validatePayloadSize(
+  images: Array<{ file?: File; url?: string }>
+): {
+  isValid: boolean;
+  totalSize: number;
+  totalSizeMB: number;
+  maxSizeMB: number;
+  error?: string;
+} {
+  const totalSize = calculateTotalPayloadSize(images);
+  const totalSizeMB = totalSize / (1024 * 1024);
+  const maxSizeMB = 10; // Keep under 10MB to be safe (Firebase limit is around 11MB)
+
+  return {
+    isValid: totalSizeMB <= maxSizeMB,
+    totalSize,
+    totalSizeMB: Math.round(totalSizeMB * 100) / 100,
+    maxSizeMB,
+    error:
+      totalSizeMB > maxSizeMB
+        ? `Total payload size (${totalSizeMB.toFixed(
+            1
+          )}MB) exceeds the ${maxSizeMB}MB limit. Please reduce image sizes or remove some images.`
+        : undefined,
+  };
+}
+
+/**
+ * Aggressively optimize images to fit within payload size limits
+ * This function will progressively reduce quality and size until the payload is acceptable
+ */
+export async function optimizeImagesForPayloadLimit(
+  images: Array<{ file?: File; url?: string; id: string }>,
+  maxPayloadSizeMB: number = 10
+): Promise<Array<{ file?: File; url?: string; id: string }>> {
+  if (!isBrowser()) {
+    return images;
+  }
+
+  const maxPayloadSize = maxPayloadSizeMB * 1024 * 1024;
+  const imagesWithFiles = images.filter((img) => img.file);
+
+  if (imagesWithFiles.length === 0) {
+    return images;
+  }
+
+  // Calculate current total size
+  const currentTotalSize = calculateTotalPayloadSize(images);
+
+  if (currentTotalSize <= maxPayloadSize) {
+    return images; // Already within limits
+  }
+
+  // Calculate target size per image
+  const targetSizePerImage = Math.floor(
+    (maxPayloadSize * 0.9) / imagesWithFiles.length
+  );
+
+  const optimizedImages = [...images];
+
+  for (let i = 0; i < optimizedImages.length; i++) {
+    const image = optimizedImages[i];
+
+    if (!image.file || image.file.size <= targetSizePerImage) {
+      continue; // Skip if no file or already small enough
+    }
+
+    try {
+      // Aggressively compress this image
+      const compressedFile = await aggressivelyCompressImage(
+        image.file,
+        targetSizePerImage
+      );
+      optimizedImages[i] = { ...image, file: compressedFile };
+    } catch (error) {
+      console.warn(`Failed to compress image ${image.id}:`, error);
+    }
+  }
+
+  return optimizedImages;
+}
+
+/**
+ * Aggressively compress a single image to a target size
+ */
+async function aggressivelyCompressImage(
+  file: File,
+  targetSize: number
+): Promise<File> {
+  if (!isBrowser()) {
+    return file;
+  }
+
+  const img = await createImageFromFile(file);
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+
+  if (!ctx) {
+    throw new Error("Canvas context not available");
+  }
+
+  // Start with aggressive dimensions
+  let scaleFactor = Math.sqrt(targetSize / file.size);
+  scaleFactor = Math.min(scaleFactor, 0.8); // Don't scale up, max 80% of original
+
+  let width = Math.floor(img.naturalWidth * scaleFactor);
+  let height = Math.floor(img.naturalHeight * scaleFactor);
+
+  // Ensure minimum dimensions
+  width = Math.max(width, 400);
+  height = Math.max(height, 400);
+
+  canvas.width = width;
+  canvas.height = height;
+  ctx.drawImage(img, 0, 0, width, height);
+
+  // Try different quality levels aggressively
+  const qualityLevels = [0.6, 0.5, 0.4, 0.3, 0.2];
+
+  for (const quality of qualityLevels) {
+    const compressedFile = await new Promise<File>((resolve, reject) => {
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            reject(new Error("Failed to compress image"));
+            return;
+          }
+
+          const outputType =
+            file.type === "image/png" ? "image/png" : "image/jpeg";
+          const compressed = new File([blob], file.name, { type: outputType });
+          resolve(compressed);
+        },
+        file.type === "image/png" ? "image/png" : "image/jpeg",
+        quality
+      );
+    });
+
+    if (compressedFile.size <= targetSize) {
+      return compressedFile;
+    }
+  }
+
+  // If still too large, reduce dimensions further
+  width = Math.floor(width * 0.7);
+  height = Math.floor(height * 0.7);
+  canvas.width = width;
+  canvas.height = height;
+  ctx.drawImage(img, 0, 0, width, height);
+
+  return new Promise<File>((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (!blob) {
+          reject(new Error("Failed to compress image"));
+          return;
+        }
+
+        const outputType =
+          file.type === "image/png" ? "image/png" : "image/jpeg";
+        const compressed = new File([blob], file.name, { type: outputType });
+        resolve(compressed);
+      },
+      file.type === "image/png" ? "image/png" : "image/jpeg",
+      0.2 // Very low quality as last resort
+    );
+  });
+}
+
+/**
+ * Check if a URL is a blob or data URL (temporary/local URLs)
+ * These URLs are too long for Firebase fields and should not be used for coverUrl
+ */
+export function isBlobOrDataUrl(url: string): boolean {
+  return url.startsWith("blob:") || url.startsWith("data:");
+}
+
+/**
+ * Check if a URL is a valid Firebase Storage URL
+ */
+export function isFirebaseStorageUrl(url: string): boolean {
+  return (
+    url.includes("firebasestorage.googleapis.com") ||
+    url.includes("storage.googleapis.com")
+  );
+}
+
+/**
+ * Validate that a URL is safe to store in Firebase (not too long)
+ */
+export function isValidFirebaseUrl(url: string): boolean {
+  // Firebase has a limit of ~1MB per field, but we'll be conservative
+  const MAX_URL_LENGTH = 2048; // Typical URL length limit
+
+  return url.length <= MAX_URL_LENGTH && !isBlobOrDataUrl(url);
 }

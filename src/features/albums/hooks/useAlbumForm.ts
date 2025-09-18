@@ -6,7 +6,7 @@ import { useEffect, useMemo } from "react";
 import { useFormState } from "@/shared/hooks/useFormState";
 import { validateTitle } from "@/shared/utils/validation";
 import { AlbumFormData } from "@/shared/types/form";
-import { ALBUM_LAYOUTS } from "@/features/albums/constants/AlbumLayout";
+import { createLayout } from "@/features/albums/constants/AlbumLayout";
 
 interface UseAlbumFormOptions {
   mode: "create" | "edit";
@@ -18,8 +18,7 @@ export function useAlbumForm({ mode, initialData = {} }: UseAlbumFormOptions) {
   const defaultFormData: AlbumFormData = {
     title: "",
     images: [],
-    layout:
-      ALBUM_LAYOUTS.find((l) => l.type === "slideshow") || ALBUM_LAYOUTS[0],
+    layout: createLayout("slideshow", 1),
     matConfig: { matWidth: 40, matColor: "#000" },
     cycleDuration: 2000,
     coverUrl: initialData.coverUrl,
@@ -30,7 +29,7 @@ export function useAlbumForm({ mode, initialData = {} }: UseAlbumFormOptions) {
       interactive: {
         autoAdvance: false,
         autoAdvanceDuration: 5,
-        transitionSpeed: 'normal',
+        transitionSpeed: "normal",
       },
     },
   };

@@ -36,7 +36,7 @@ export function FormSection({
   return (
     <div
       className={helpers.cn(
-        componentVariants.card.default,
+        componentVariants.card.dark,
         "p-6 transition-smooth",
         className
       )}
@@ -51,7 +51,7 @@ export function FormSection({
         <div>
           <h3
             className={helpers.cn(
-              componentVariants.text.heading,
+              componentVariants.text.headingDark,
               "text-lg flex items-center gap-2",
               collapsible && "group-hover:text-blue-400 transition-colors"
             )}
@@ -65,7 +65,7 @@ export function FormSection({
             {title}
           </h3>
           {description && (
-            <p className={helpers.cn(componentVariants.text.muted, "mt-1")}>
+            <p className={helpers.cn(componentVariants.text.mutedDark, "mt-1")}>
               {description}
             </p>
           )}
@@ -91,7 +91,7 @@ export function FormField({
     <div className={helpers.cn("space-y-2", className)}>
       <label
         className={helpers.cn(
-          componentVariants.text.body,
+          componentVariants.text.bodyDark,
           "block text-sm font-medium"
         )}
       >
@@ -106,7 +106,9 @@ export function FormField({
       <div className="relative">{children}</div>
 
       {help && !error && (
-        <p className={helpers.cn(componentVariants.text.caption, "text-xs")}>
+        <p
+          className={helpers.cn(componentVariants.text.captionDark, "text-xs")}
+        >
           {help}
         </p>
       )}
@@ -114,7 +116,7 @@ export function FormField({
       {error && (
         <p
           className={helpers.cn(
-            componentVariants.text.error,
+            componentVariants.text.errorDark,
             "text-xs flex items-center gap-1"
           )}
         >

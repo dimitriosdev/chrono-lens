@@ -5,32 +5,8 @@ import { useAuth } from "@/context/AuthContext";
 import { addAlbum } from "@/shared/lib/firestore";
 import { uploadImage } from "@/shared/lib/storage";
 import { AlbumForm } from "@/features/albums/components/AlbumForm";
-import { AlbumImage } from "@/features/albums/types/Album";
-import { AlbumLayout } from "@/features/albums/constants/AlbumLayout";
-import { MatConfig } from "@/features/albums/components/EnhancedMatBoard";
-
-interface AlbumFormData {
-  title: string;
-  images: Array<{
-    id: string;
-    url: string;
-    description?: string;
-    file?: File;
-  }>;
-  layout: AlbumLayout;
-  matConfig: MatConfig;
-  cycleDuration: number;
-  timing?: {
-    slideshow?: {
-      cycleDuration: number;
-    };
-    interactive?: {
-      autoAdvance: boolean;
-      autoAdvanceDuration: number;
-      transitionSpeed: "fast" | "normal" | "smooth";
-    };
-  };
-}
+import { AlbumImage, Album } from "@/features/albums/types/Album";
+import { ErrorBoundary } from "@/shared/components";
 
 const NewAlbumPage: React.FC = () => {
   const { isSignedIn, loading } = useAuth();
@@ -45,7 +21,9 @@ const NewAlbumPage: React.FC = () => {
 
   if (loading || !isSignedIn) return null;
 
-  const handleSave = async (formData: AlbumFormData) => {
+  const handleSave = async (
+    albumData: Omit<Album, "id" | "createdAt" | "updatedAt">
+  ) => {
     setAlbumLoading(true);
 
     try {
@@ -63,14 +41,18 @@ const NewAlbumPage: React.FC = () => {
 
       // Create the album document first to get a real albumId
       const albumId = await addAlbum({
-        title: formData.title,
+        title: albumData.title,
+        description: albumData.description,
+        privacy: albumData.privacy, // Include privacy setting
+        tags: albumData.tags, // Include tags
+        shareToken: albumData.shareToken, // Include share token
         images: [], // Start with empty images array
-        layout: formData.layout,
-        matConfig: {
-          ...formData.matConfig,
-          cycleDuration: formData.cycleDuration,
-        },
-        timing: formData.timing,
+        layout: albumData.layout,
+        matConfig: albumData.matConfig,
+        // Simplified timing - just cycleDuration
+        ...(albumData.cycleDuration && {
+          cycleDuration: albumData.cycleDuration,
+        }),
         userId,
         createdAt: new Date(),
         updatedAt: new Date(),
@@ -79,8 +61,8 @@ const NewAlbumPage: React.FC = () => {
       const albumImages: AlbumImage[] = [];
 
       // Upload images using the real albumId
-      for (let i = 0; i < formData.images.length; i++) {
-        const image = formData.images[i];
+      for (let i = 0; i < albumData.images.length; i++) {
+        const image = albumData.images[i];
         let url = image.url;
 
         // Upload new files
@@ -112,7 +94,14 @@ const NewAlbumPage: React.FC = () => {
 
   return (
     <div className="py-8 px-4">
-      <AlbumForm mode="create" onSave={handleSave} loading={albumLoading} />
+      <ErrorBoundary
+        onError={(error, errorInfo) => {
+          console.error("Album creation form error:", error, errorInfo);
+          // Could add error reporting here
+        }}
+      >
+        <AlbumForm mode="create" onSave={handleSave} loading={albumLoading} />
+      </ErrorBoundary>
     </div>
   );
 };

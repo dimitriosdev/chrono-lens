@@ -1,6 +1,10 @@
 import React from "react";
-import { Album } from "@/features/albums/types/Album";
-import { AlbumLayout } from "@/features/albums/constants/AlbumLayout";
+import { Album } from "@/shared/types/album";
+import {
+  AlbumLayout,
+  createLayout,
+  LayoutType,
+} from "@/features/albums/constants/AlbumLayout";
 import { useImagePreload } from "@/shared/hooks/useImagePreload";
 
 interface SlideshowOptions {
@@ -23,6 +27,7 @@ interface SlideshowActions {
   goToIndex: (index: number) => void;
   togglePlayback: () => void;
   setCurrentIndex: (index: number) => void;
+  changeLayoutType: (layoutType: LayoutType) => void;
 }
 
 interface SlideshowHookReturn extends SlideshowState, SlideshowActions {
@@ -45,6 +50,18 @@ export const useSlideshow = ({
   const [currentIndex, setCurrentIndex] = React.useState(0);
   const [isPlaying, setIsPlaying] = React.useState(autoPlay);
 
+  // Use album's layout if available, otherwise default to slideshow
+  const [layoutType, setLayoutType] = React.useState<LayoutType>(() => {
+    return album?.layout?.type || "slideshow";
+  });
+
+  // Update layout type when album changes
+  React.useEffect(() => {
+    if (album?.layout?.type && album.layout.type !== layoutType) {
+      setLayoutType(album.layout.type);
+    }
+  }, [album?.layout?.type, layoutType]);
+
   // Extract images and descriptions from album
   const images = React.useMemo(() => {
     const albumImages = album?.images || [];
@@ -56,33 +73,23 @@ export const useSlideshow = ({
     return albumImages.map((img) => img.description || "");
   }, [album?.images]);
 
-  const layout: AlbumLayout = React.useMemo(
-    () =>
-      album?.layout || {
-        type: "slideshow",
-        name: "Default",
-        description: "Default slideshow",
-        grid: { rows: 1, cols: 1 },
-      },
-    [album?.layout]
-  );
+  // Create layout based on current type and image count
+  const layout: AlbumLayout = React.useMemo(() => {
+    const imageCount = images.length;
+    return createLayout(layoutType, imageCount);
+  }, [layoutType, images.length]);
 
   // Auto-advance slideshow
   React.useEffect(() => {
-    if (layout?.type === "slideshow" && images.length > 1 && isPlaying) {
-      const slideshowDuration = album?.timing?.slideshow?.cycleDuration ?? 5;
+    if (layout.type === "slideshow" && images.length > 1 && isPlaying) {
+      const slideshowDuration = album?.cycleDuration ?? 5;
       const timer = setInterval(() => {
         setCurrentIndex((prev) => (prev + 1) % images.length);
       }, slideshowDuration * 1000);
 
       return () => clearInterval(timer);
     }
-  }, [
-    layout?.type,
-    images.length,
-    album?.timing?.slideshow?.cycleDuration,
-    isPlaying,
-  ]);
+  }, [layout.type, images.length, album?.cycleDuration, isPlaying]);
 
   // Reset current index when images change
   React.useEffect(() => {
@@ -111,6 +118,12 @@ export const useSlideshow = ({
 
   const togglePlayback = React.useCallback(() => {
     setIsPlaying((prev) => !prev);
+  }, []);
+
+  const changeLayoutType = React.useCallback((newLayoutType: LayoutType) => {
+    setLayoutType(newLayoutType);
+    // Reset index when changing layouts
+    setCurrentIndex(0);
   }, []);
 
   // Image preloading
@@ -186,6 +199,7 @@ export const useSlideshow = ({
     goToIndex,
     togglePlayback,
     setCurrentIndex,
+    changeLayoutType,
   };
 };
 

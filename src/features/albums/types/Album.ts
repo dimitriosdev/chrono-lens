@@ -3,7 +3,18 @@ import { AlbumLayout } from "@/features/albums/constants/AlbumLayout";
 export interface AlbumImage {
   url: string;
   description?: string;
+  file?: File; // Optional file for upload process
+  id?: string;
 }
+
+export interface MatConfig {
+  matWidth: number;
+  matColor: string;
+  backgroundColor?: string;
+  textColor?: string;
+}
+
+export type AlbumPrivacy = "public" | "private" | "shared";
 
 export interface Album {
   id: string; // Firestore document ID
@@ -12,20 +23,13 @@ export interface Album {
   coverUrl?: string;
   images: AlbumImage[];
   layout?: AlbumLayout;
-  matConfig?: import("@/features/albums/components/MatBoard").MatConfig;
+  matConfig?: MatConfig;
   userId?: string; // Owner user ID for security and isolation (optional for backward compatibility)
   createdAt?: Date;
   updatedAt?: Date;
-  // Timing configuration for different layout types
-  timing?: {
-    slideshow?: {
-      cycleDuration: number; // seconds between slides
-    };
-    interactive?: {
-      autoAdvance: boolean; // enable auto-advance in non-slideshow layouts
-      autoAdvanceDuration: number; // seconds before auto-advance
-      transitionSpeed: "fast" | "normal" | "smooth"; // animation speed
-    };
-  };
-  // Add more fields as needed (e.g., tags, etc.)
+  cycleDuration?: number; // Simplified: just one duration setting
+  // Simple privacy settings
+  privacy: AlbumPrivacy;
+  shareToken?: string; // Simple share token for shared albums
+  tags?: string[]; // Support for tags mentioned in the form
 }

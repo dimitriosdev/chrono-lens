@@ -2,7 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
-import SlideshowDebugInfo from "./SlideshowDebugInfo";
+// import SlideshowDebugInfo from "./SlideshowDebugInfo"; // Temporarily disabled
 
 // Types
 interface MatConfig {
@@ -22,6 +22,7 @@ interface MatImageProps {
   gridInfo?: GridInfo;
   alt?: string;
   description?: string;
+  textColor?: string;
 }
 
 interface ScreenSize {
@@ -225,7 +226,7 @@ const getCaptionStyles = (
     containerMode && gridInfo && (gridInfo.rows > 1 || gridInfo.cols > 1);
 
   const baseStyles =
-    "font-medium text-white text-center overflow-hidden text-ellipsis whitespace-nowrap drop-shadow-lg";
+    "font-medium text-center overflow-hidden text-ellipsis whitespace-nowrap drop-shadow-lg";
 
   if (isMultiImageLayout) {
     return `${baseStyles} text-[10px] px-2 py-1`;
@@ -242,6 +243,7 @@ const MatImage: React.FC<MatImageProps> = ({
   gridInfo,
   alt = "Artwork",
   description,
+  textColor = "#ffffff",
 }) => {
   const matPercent = matConfig?.matWidth ?? 5;
   const matColor = matConfig?.matColor ?? "#000";
@@ -273,8 +275,8 @@ const MatImage: React.FC<MatImageProps> = ({
 
   const { artworkWidth, artworkHeight, matHorizontal, matVertical } =
     React.useMemo(() => {
-      if (isNoMat || !containerMode) {
-        // When there's no mat OR in slideshow mode, use full frame dimensions
+      if (isNoMat) {
+        // When there's no mat, use full frame dimensions
         return {
           artworkWidth: frameW,
           artworkHeight: frameH,
@@ -288,7 +290,7 @@ const MatImage: React.FC<MatImageProps> = ({
         imgAspect,
         adjustedMatPercent
       );
-    }, [frameW, frameH, imgAspect, adjustedMatPercent, isNoMat, containerMode]);
+    }, [frameW, frameH, imgAspect, adjustedMatPercent, isNoMat]);
 
   const containerStyle = React.useMemo(
     () => ({
@@ -321,22 +323,15 @@ const MatImage: React.FC<MatImageProps> = ({
 
   const artworkStyle = React.useMemo(
     () => ({
-      top: containerMode ? `${matVertical}px` : 0,
-      left: containerMode ? `${matHorizontal}px` : 0,
-      width: containerMode ? `${artworkWidth}px` : "100%",
-      height: containerMode ? `${artworkHeight}px` : "100%",
+      top: `${matVertical}px`,
+      left: `${matHorizontal}px`,
+      width: `${artworkWidth}px`,
+      height: `${artworkHeight}px`,
       background: isNoMat ? "#000" : "#fff",
       boxShadow: !isNoMat ? "0 0 0 1px #ccc" : undefined,
       zIndex: 4,
     }),
-    [
-      matVertical,
-      matHorizontal,
-      artworkWidth,
-      artworkHeight,
-      isNoMat,
-      containerMode,
-    ]
+    [matVertical, matHorizontal, artworkWidth, artworkHeight, isNoMat]
   );
 
   return (
@@ -344,17 +339,17 @@ const MatImage: React.FC<MatImageProps> = ({
       className="relative flex items-center justify-center"
       style={containerStyle}
     >
-      {/* Debug info - only in development */}
-      <SlideshowDebugInfo
+      {/* Debug info - temporarily disabled */}
+      {/* <SlideshowDebugInfo
         screenWidth={screenWidth}
         screenHeight={screenHeight}
         frameWidth={frameW}
         frameHeight={frameH}
         containerMode={containerMode}
-      />
+      /> */}
 
-      {/* Outer mat (skip if No Mat or slideshow mode) */}
-      {!isNoMat && containerMode && (
+      {/* Outer mat */}
+      {!isNoMat && (
         <div
           className="absolute rounded-xl"
           style={matStyle}
@@ -384,7 +379,10 @@ const MatImage: React.FC<MatImageProps> = ({
             <div className="bg-black/25 backdrop-blur-sm">
               <p
                 className={getCaptionStyles(containerMode, gridInfo)}
-                style={{ textShadow: "1px 1px 2px rgba(0,0,0,0.8)" }}
+                style={{ 
+                  textShadow: "1px 1px 2px rgba(0,0,0,0.8)",
+                  color: textColor
+                }}
               >
                 {description}
               </p>

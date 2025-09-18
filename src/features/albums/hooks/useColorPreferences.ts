@@ -1,5 +1,6 @@
 import React from "react";
 import { Album } from "@/features/albums/types/Album";
+import { updateAlbum } from "@/shared/lib/firestore";
 
 interface ColorPreferences {
   selectedMatColor: string | null;
@@ -14,8 +15,9 @@ interface ColorPreferences {
 interface ColorActions {
   selectMatColor: (color: string) => void;
   selectBackgroundColor: (color: string) => void;
-  resetMatColor: () => void;
-  resetBackgroundColor: () => void;
+  saveColors: () => Promise<void>;
+  resetMatColor: () => Promise<void>;
+  resetBackgroundColor: () => Promise<void>;
   toggleAlbumTitle: () => void;
 }
 
@@ -24,8 +26,6 @@ interface ColorPreferencesHookReturn extends ColorPreferences, ColorActions {
 }
 
 // Storage keys
-const MAT_COLOR_KEY = "chrono-lens-mat-color";
-const BACKGROUND_COLOR_KEY = "chrono-lens-background-color";
 const SHOW_ALBUM_TITLE_KEY = "chrono-lens-show-album-title";
 
 export const useColorPreferences = (
@@ -42,47 +42,25 @@ export const useColorPreferences = (
 
   // Album colors
   const albumMatColor = album?.matConfig?.matColor;
-  const albumBackgroundColor = (
-    album?.matConfig as { backgroundColor?: string }
-  )?.backgroundColor;
+  const albumBackgroundColor = album?.matConfig?.backgroundColor;
+  const albumTextColor = album?.matConfig?.textColor;
 
-  // Initialize colors from localStorage when album loads
+  // Initialize colors when album loads
   React.useEffect(() => {
-    if (albumMatColor && !isInitialized) {
-      // Load saved preferences
-      const savedMatColor = localStorage.getItem(MAT_COLOR_KEY);
-      const savedBackgroundColor = localStorage.getItem(BACKGROUND_COLOR_KEY);
+    if (album && !isInitialized) {
+      // Initialize selected colors with current album values for immediate feedback
+      setSelectedMatColor(albumMatColor || null);
+      setSelectedBackgroundColor(albumBackgroundColor || null);
+
+      // Load show title preference from localStorage
       const savedShowTitle = localStorage.getItem(SHOW_ALBUM_TITLE_KEY);
-
-      if (savedMatColor) {
-        setSelectedMatColor(savedMatColor);
-      }
-
-      if (savedBackgroundColor) {
-        setSelectedBackgroundColor(savedBackgroundColor);
-      }
-
       if (savedShowTitle !== null) {
         setShowAlbumTitle(savedShowTitle === "true");
       }
 
       setIsInitialized(true);
     }
-  }, [albumMatColor, isInitialized]);
-
-  // Save mat color to localStorage (only after initialization)
-  React.useEffect(() => {
-    if (isInitialized && selectedMatColor) {
-      localStorage.setItem(MAT_COLOR_KEY, selectedMatColor);
-    }
-  }, [selectedMatColor, isInitialized]);
-
-  // Save background color to localStorage (only after initialization)
-  React.useEffect(() => {
-    if (isInitialized && selectedBackgroundColor) {
-      localStorage.setItem(BACKGROUND_COLOR_KEY, selectedBackgroundColor);
-    }
-  }, [selectedBackgroundColor, isInitialized]);
+  }, [album, albumMatColor, albumBackgroundColor, isInitialized]);
 
   // Save show album title to localStorage (only after initialization)
   React.useEffect(() => {
@@ -91,10 +69,10 @@ export const useColorPreferences = (
     }
   }, [showAlbumTitle, isInitialized]);
 
-  // Computed effective colors
+  // Computed effective colors - use selected colors for immediate feedback, fall back to album colors
   const effectiveMatColor = selectedMatColor || albumMatColor || "#000";
   const effectiveBackgroundColor =
-    selectedBackgroundColor || albumBackgroundColor || "#1a1a1a";
+    selectedBackgroundColor || albumBackgroundColor || "#ffffff";
 
   // Actions
   const selectMatColor = React.useCallback((color: string) => {
@@ -105,15 +83,68 @@ export const useColorPreferences = (
     setSelectedBackgroundColor(color);
   }, []);
 
-  const resetMatColor = React.useCallback(() => {
-    setSelectedMatColor(null);
-    localStorage.removeItem(MAT_COLOR_KEY);
-  }, []);
+  const saveColors = React.useCallback(async () => {
+    // Save current selected colors to database if album exists
+    if (album?.id) {
+      try {
+        await updateAlbum(album.id, {
+          matConfig: {
+            ...album.matConfig,
+            matColor: selectedMatColor || album.matConfig?.matColor || "#000",
+            backgroundColor:
+              selectedBackgroundColor ||
+              album.matConfig?.backgroundColor ||
+              "#ffffff",
+            matWidth: album.matConfig?.matWidth || 20,
+          },
+        });
+      } catch (error) {
+        console.error("Failed to save colors to database:", error);
+        throw error; // Re-throw so the UI can handle the error
+      }
+    } else {
+      console.warn("Cannot save colors: no album ID");
+    }
+  }, [album, selectedMatColor, selectedBackgroundColor]);
 
-  const resetBackgroundColor = React.useCallback(() => {
+  const resetMatColor = React.useCallback(async () => {
+    setSelectedMatColor(null);
+
+    // Reset to default in database if album exists
+    if (album?.id) {
+      try {
+        await updateAlbum(album.id, {
+          matConfig: {
+            ...album.matConfig,
+            matColor: "#000", // Reset to default
+            matWidth: album.matConfig?.matWidth || 20,
+          },
+        });
+      } catch (error) {
+        console.error("Failed to reset mat color in database:", error);
+      }
+    }
+  }, [album]);
+
+  const resetBackgroundColor = React.useCallback(async () => {
     setSelectedBackgroundColor(null);
-    localStorage.removeItem(BACKGROUND_COLOR_KEY);
-  }, []);
+
+    // Reset to default in database if album exists
+    if (album?.id) {
+      try {
+        await updateAlbum(album.id, {
+          matConfig: {
+            ...album.matConfig,
+            backgroundColor: "#ffffff", // Reset to default
+            matColor: album.matConfig?.matColor || "#000",
+            matWidth: album.matConfig?.matWidth || 20,
+          },
+        });
+      } catch (error) {
+        console.error("Failed to reset background color in database:", error);
+      }
+    }
+  }, [album]);
 
   const toggleAlbumTitle = React.useCallback(() => {
     setShowAlbumTitle((prev) => !prev);
@@ -133,6 +164,7 @@ export const useColorPreferences = (
     // Actions
     selectMatColor,
     selectBackgroundColor,
+    saveColors,
     resetMatColor,
     resetBackgroundColor,
     toggleAlbumTitle,
