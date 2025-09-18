@@ -23,7 +23,7 @@ const ColorPicker: React.FC<ColorPickerProps> = ({
       <label className="block text-sm font-medium text-neutral-900 dark:text-neutral-100">
         {label}
       </label>
-      
+
       {/* Preset colors grid */}
       <div className="grid grid-cols-4 gap-2">
         {matColors.map((colorOption) => (
