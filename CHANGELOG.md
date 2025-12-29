@@ -1,3 +1,10 @@
+## [2.8.1](https://github.com/dimitriosdev/chrono-lens/compare/v2.8.0...v2.8.1) (2025-12-29)
+
+
+### Bug Fixes
+
+* update frameAssembly prop to use matConfig instead of customization ([e8e6aec](https://github.com/dimitriosdev/chrono-lens/commit/e8e6aec93cefc74c97d644dec6a11da7a7613d39))
+
 # [2.8.0](https://github.com/dimitriosdev/chrono-lens/compare/v2.7.0...v2.8.0) (2025-12-29)
 
 
