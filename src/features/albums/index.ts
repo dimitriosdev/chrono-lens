@@ -11,7 +11,10 @@ export { ImageGrid } from "./components/ImageGrid";
 export { default as ImageProcessingStatus } from "./components/ImageProcessingStatus";
 
 // Layout Components
-export { LayoutViewer, LayoutSelector } from "./components";
+export { LayoutViewer } from "./components";
+
+// Advanced Frame Components
+export { FrameTexturePicker, MultiOpeningMat } from "./components";
 
 // Form Components
 export * from "./components/forms";
@@ -24,3 +27,6 @@ export * from "./types/Album";
 
 // Constants
 export * from "./constants/AlbumLayout";
+
+// Frame texture constants
+export * from "../../shared/constants/frameTextures";

@@ -4,9 +4,12 @@ export { default as EnhancedColorPicker } from "./EnhancedColorPicker";
 export { default as SlideshowErrorBoundary } from "./SlideshowErrorBoundary";
 export { default as ImageErrorBoundary } from "./ImageErrorBoundary";
 
-// New layout system
+// Layout Components
 export { LayoutViewer } from "./LayoutViewer";
-export { LayoutSelector } from "./LayoutSelector";
+
+// Advanced Frame Components
+export { FrameTexturePicker } from "./FrameTexturePicker";
+export { MultiOpeningMat } from "./MultiOpeningMat";
 
 // Enhanced Form Components
 export { default as AlbumForm } from "./AlbumForm";

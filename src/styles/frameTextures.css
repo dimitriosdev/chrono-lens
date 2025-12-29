@@ -1,0 +1,980 @@
+/**
+ * Advanced Frame and Mat Texture CSS
+ * Realistic textures and effects for digital frame simulation
+ */
+
+/* ==================================================================
+   WOOD TEXTURES
+   ================================================================== */
+
+/* Natural Oak */
+.texture-oak-natural {
+  background: linear-gradient(
+    90deg,
+    #D2B48C 0%,
+    #E6D3A3 25%,
+    #D2B48C 50%,
+    #A0855B 75%,
+    #D2B48C 100%
+  );
+  background-size: 120px 20px;
+  position: relative;
+}
+
+.texture-oak-natural::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(ellipse 3px 8px at 20% 30%, rgba(160, 133, 91, 0.8) 0%, transparent 50%),
+    radial-gradient(ellipse 2px 6px at 80% 70%, rgba(160, 133, 91, 0.6) 0%, transparent 50%),
+    linear-gradient(
+      0deg,
+      transparent 40%,
+      rgba(160, 133, 91, 0.1) 45%,
+      rgba(160, 133, 91, 0.2) 50%,
+      rgba(160, 133, 91, 0.1) 55%,
+      transparent 60%
+    );
+  background-size: 120px 20px, 150px 25px, 8px 40px;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+/* Rich Mahogany */
+.texture-mahogany-rich {
+  background: linear-gradient(
+    45deg,
+    #8B4513 0%,
+    #A0522D 30%,
+    #8B4513 60%,
+    #654321 90%
+  );
+  background-size: 80px 25px;
+  position: relative;
+}
+
+.texture-mahogany-rich::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(
+      90deg,
+      transparent 30%,
+      rgba(101, 67, 33, 0.3) 40%,
+      rgba(101, 67, 33, 0.5) 50%,
+      rgba(101, 67, 33, 0.3) 60%,
+      transparent 70%
+    );
+  background-size: 60px 15px;
+  opacity: 0.8;
+}
+
+/* Distressed Pine */
+.texture-pine-distressed {
+  background: linear-gradient(
+    0deg,
+    #F5DEB3 0%,
+    #FAEBD7 20%,
+    #F5DEB3 40%,
+    #E6D3A3 60%,
+    #F5DEB3 80%,
+    #D2B48C 100%
+  );
+  background-size: 15px 100px;
+  position: relative;
+}
+
+.texture-pine-distressed::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(ellipse 8px 3px at 25% 20%, rgba(210, 180, 140, 0.9) 0%, transparent 70%),
+    radial-gradient(ellipse 6px 2px at 75% 60%, rgba(210, 180, 140, 0.7) 0%, transparent 70%),
+    radial-gradient(ellipse 4px 2px at 40% 80%, rgba(210, 180, 140, 0.8) 0%, transparent 70%);
+  background-size: 80px 120px, 100px 90px, 60px 110px;
+  opacity: 0.6;
+}
+
+/* Dark Walnut */
+.texture-walnut-dark {
+  background: linear-gradient(
+    135deg,
+    #3C2415 0%,
+    #4A2C17 25%,
+    #3C2415 50%,
+    #2B1A0F 75%,
+    #3C2415 100%
+  );
+  background-size: 100px 30px;
+  position: relative;
+}
+
+.texture-walnut-dark::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(
+      45deg,
+      transparent 35%,
+      rgba(43, 26, 15, 0.6) 45%,
+      rgba(43, 26, 15, 0.8) 50%,
+      rgba(43, 26, 15, 0.6) 55%,
+      transparent 65%
+    );
+  background-size: 70px 20px;
+  opacity: 0.9;
+}
+
+/* Reclaimed Barn Wood */
+.texture-reclaimed-barn {
+  background: linear-gradient(
+    0deg,
+    #8B7D6B 0%,
+    #A69687 15%,
+    #8B7D6B 30%,
+    #6B5B47 45%,
+    #8B7D6B 60%,
+    #A69687 75%,
+    #8B7D6B 90%,
+    #6B5B47 100%
+  );
+  background-size: 20px 150px;
+  position: relative;
+}
+
+.texture-reclaimed-barn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    /* Weathering stains */
+    radial-gradient(ellipse 15px 8px at 30% 25%, rgba(107, 91, 71, 0.8) 0%, transparent 70%),
+    radial-gradient(ellipse 12px 6px at 70% 65%, rgba(107, 91, 71, 0.6) 0%, transparent 70%),
+    /* Scratch marks */
+    linear-gradient(
+      85deg,
+      transparent 48%,
+      rgba(107, 91, 71, 0.9) 49%,
+      rgba(107, 91, 71, 0.9) 51%,
+      transparent 52%
+    ),
+    /* Age lines */
+    linear-gradient(
+      0deg,
+      transparent 45%,
+      rgba(139, 125, 107, 0.4) 48%,
+      rgba(139, 125, 107, 0.6) 50%,
+      rgba(139, 125, 107, 0.4) 52%,
+      transparent 55%
+    );
+  background-size: 100px 80px, 120px 90px, 200px 5px, 25px 100px;
+  opacity: 0.7;
+}
+
+/* ==================================================================
+   METAL TEXTURES
+   ================================================================== */
+
+/* Brushed Aluminum */
+.texture-brushed-aluminum {
+  background: linear-gradient(
+    90deg,
+    #C0C0C0 0%,
+    #E6E6E6 25%,
+    #C0C0C0 50%,
+    #999999 75%,
+    #C0C0C0 100%
+  );
+  background-size: 2px 100%;
+  position: relative;
+}
+
+.texture-brushed-aluminum::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(230, 230, 230, 0.8) 45%,
+      rgba(255, 255, 255, 0.9) 50%,
+      rgba(230, 230, 230, 0.8) 55%,
+      transparent 100%
+    );
+  background-size: 1px 100%;
+  opacity: 0.6;
+}
+
+/* Gold Leaf */
+.texture-gold-leaf {
+  background: radial-gradient(
+    ellipse at center,
+    #FFD700 0%,
+    #FFFF99 30%,
+    #FFD700 70%,
+    #B8860B 100%
+  );
+  position: relative;
+}
+
+.texture-gold-leaf::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(ellipse 8px 4px at 20% 30%, rgba(255, 255, 153, 0.8) 0%, transparent 70%),
+    radial-gradient(ellipse 6px 3px at 80% 70%, rgba(255, 255, 153, 0.6) 0%, transparent 70%),
+    radial-gradient(ellipse 10px 5px at 50% 20%, rgba(255, 255, 153, 0.9) 0%, transparent 70%);
+  background-size: 40px 30px, 50px 40px, 30px 25px;
+  opacity: 0.7;
+}
+
+/* Antique Bronze */
+.texture-antique-bronze {
+  background: radial-gradient(
+    ellipse at center,
+    #CD7F32 0%,
+    #D2B48C 40%,
+    #8B4513 80%,
+    #654321 100%
+  );
+  position: relative;
+}
+
+.texture-antique-bronze::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(ellipse 12px 8px at 25% 35%, rgba(101, 67, 33, 0.8) 0%, transparent 70%),
+    radial-gradient(ellipse 15px 10px at 75% 65%, rgba(139, 69, 19, 0.6) 0%, transparent 70%),
+    /* Patina spots */
+    radial-gradient(ellipse 5px 3px at 60% 20%, rgba(0, 100, 0, 0.3) 0%, transparent 70%),
+    radial-gradient(ellipse 4px 2px at 30% 80%, rgba(0, 100, 0, 0.2) 0%, transparent 70%);
+  background-size: 60px 50px, 80px 60px, 40px 30px, 35px 25px;
+  opacity: 0.8;
+}
+
+/* Pewter Hammered */
+.texture-pewter-hammered {
+  background: radial-gradient(
+    ellipse at center,
+    #96A0A0 0%,
+    #B8C0C0 50%,
+    #708090 100%
+  );
+  position: relative;
+}
+
+.texture-pewter-hammered::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(ellipse 3px 2px at 20% 20%, rgba(112, 128, 144, 0.8) 0%, transparent 100%),
+    radial-gradient(ellipse 2px 1px at 80% 30%, rgba(184, 192, 192, 0.9) 0%, transparent 100%),
+    radial-gradient(ellipse 4px 3px at 40% 70%, rgba(112, 128, 144, 0.7) 0%, transparent 100%),
+    radial-gradient(ellipse 2px 2px at 70% 80%, rgba(184, 192, 192, 0.8) 0%, transparent 100%),
+    radial-gradient(ellipse 3px 2px at 15% 60%, rgba(112, 128, 144, 0.9) 0%, transparent 100%);
+  background-size: 15px 12px, 18px 15px, 20px 16px, 12px 10px, 16px 13px;
+  opacity: 0.9;
+}
+
+/* Oxidized Copper */
+.texture-oxidized-copper {
+  background: radial-gradient(
+    ellipse at center,
+    #B87333 0%,
+    #CD853F 30%,
+    #8B4513 70%,
+    #654321 100%
+  );
+  position: relative;
+}
+
+.texture-oxidized-copper::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(ellipse 8px 5px at 30% 25%, rgba(0, 128, 128, 0.6) 0%, transparent 80%),
+    radial-gradient(ellipse 12px 8px at 70% 60%, rgba(0, 100, 100, 0.5) 0%, transparent 80%),
+    radial-gradient(ellipse 6px 4px at 50% 80%, rgba(0, 128, 128, 0.7) 0%, transparent 80%),
+    radial-gradient(ellipse 10px 6px at 15% 70%, rgba(0, 100, 100, 0.4) 0%, transparent 80%);
+  background-size: 50px 40px, 70px 55px, 40px 30px, 60px 45px;
+  opacity: 0.8;
+}
+
+/* ==================================================================
+   FABRIC TEXTURES
+   ================================================================== */
+
+/* Natural Linen */
+.texture-linen-natural {
+  background: linear-gradient(
+    90deg,
+    #FAF0E6 0%,
+    #FFFAF0 25%,
+    #FAF0E6 50%,
+    #F5DEB3 75%,
+    #FAF0E6 100%
+  );
+  background-size: 3px 100%;
+  position: relative;
+}
+
+.texture-linen-natural::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(
+      0deg,
+      transparent 40%,
+      rgba(245, 222, 179, 0.3) 45%,
+      rgba(245, 222, 179, 0.5) 50%,
+      rgba(245, 222, 179, 0.3) 55%,
+      transparent 60%
+    );
+  background-size: 100% 2px;
+  opacity: 0.6;
+}
+
+/* Canvas Heavyweight */
+.texture-canvas-heavy {
+  background: linear-gradient(
+    45deg,
+    #F5F5DC 0%,
+    #FFFAF0 25%,
+    #F5F5DC 50%,
+    #DDD8C7 75%,
+    #F5F5DC 100%
+  );
+  background-size: 8px 8px;
+  position: relative;
+}
+
+.texture-canvas-heavy::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(
+      90deg,
+      transparent 35%,
+      rgba(221, 216, 199, 0.4) 40%,
+      rgba(221, 216, 199, 0.6) 50%,
+      rgba(221, 216, 199, 0.4) 60%,
+      transparent 65%
+    ),
+    linear-gradient(
+      0deg,
+      transparent 35%,
+      rgba(221, 216, 199, 0.3) 40%,
+      rgba(221, 216, 199, 0.5) 50%,
+      rgba(221, 216, 199, 0.3) 60%,
+      transparent 65%
+    );
+  background-size: 4px 100%, 100% 4px;
+  opacity: 0.7;
+}
+
+/* Silk Dupioni */
+.texture-silk-dupioni {
+  background: linear-gradient(
+    135deg,
+    #F8F8FF 0%,
+    #FFFFFF 30%,
+    #E6E6FA 60%,
+    #F8F8FF 100%
+  );
+  position: relative;
+}
+
+.texture-silk-dupioni::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(
+      45deg,
+      transparent 48%,
+      rgba(230, 230, 250, 0.8) 49%,
+      rgba(255, 255, 255, 0.9) 50%,
+      rgba(230, 230, 250, 0.8) 51%,
+      transparent 52%
+    );
+  background-size: 20px 20px;
+  opacity: 0.5;
+}
+
+/* Deep Velvet */
+.texture-velvet-deep {
+  background: radial-gradient(
+    ellipse at center,
+    #2F4F4F 0%,
+    #696969 50%,
+    #1C1C1C 100%
+  );
+  position: relative;
+}
+
+.texture-velvet-deep::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(ellipse 2px 1px at 20% 30%, rgba(105, 105, 105, 0.8) 0%, transparent 100%),
+    radial-gradient(ellipse 1px 2px at 80% 70%, rgba(105, 105, 105, 0.6) 0%, transparent 100%),
+    radial-gradient(ellipse 2px 2px at 50% 20%, rgba(105, 105, 105, 0.7) 0%, transparent 100%);
+  background-size: 8px 6px, 6px 8px, 10px 10px;
+  opacity: 0.9;
+}
+
+/* Rustic Burlap */
+.texture-burlap-rustic {
+  background: linear-gradient(
+    90deg,
+    #DEB887 0%,
+    #F5DEB3 25%,
+    #DEB887 50%,
+    #CD853F 75%,
+    #DEB887 100%
+  );
+  background-size: 12px 100%;
+  position: relative;
+}
+
+.texture-burlap-rustic::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(
+      0deg,
+      transparent 30%,
+      rgba(205, 133, 63, 0.5) 40%,
+      rgba(205, 133, 63, 0.7) 50%,
+      rgba(205, 133, 63, 0.5) 60%,
+      transparent 70%
+    );
+  background-size: 100% 10px;
+  opacity: 0.8;
+}
+
+/* ==================================================================
+   PAPER TEXTURES
+   ================================================================== */
+
+/* Cold Press Watercolor */
+.texture-watercolor-cold {
+  background: linear-gradient(
+    45deg,
+    #FFFEF7 0%,
+    #FFFFFF 30%,
+    #F8F6F0 60%,
+    #FFFEF7 100%
+  );
+  position: relative;
+}
+
+.texture-watercolor-cold::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(ellipse 2px 1px at 25% 35%, rgba(248, 246, 240, 0.8) 0%, transparent 100%),
+    radial-gradient(ellipse 1px 2px at 75% 65%, rgba(248, 246, 240, 0.6) 0%, transparent 100%),
+    radial-gradient(ellipse 3px 2px at 50% 20%, rgba(248, 246, 240, 0.7) 0%, transparent 100%);
+  background-size: 15px 12px, 18px 15px, 20px 16px;
+  opacity: 0.6;
+}
+
+/* Museum Board */
+.texture-museum-board {
+  background: linear-gradient(
+    to bottom,
+    #F8F8F8 0%,
+    #FFFFFF 50%,
+    #F0F0F0 100%
+  );
+  position: relative;
+}
+
+.texture-museum-board::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    linear-gradient(
+      45deg,
+      transparent 49%,
+      rgba(240, 240, 240, 0.3) 50%,
+      transparent 51%
+    );
+  background-size: 200px 200px;
+  opacity: 0.2;
+}
+
+/* Handmade Rag Paper */
+.texture-handmade-rag {
+  background: linear-gradient(
+    135deg,
+    #FFF8DC 0%,
+    #FFFEF7 40%,
+    #F5F5DC 80%,
+    #FFF8DC 100%
+  );
+  position: relative;
+}
+
+.texture-handmade-rag::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(ellipse 6px 3px at 20% 25%, rgba(245, 245, 220, 0.8) 0%, transparent 70%),
+    radial-gradient(ellipse 4px 2px at 80% 75%, rgba(245, 245, 220, 0.6) 0%, transparent 70%),
+    radial-gradient(ellipse 8px 4px at 50% 50%, rgba(245, 245, 220, 0.7) 0%, transparent 70%),
+    /* Fiber texture */
+    linear-gradient(
+      75deg,
+      transparent 48%,
+      rgba(245, 245, 220, 0.4) 49%,
+      rgba(245, 245, 220, 0.4) 51%,
+      transparent 52%
+    );
+  background-size: 50px 40px, 60px 45px, 40px 30px, 100px 3px;
+  opacity: 0.8;
+}
+
+/* Aged Parchment */
+.texture-parchment-aged {
+  background: radial-gradient(
+    ellipse at center,
+    #F5E6D3 0%,
+    #FAF0E6 50%,
+    #E6D3A3 100%
+  );
+  position: relative;
+}
+
+.texture-parchment-aged::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(ellipse 15px 10px at 30% 20%, rgba(230, 211, 163, 0.6) 0%, transparent 70%),
+    radial-gradient(ellipse 20px 12px at 70% 80%, rgba(230, 211, 163, 0.4) 0%, transparent 70%),
+    radial-gradient(ellipse 10px 8px at 20% 70%, rgba(230, 211, 163, 0.5) 0%, transparent 70%);
+  background-size: 80px 60px, 100px 70px, 60px 50px;
+  opacity: 0.7;
+}
+
+/* ==================================================================
+   SPECIALTY TEXTURES
+   ================================================================== */
+
+/* Tooled Leather */
+.texture-leather-tooled {
+  background: radial-gradient(
+    ellipse at center,
+    #8B4513 0%,
+    #A0522D 50%,
+    #654321 100%
+  );
+  position: relative;
+}
+
+.texture-leather-tooled::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    /* Embossed pattern */
+    radial-gradient(ellipse 8px 6px at 25% 25%, rgba(101, 67, 33, 0.8) 0%, transparent 70%),
+    radial-gradient(ellipse 6px 4px at 75% 75%, rgba(160, 82, 45, 0.6) 0%, transparent 70%),
+    /* Tool marks */
+    linear-gradient(
+      45deg,
+      transparent 47%,
+      rgba(101, 67, 33, 0.7) 48%,
+      rgba(101, 67, 33, 0.7) 52%,
+      transparent 53%
+    );
+  background-size: 40px 30px, 50px 40px, 60px 60px;
+  opacity: 0.8;
+}
+
+/* Polished Granite */
+.texture-granite-polished {
+  background: radial-gradient(
+    ellipse at center,
+    #696969 0%,
+    #A9A9A9 30%,
+    #2F4F4F 70%,
+    #696969 100%
+  );
+  position: relative;
+}
+
+.texture-granite-polished::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(ellipse 2px 1px at 20% 30%, rgba(255, 255, 255, 0.9) 0%, transparent 50%),
+    radial-gradient(ellipse 1px 2px at 80% 70%, rgba(0, 0, 0, 0.8) 0%, transparent 50%),
+    radial-gradient(ellipse 3px 2px at 50% 20%, rgba(169, 169, 169, 0.7) 0%, transparent 60%),
+    radial-gradient(ellipse 1px 1px at 30% 80%, rgba(255, 255, 255, 0.8) 0%, transparent 40%),
+    radial-gradient(ellipse 2px 3px at 70% 40%, rgba(47, 79, 79, 0.9) 0%, transparent 50%);
+  background-size: 15px 12px, 18px 15px, 25px 20px, 10px 8px, 20px 16px;
+  opacity: 0.9;
+}
+
+/* Frosted Glass */
+.texture-glass-frosted {
+  background: linear-gradient(
+    135deg,
+    #F0F8FF 0%,
+    #FFFFFF 50%,
+    #E6E6FA 100%
+  );
+  position: relative;
+}
+
+.texture-glass-frosted::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(ellipse 4px 2px at 25% 35%, rgba(230, 230, 250, 0.6) 0%, transparent 80%),
+    radial-gradient(ellipse 3px 1px at 75% 65%, rgba(255, 255, 255, 0.8) 0%, transparent 80%),
+    radial-gradient(ellipse 5px 3px at 50% 20%, rgba(230, 230, 250, 0.5) 0%, transparent 80%);
+  background-size: 20px 15px, 25px 18px, 30px 22px;
+  opacity: 0.7;
+}
+
+/* ==================================================================
+   CORNER JOINT STYLES
+   ================================================================== */
+
+/* Miter Joint */
+.corner-joint-miter {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+}
+
+.corner-joint-miter::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(45deg, transparent 48%, rgba(0, 0, 0, 0.1) 50%, transparent 52%);
+  pointer-events: none;
+}
+
+/* Butt Joint */
+.corner-joint-butt {
+  border-radius: 0;
+}
+
+.corner-joint-butt::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 2px;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+}
+
+/* Lap Joint */
+.corner-joint-lap::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 20%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.1) 100%);
+  pointer-events: none;
+}
+
+/* Dovetail Joint */
+.corner-joint-dovetail::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 100%;
+  height: 100%;
+  background: 
+    linear-gradient(45deg, transparent 40%, rgba(0, 0, 0, 0.1) 45%, transparent 50%),
+    linear-gradient(-45deg, transparent 40%, rgba(0, 0, 0, 0.1) 45%, transparent 50%);
+  background-size: 20px 20px;
+  pointer-events: none;
+}
+
+/* ==================================================================
+   WEAR AND AGING EFFECTS
+   ================================================================== */
+
+/* Light Wear */
+.wear-light::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(ellipse 20px 10px at 20% 20%, rgba(0, 0, 0, 0.05) 0%, transparent 70%),
+    radial-gradient(ellipse 15px 8px at 80% 80%, rgba(0, 0, 0, 0.03) 0%, transparent 70%);
+  background-size: 100px 80px, 120px 90px;
+  pointer-events: none;
+}
+
+/* Moderate Wear */
+.wear-moderate::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(ellipse 30px 15px at 25% 30%, rgba(0, 0, 0, 0.1) 0%, transparent 70%),
+    radial-gradient(ellipse 25px 12px at 75% 70%, rgba(0, 0, 0, 0.08) 0%, transparent 70%),
+    linear-gradient(45deg, transparent 48%, rgba(0, 0, 0, 0.05) 50%, transparent 52%);
+  background-size: 80px 60px, 100px 70px, 200px 2px;
+  pointer-events: none;
+}
+
+/* Heavy Wear */
+.wear-heavy::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(ellipse 40px 20px at 30% 25%, rgba(0, 0, 0, 0.15) 0%, transparent 70%),
+    radial-gradient(ellipse 35px 18px at 70% 75%, rgba(0, 0, 0, 0.12) 0%, transparent 70%),
+    linear-gradient(30deg, transparent 47%, rgba(0, 0, 0, 0.08) 50%, transparent 53%),
+    linear-gradient(120deg, transparent 47%, rgba(0, 0, 0, 0.06) 50%, transparent 53%);
+  background-size: 60px 50px, 80px 60px, 150px 3px, 180px 2px;
+  pointer-events: none;
+}
+
+/* Vintage Patina */
+.wear-vintage::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: 
+    radial-gradient(ellipse 50px 25px at 40% 30%, rgba(139, 69, 19, 0.1) 0%, transparent 80%),
+    radial-gradient(ellipse 35px 20px at 60% 70%, rgba(160, 82, 45, 0.08) 0%, transparent 80%),
+    radial-gradient(ellipse 25px 15px at 20% 80%, rgba(139, 69, 19, 0.06) 0%, transparent 80%);
+  background-size: 100px 80px, 120px 90px, 80px 60px;
+  pointer-events: none;
+}
+
+/* ==================================================================
+   MAT THICKNESS VARIATIONS
+   ================================================================== */
+
+.mat-thin {
+  padding: 20px;
+  border-width: 1px;
+}
+
+.mat-standard {
+  padding: 40px;
+  border-width: 2px;
+}
+
+.mat-thick {
+  padding: 60px;
+  border-width: 3px;
+}
+
+.mat-extra-thick {
+  padding: 80px;
+  border-width: 4px;
+}
+
+.mat-gallery {
+  padding: 100px;
+  border-width: 5px;
+}
+
+/* ==================================================================
+   MAT BEVEL EFFECTS
+   ================================================================== */
+
+.mat-bevel-30 {
+  box-shadow: 
+    inset 0 0 0 2px rgba(0, 0, 0, 0.1),
+    inset 2px 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.mat-bevel-45 {
+  box-shadow: 
+    inset 0 0 0 3px rgba(0, 0, 0, 0.1),
+    inset 3px 3px 6px rgba(0, 0, 0, 0.08);
+}
+
+.mat-bevel-60 {
+  box-shadow: 
+    inset 0 0 0 4px rgba(0, 0, 0, 0.1),
+    inset 4px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* ==================================================================
+   FRAME DEPTH AND SHADOW EFFECTS
+   ================================================================== */
+
+.frame-depth-shallow {
+  box-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.1),
+    0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.frame-depth-medium {
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.12),
+    0 2px 4px rgba(0, 0, 0, 0.08);
+}
+
+.frame-depth-deep {
+  box-shadow: 
+    0 8px 16px rgba(0, 0, 0, 0.15),
+    0 4px 8px rgba(0, 0, 0, 0.1),
+    inset 0 1px 2px rgba(255, 255, 255, 0.1);
+}
+
+.frame-depth-dramatic {
+  box-shadow: 
+    0 12px 24px rgba(0, 0, 0, 0.18),
+    0 6px 12px rgba(0, 0, 0, 0.12),
+    inset 0 2px 4px rgba(255, 255, 255, 0.1),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.05);
+}
+
+/* ==================================================================
+   MULTI-OPENING MAT LAYOUTS
+   ================================================================== */
+
+.mat-opening-double {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.mat-opening-triple {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 15px;
+}
+
+.mat-opening-quad {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 15px;
+}
+
+.mat-opening-custom {
+  display: grid;
+  gap: 10px;
+}
+
+/* ==================================================================
+   RESPONSIVE FRAME SCALING
+   ================================================================== */
+
+@media (max-width: 768px) {
+  .mat-gallery {
+    padding: 60px;
+  }
+  
+  .mat-extra-thick {
+    padding: 50px;
+  }
+  
+  .mat-thick {
+    padding: 40px;
+  }
+}
+
+@media (max-width: 480px) {
+  .mat-gallery {
+    padding: 40px;
+  }
+  
+  .mat-extra-thick {
+    padding: 30px;
+  }
+  
+  .mat-thick {
+    padding: 25px;
+  }
+  
+  .mat-standard {
+    padding: 20px;
+  }
+}
+
+/* ==================================================================
+   UTILITY CLASSES
+   ================================================================== */
+
+.frame-realistic {
+  position: relative;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.mat-realistic {
+  position: relative;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.texture-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  opacity: 0.8;
+}
+
+.frame-highlight {
+  position: relative;
+}
+
+.frame-highlight::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 20%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.1) 0%, transparent 100%);
+  pointer-events: none;
+}
+
+.frame-shadow {
+  position: relative;
+}
+
+.frame-shadow::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 20%;
+  background: linear-gradient(0deg, rgba(0, 0, 0, 0.1) 0%, transparent 100%);
+  pointer-events: none;
+}

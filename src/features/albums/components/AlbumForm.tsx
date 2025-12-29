@@ -36,6 +36,9 @@ import {
 import { PayloadSizeIndicator } from "./PayloadSizeIndicator";
 import { matColors } from "@/features/albums/hooks/useColorPreferences";
 import ColorPicker from "./ColorPicker";
+import { FrameTexturePicker } from "./FrameTexturePicker";
+import { FrameAssembly } from "@/shared/types/frameTextures";
+import { FRAME_PRESETS } from "@/shared/constants/frameTextures";
 
 interface AlbumFormProps {
   album?: Album;
@@ -77,6 +80,8 @@ interface FormData {
     matColor?: string;
     backgroundImage?: string;
     music?: string;
+    frameAssembly?: FrameAssembly;
+    useAdvancedFraming?: boolean;
   };
   timing?: {
     slideshow?: {
@@ -673,6 +678,29 @@ export const AlbumForm: React.FC<AlbumFormProps> = ({
                   customization: {
                     ...prev.customization,
                     textColor: color,
+                  },
+                }))
+              }
+            />
+          </div>
+
+          {/* Frame Texture System */}
+          <div className="space-y-4">
+            <h4 className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
+              Advanced Frame System
+            </h4>
+            <FrameTexturePicker
+              assembly={
+                formData.customization.frameAssembly ||
+                FRAME_PRESETS[0].assembly
+              }
+              onAssemblyChange={(frameAssembly: FrameAssembly) =>
+                setFormData((prev) => ({
+                  ...prev,
+                  customization: {
+                    ...prev.customization,
+                    frameAssembly,
+                    useAdvancedFraming: true,
                   },
                 }))
               }

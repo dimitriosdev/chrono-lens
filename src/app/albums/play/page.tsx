@@ -10,7 +10,7 @@ import {
 } from "@heroicons/react/24/solid";
 
 // Types and API
-import { Album } from "@/features/albums/types/Album";
+import { Album } from "@/shared/types/album";
 import { getAlbum } from "@/shared/lib/firestore";
 
 // Context and hooks
@@ -206,6 +206,7 @@ const SlideshowPage: React.FC = () => {
           currentIndex={slideshow.currentIndex}
           onNext={slideshow.goToNext}
           onPrevious={slideshow.goToPrevious}
+          frameAssembly={album.customization?.frameAssembly}
         />
       </div>
     </SlideshowErrorBoundary>

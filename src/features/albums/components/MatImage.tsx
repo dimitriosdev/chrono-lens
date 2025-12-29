@@ -2,6 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
+import { EnhancedMatConfig } from "@/shared/types/album";
 // import SlideshowDebugInfo from "./SlideshowDebugInfo"; // Temporarily disabled
 
 // Types
@@ -17,7 +18,7 @@ interface GridInfo {
 
 interface MatImageProps {
   src: string;
-  matConfig: MatConfig;
+  matConfig: MatConfig | EnhancedMatConfig;
   containerMode?: boolean;
   gridInfo?: GridInfo;
   alt?: string;
@@ -249,6 +250,11 @@ const MatImage: React.FC<MatImageProps> = ({
   const matColor = matConfig?.matColor ?? "#000";
   const isNoMat = matColor === "#000";
 
+  // Check if using enhanced framing system
+  const isEnhancedConfig =
+    "frameAssembly" in matConfig && matConfig.useAdvancedFraming;
+  const frameAssembly = isEnhancedConfig ? matConfig.frameAssembly : undefined;
+
   const [imgDims, setImgDims] = React.useState({ width: 1, height: 1 });
   const { width: screenWidth, height: screenHeight } = useScreenSize();
 
@@ -292,8 +298,8 @@ const MatImage: React.FC<MatImageProps> = ({
       );
     }, [frameW, frameH, imgAspect, adjustedMatPercent, isNoMat]);
 
-  const containerStyle = React.useMemo(
-    () => ({
+  const containerStyle = React.useMemo(() => {
+    let baseStyle = {
       background: isNoMat ? "#000000" : matColor,
       width: containerMode ? `${frameW}px` : "100vw",
       height: containerMode ? `${frameH}px` : "100vh",
@@ -302,12 +308,21 @@ const MatImage: React.FC<MatImageProps> = ({
       border: "none",
       boxShadow: "0 4px 24px rgba(0,0,0,0.12)",
       flexShrink: 0,
-    }),
-    [isNoMat, matColor, frameW, frameH, containerMode]
-  );
+    };
 
-  const matStyle = React.useMemo(
-    () => ({
+    // Apply advanced frame textures if available
+    if (frameAssembly?.frame?.texture) {
+      baseStyle = {
+        ...baseStyle,
+        background: `var(--frame-bg-${frameAssembly.frame.texture.id})`,
+      };
+    }
+
+    return baseStyle;
+  }, [isNoMat, matColor, frameW, frameH, containerMode, frameAssembly]);
+
+  const matStyle = React.useMemo(() => {
+    let baseStyle = {
       top: 0,
       left: 0,
       width: containerMode ? `${frameW}px` : "100%",
@@ -317,9 +332,18 @@ const MatImage: React.FC<MatImageProps> = ({
       boxShadow: "0 4px 24px rgba(0,0,0,0.12)",
       zIndex: 2,
       border: "none",
-    }),
-    [frameW, frameH, matColor, containerMode]
-  );
+    };
+
+    // Apply advanced mat textures if available
+    if (frameAssembly?.mat?.texture) {
+      baseStyle = {
+        ...baseStyle,
+        background: `var(--mat-bg-${frameAssembly.mat.texture.id})`,
+      };
+    }
+
+    return baseStyle;
+  }, [frameW, frameH, matColor, containerMode, frameAssembly]);
 
   const artworkStyle = React.useMemo(
     () => ({
@@ -334,9 +358,33 @@ const MatImage: React.FC<MatImageProps> = ({
     [matVertical, matHorizontal, artworkWidth, artworkHeight, isNoMat]
   );
 
+  // Generate CSS class names for advanced textures
+  const frameClasses = React.useMemo(() => {
+    if (!frameAssembly?.frame?.texture) return "";
+
+    const classes = [
+      `texture-${frameAssembly.frame.texture.id}`,
+      `corner-joint-${frameAssembly.frame.cornerJoint}`,
+    ];
+
+    if (
+      frameAssembly.frame.wearPattern &&
+      frameAssembly.frame.wearPattern !== "none"
+    ) {
+      classes.push(`wear-${frameAssembly.frame.wearPattern}`);
+    }
+
+    return classes.join(" ");
+  }, [frameAssembly]);
+
+  const matClasses = React.useMemo(() => {
+    if (!frameAssembly?.mat?.texture) return "";
+    return `texture-${frameAssembly.mat.texture.id} mat-thickness-${frameAssembly.mat.thickness}`;
+  }, [frameAssembly]);
+
   return (
     <div
-      className="relative flex items-center justify-center"
+      className={`relative flex items-center justify-center ${frameClasses}`}
       style={containerStyle}
     >
       {/* Debug info - temporarily disabled */}
@@ -351,7 +399,7 @@ const MatImage: React.FC<MatImageProps> = ({
       {/* Outer mat */}
       {!isNoMat && (
         <div
-          className="absolute rounded-xl"
+          className={`absolute rounded-xl ${matClasses}`}
           style={matStyle}
           aria-hidden="true"
         />
