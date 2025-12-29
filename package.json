@@ -10,7 +10,7 @@
     "type-check": "tsc --noEmit",
     "deploy": "npm run build && firebase deploy --only hosting",
     "deploy:preview": "npm run build && firebase hosting:channel:deploy preview",
-    "hooks:setup": "node -e \"require('child_process').execSync(process.platform === 'win32' ? 'powershell -ExecutionPolicy Bypass -File .githooks/setup.ps1' : 'chmod +x .githooks/setup.sh && ./.githooks/setup.sh', {stdio: 'inherit'})\"",
+    "hooks:setup": "node -e \"const cp = require('child_process'); const os = require('os'); const isWin = process.platform === 'win32'; const hasGitBash = isWin && (process.env.SHELL && process.env.SHELL.includes('bash')); const cmd = (isWin && !hasGitBash) ? 'powershell -ExecutionPolicy Bypass -File .githooks/setup.ps1' : (isWin ? 'bash .githooks/setup.sh' : 'chmod +x .githooks/setup.sh && ./.githooks/setup.sh'); try { cp.execSync(cmd, {stdio: 'inherit'}); } catch (e) { console.warn('Warning: Git hooks setup failed. This is OK if not using Git.'); }\"",
     "validate:commit": "node -e \"const msg = process.argv[1]; const regex = /^(feat|fix|docs|style|refactor|perf|test|chore|build|ci|revert)(\\(.+\\))?: .{1,50}/; if (!regex.test(msg)) { console.error('❌ Invalid commit format'); process.exit(1); } else { console.log('✅ Valid commit format'); }\"",
     "postinstall": "npm run hooks:setup",
     "release": "semantic-release"
@@ -26,9 +26,9 @@
     "framer-motion": "^12.23.12",
     "heic2any": "^0.0.4",
     "lucide-react": "^0.541.0",
-    "next": "15.4.6",
-    "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "next": "15.5.9",
+    "react": "19.2.1",
+    "react-dom": "19.2.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -43,7 +43,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "15.4.6",
+    "eslint-config-next": "15.5.9",
     "semantic-release": "^24.2.7",
     "tailwindcss": "^4",
     "typescript": "^5"

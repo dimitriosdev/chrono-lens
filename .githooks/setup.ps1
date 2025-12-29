@@ -14,14 +14,17 @@ if (-not (Test-Path $hooksDir)) {
     New-Item -ItemType Directory -Path $hooksDir -Force | Out-Null
 }
 
-# Copy commit-msg hook
+# Copy commit-msg hook (bash version works in Git Bash on Windows)
 if (Test-Path ".githooks/commit-msg") {
     Copy-Item ".githooks/commit-msg" "$hooksDir/commit-msg" -Force
-    Write-Host "✓ Installed commit-msg hook (bash)" -ForegroundColor Green
+    Write-Host "✓ Installed commit-msg hook (bash - works in Git Bash)" -ForegroundColor Green
 } else {
     Write-Host "✗ commit-msg hook not found" -ForegroundColor Red
     exit 1
 }
+
+# Note: Git on Windows uses Git Bash to execute hooks, so bash scripts work fine
+# The PowerShell version (commit-msg.ps1) is kept as a reference but not used by Git
 
 # Copy pre-commit hook
 if (Test-Path ".githooks/pre-commit") {

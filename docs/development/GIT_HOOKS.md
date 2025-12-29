@@ -9,6 +9,16 @@ This document explains the conventional commit enforcement system implemented in
 - **Consistency** - Maintain consistent commit history across the team
 - **Automated Release** - Enable semantic versioning and automated changelogs
 
+## ✨ Cross-Platform Compatibility
+
+The Git hooks are designed to work seamlessly across all environments:
+
+- ✅ **Windows** (Git Bash, PowerShell, WSL)
+- ✅ **macOS** (Bash, Zsh)
+- ✅ **Linux** (Bash, Sh)
+
+The hooks automatically detect the platform and adjust behavior accordingly (e.g., disabling ANSI colors on terminals that don't support them).
+
 ## ⚙️ Setup Instructions
 
 ### Automatic Setup (Recommended)
@@ -19,6 +29,12 @@ The hooks are automatically installed when you run `npm install`:
 npm install  # Automatically sets up Git hooks
 ```
 
+The setup script will:
+
+- Detect your operating system
+- Use the appropriate installation method (PowerShell on Windows, Bash on Unix-like systems)
+- Handle environments without Git gracefully (useful for CI/CD)
+
 ### Manual Setup
 
 If you need to set up hooks manually:
@@ -27,12 +43,39 @@ If you need to set up hooks manually:
 # For PowerShell/Windows
 npm run hooks:setup
 
-# Or directly
+# Or directly on Windows
 powershell -ExecutionPolicy Bypass -File .githooks/setup.ps1
 
-# For Bash/Linux/Mac
+# For Git Bash on Windows
+bash .githooks/setup.sh
+
+# For Linux/Mac
 chmod +x .githooks/setup.sh
 ./.githooks/setup.sh
+```
+
+### Troubleshooting
+
+**Windows PowerShell execution policy errors:**
+
+```powershell
+# Run this in an admin PowerShell window
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+```
+
+**Git Bash not executing hooks:**
+
+```bash
+# Ensure hooks have execute permissions
+chmod +x .git/hooks/*
+```
+
+**Hooks not running at all:**
+
+```bash
+# Verify hooks are installed
+ls -la .git/hooks/
+# Should see: commit-msg, pre-commit
 ```
 
 ## 📋 Conventional Commit Format
