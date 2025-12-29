@@ -1,3 +1,16 @@
+# [2.8.0](https://github.com/dimitriosdev/chrono-lens/compare/v2.7.0...v2.8.0) (2025-12-29)
+
+
+### Bug Fixes
+
+* Correct style formatting in MatImage component and add missing label in ColorPicker ([c9d6708](https://github.com/dimitriosdev/chrono-lens/commit/c9d6708cd8b60103d575d2b9fd550c3daa10d6b0))
+
+
+### Features
+
+* Add advanced frame and mat texture styles in CSS ([7bc424b](https://github.com/dimitriosdev/chrono-lens/commit/7bc424b1368bf1adc10df1137c1637d534a80c37))
+* Enhance design system with improved accessibility and contrast ([7b9b1b9](https://github.com/dimitriosdev/chrono-lens/commit/7b9b1b9e9155db7be4c8ad448468501fb1328455))
+
 # [2.7.0](https://github.com/dimitriosdev/chrono-lens/compare/v2.6.1...v2.7.0) (2025-09-16)
 
 
