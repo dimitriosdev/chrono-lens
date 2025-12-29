@@ -193,6 +193,7 @@ const SlideshowPage: React.FC = () => {
             onBackgroundColorSelect={colorPrefs.selectBackgroundColor}
             onSave={colorPrefs.saveColors}
             onClose={handleCloseColorPicker}
+            hideBackgroundColor={album?.layout?.type === "slideshow"}
           />
         )}
 

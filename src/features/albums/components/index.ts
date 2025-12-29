@@ -9,11 +9,9 @@ export { LayoutViewer } from "./LayoutViewer";
 
 // Advanced Frame Components
 export { FrameTexturePicker } from "./FrameTexturePicker";
-export { MultiOpeningMat } from "./MultiOpeningMat";
 
 // Enhanced Form Components
 export { default as AlbumForm } from "./AlbumForm";
-export { default as AlbumFormLegacy } from "./AlbumFormLegacy";
 export { default as AlbumCreationWizard } from "./AlbumCreationWizard";
 export { default as WizardBasicInfo } from "./WizardBasicInfo";
 export { default as WizardImages } from "./WizardImages";

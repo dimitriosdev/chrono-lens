@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { isBrowser } from "@/shared/utils/device";
 
 /**
  * Cross-browser fullscreen API types
@@ -34,13 +35,6 @@ export interface FullscreenHookReturn {
   /** Whether fullscreen API is supported by the browser */
   isSupported: boolean;
 }
-
-/**
- * Browser environment check utility
- */
-const isBrowser = (): boolean => {
-  return typeof window !== "undefined" && typeof document !== "undefined";
-};
 
 /**
  * Get the current fullscreen element across different browsers

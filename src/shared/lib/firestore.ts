@@ -19,7 +19,7 @@ import {
 } from "firebase/firestore";
 import { getFirebaseApp } from "@/shared/lib/firebase";
 import { firebaseUsageMonitor } from "@/shared/lib/firebaseUsageMonitor";
-import { Album } from "@/features/albums/types/Album";
+import { Album } from "@/shared/types/album";
 import {
   validateAlbumTitle,
   sanitizeText,

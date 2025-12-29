@@ -4,7 +4,6 @@ import { PlusIcon } from "@heroicons/react/24/solid";
 import { UserCircleIcon } from "@heroicons/react/24/solid";
 import { Tooltip, PressEffect } from "@/shared/components";
 import { helpers } from "@/shared/constants/designSystem";
-import FullscreenButton from "./FullscreenButton";
 
 interface SidebarProps {
   navLinks: Array<{ href: string; label: string; icon?: React.ReactNode }>;
@@ -100,13 +99,6 @@ const Sidebar = React.memo(function Sidebar({
       role="navigation"
       aria-label="Main navigation"
     >
-      {/* Logo or brand space */}
-      <div className="mb-8">
-        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg">
-          <span className="text-white font-bold text-lg">C</span>
-        </div>
-      </div>
-
       {/* Navigation Links */}
       <nav className="flex flex-col space-y-4 flex-1">
         {otherLinks.map((link) => renderNavLink(link))}
@@ -116,11 +108,6 @@ const Sidebar = React.memo(function Sidebar({
       <div className="flex flex-col space-y-4">
         {/* About link */}
         {aboutLink && renderNavLink(aboutLink)}
-
-        {/* Fullscreen button */}
-        <div className="relative">
-          <FullscreenButton className="w-12 h-12 bg-neutral-800/50 border border-neutral-700/50 hover:bg-neutral-700/50 hover:border-neutral-600/50 rounded-xl transition-all duration-300" />
-        </div>
 
         {/* Sign Out button */}
         {onSignOut && (

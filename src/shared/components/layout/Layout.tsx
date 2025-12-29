@@ -2,11 +2,6 @@
 import Navigation from "../../../features/navigation/components/Navigation";
 import AlbumGrid from "../../../features/albums/components/AlbumGrid";
 
-// Import test utilities in development mode
-if (process.env.NODE_ENV === "development") {
-  import("../../../features/albums/utils/testLayouts");
-}
-
 export default function Layout() {
   return (
     <div className="flex min-h-screen bg-gray-950">

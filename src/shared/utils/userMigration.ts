@@ -5,7 +5,7 @@
 
 import { getAlbums, addAlbum } from "../lib/firestore";
 import { getCurrentUserId } from "./security";
-import type { Album } from "../../features/albums/types/Album";
+import type { Album } from "@/shared/types/album";
 
 export interface UserMigrationResult {
   success: boolean;

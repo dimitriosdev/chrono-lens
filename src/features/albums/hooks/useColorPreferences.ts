@@ -1,5 +1,5 @@
 import React from "react";
-import { Album } from "@/features/albums/types/Album";
+import { Album } from "@/shared/types/album";
 import { updateAlbum } from "@/shared/lib/firestore";
 
 interface ColorPreferences {
@@ -43,7 +43,6 @@ export const useColorPreferences = (
   // Album colors
   const albumMatColor = album?.matConfig?.matColor;
   const albumBackgroundColor = album?.matConfig?.backgroundColor;
-  const albumTextColor = album?.matConfig?.textColor;
 
   // Initialize colors when album loads
   React.useEffect(() => {

@@ -5,7 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { addAlbum } from "@/shared/lib/firestore";
 import { uploadImage } from "@/shared/lib/storage";
 import { AlbumForm } from "@/features/albums/components/AlbumForm";
-import { AlbumImage, Album } from "@/features/albums/types/Album";
+import { AlbumImage, Album } from "@/shared/types/album";
 import { ErrorBoundary } from "@/shared/components";
 
 const NewAlbumPage: React.FC = () => {

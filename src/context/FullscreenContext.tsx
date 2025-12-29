@@ -9,7 +9,7 @@ import React, {
   useMemo,
 } from "react";
 import { usePathname } from "next/navigation";
-import { isMobileDevice } from "@/shared/utils/device";
+import { isBrowser, isMobileDevice } from "@/shared/utils/device";
 import { mobileFullscreen } from "@/shared/utils/mobileFullscreen";
 
 /**
@@ -49,13 +49,6 @@ export interface FullscreenContextType {
 }
 
 const FullscreenContext = createContext<FullscreenContextType | null>(null);
-
-/**
- * Browser environment check utility
- */
-const isBrowser = (): boolean => {
-  return typeof window !== "undefined" && typeof document !== "undefined";
-};
 
 /**
  * Get the current fullscreen element across different browsers and platforms

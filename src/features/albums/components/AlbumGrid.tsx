@@ -7,7 +7,7 @@ import {
   PlayIcon,
   TrashIcon,
 } from "@heroicons/react/24/solid";
-import { Album } from "@/features/albums/types/Album";
+import { Album } from "@/shared/types/album";
 import { getAlbums, deleteAlbum } from "@/shared/lib/firestore";
 import { executeDeleteAll } from "@/shared/utils/deleteAllData";
 import ConfirmationModal from "@/shared/components/ConfirmationModal";

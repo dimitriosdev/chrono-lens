@@ -14,7 +14,7 @@ export { default as ImageProcessingStatus } from "./components/ImageProcessingSt
 export { LayoutViewer } from "./components";
 
 // Advanced Frame Components
-export { FrameTexturePicker, MultiOpeningMat } from "./components";
+export { FrameTexturePicker } from "./components";
 
 // Form Components
 export * from "./components/forms";
@@ -22,8 +22,13 @@ export * from "./components/forms";
 // Hooks
 export * from "./hooks/useAlbumForm";
 
-// Types (Album entity is now here)
-export * from "./types/Album";
+// Types (re-export from shared for convenience)
+export type {
+  Album,
+  AlbumImage,
+  MatConfig,
+  AlbumPrivacy,
+} from "@/shared/types/album";
 
 // Constants
 export * from "./constants/AlbumLayout";

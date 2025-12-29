@@ -10,6 +10,7 @@ interface EnhancedColorPickerProps {
   onBackgroundColorSelect: (color: string) => void;
   onSave: () => Promise<void>;
   onClose: () => void;
+  hideBackgroundColor?: boolean;
 }
 
 const EnhancedColorPicker: React.FC<EnhancedColorPickerProps> = ({
@@ -19,6 +20,7 @@ const EnhancedColorPicker: React.FC<EnhancedColorPickerProps> = ({
   onBackgroundColorSelect,
   onSave,
   onClose,
+  hideBackgroundColor = false,
 }) => {
   const [isSaving, setIsSaving] = React.useState(false);
 
@@ -74,28 +76,30 @@ const EnhancedColorPicker: React.FC<EnhancedColorPickerProps> = ({
             </div>
           </div>
 
-          {/* Background Colors */}
-          <div>
-            <label className="text-white text-xs font-medium mb-2 block">
-              Background Color
-            </label>
-            <div className="grid grid-cols-4 gap-2">
-              {matColors.slice(0, 8).map((colorOption) => (
-                <button
-                  key={`bg-${colorOption.color}`}
-                  type="button"
-                  onClick={() => onBackgroundColorSelect(colorOption.color)}
-                  className={`w-10 h-10 rounded-lg border-2 transition-all hover:scale-105 ${
-                    effectiveBackgroundColor === colorOption.color
-                      ? "border-white ring-2 ring-white/50"
-                      : "border-gray-600 hover:border-gray-400"
-                  }`}
-                  style={{ backgroundColor: colorOption.color }}
-                  title={colorOption.name}
-                />
-              ))}
+          {/* Background Colors - hidden for slideshow layout */}
+          {!hideBackgroundColor && (
+            <div>
+              <label className="text-white text-xs font-medium mb-2 block">
+                Background Color
+              </label>
+              <div className="grid grid-cols-4 gap-2">
+                {matColors.slice(0, 8).map((colorOption) => (
+                  <button
+                    key={`bg-${colorOption.color}`}
+                    type="button"
+                    onClick={() => onBackgroundColorSelect(colorOption.color)}
+                    className={`w-10 h-10 rounded-lg border-2 transition-all hover:scale-105 ${
+                      effectiveBackgroundColor === colorOption.color
+                        ? "border-white ring-2 ring-white/50"
+                        : "border-gray-600 hover:border-gray-400"
+                    }`}
+                    style={{ backgroundColor: colorOption.color }}
+                    title={colorOption.name}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Action buttons */}

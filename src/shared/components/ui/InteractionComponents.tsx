@@ -84,119 +84,6 @@ export const InteractiveCard: React.FC<InteractiveCardProps> = ({
   );
 };
 
-// Ripple Effect Component
-interface RippleEffectProps {
-  children: React.ReactNode;
-  className?: string;
-  color?: string;
-  duration?: number;
-  disabled?: boolean;
-}
-
-export const RippleEffect: React.FC<RippleEffectProps> = ({
-  children,
-  className,
-  color = "rgba(255, 255, 255, 0.6)",
-  duration = 600,
-  disabled = false,
-}) => {
-  const [ripples, setRipples] = useState<
-    Array<{ x: number; y: number; id: number }>
-  >([]);
-  const rippleRef = useRef<HTMLDivElement>(null);
-
-  const addRipple = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (disabled || !rippleRef.current) return;
-
-    const rect = rippleRef.current.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-    const id = Date.now();
-
-    setRipples((prev) => [...prev, { x, y, id }]);
-
-    setTimeout(() => {
-      setRipples((prev) => prev.filter((ripple) => ripple.id !== id));
-    }, duration);
-  };
-
-  return (
-    <div
-      ref={rippleRef}
-      className={helpers.cn("relative overflow-hidden", className)}
-      onMouseDown={addRipple}
-    >
-      {children}
-      {ripples.map(({ x, y, id }) => (
-        <span
-          key={id}
-          className="absolute pointer-events-none rounded-full animate-ping"
-          style={{
-            left: x - 10,
-            top: y - 10,
-            width: 20,
-            height: 20,
-            backgroundColor: color,
-            animationDuration: `${duration}ms`,
-          }}
-        />
-      ))}
-    </div>
-  );
-};
-
-// Magnetic Effect Component (subtle attraction to cursor)
-interface MagneticEffectProps {
-  children: React.ReactNode;
-  strength?: number;
-  className?: string;
-  disabled?: boolean;
-}
-
-export const MagneticEffect: React.FC<MagneticEffectProps> = ({
-  children,
-  strength = 20,
-  className,
-  disabled = false,
-}) => {
-  const [transform, setTransform] = useState("");
-  const elementRef = useRef<HTMLDivElement>(null);
-
-  const handleMouseMove = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (disabled || !elementRef.current) return;
-
-    const rect = elementRef.current.getBoundingClientRect();
-    const centerX = rect.left + rect.width / 2;
-    const centerY = rect.top + rect.height / 2;
-    const deltaX = (event.clientX - centerX) / rect.width;
-    const deltaY = (event.clientY - centerY) / rect.height;
-
-    const moveX = deltaX * strength;
-    const moveY = deltaY * strength;
-
-    setTransform(`translate(${moveX}px, ${moveY}px)`);
-  };
-
-  const handleMouseLeave = () => {
-    setTransform("");
-  };
-
-  return (
-    <div
-      ref={elementRef}
-      className={helpers.cn(
-        "transition-transform duration-200 ease-out",
-        className
-      )}
-      style={{ transform }}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-    >
-      {children}
-    </div>
-  );
-};
-
 // Tooltip Component with enhanced interactions
 interface TooltipProps {
   content: React.ReactNode;
@@ -330,8 +217,6 @@ export const PressEffect: React.FC<PressEffectProps> = ({
 
 const InteractionComponents = {
   Card: InteractiveCard,
-  Ripple: RippleEffect,
-  Magnetic: MagneticEffect,
   Tooltip,
   Press: PressEffect,
 };

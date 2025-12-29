@@ -107,14 +107,14 @@ export default function Navigation() {
     }
   };
 
-  // Home link is always visible
+  // Home and other links only visible when signed in
   const homeLink = NAV_LINKS.find((link) => link.label === "Home");
   const aboutLink = NAV_LINKS.find((link) => link.label === "About");
   const otherLinks = NAV_LINKS.filter(
     (link) => link.label !== "Home" && link.label !== "About"
   );
   const visibleLinks = [
-    homeLink,
+    ...(isSignedIn && homeLink ? [homeLink] : []),
     ...(isSignedIn ? otherLinks : []),
     ...(aboutLink ? [aboutLink] : []),
   ].filter(Boolean);

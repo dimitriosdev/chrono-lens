@@ -638,20 +638,22 @@ export const AlbumForm: React.FC<AlbumFormProps> = ({
           </h4>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Background Color */}
-            <ColorPicker
-              label="Background Color"
-              value={formData.customization.backgroundColor}
-              onChange={(color) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  customization: {
-                    ...prev.customization,
-                    backgroundColor: color,
-                  },
-                }))
-              }
-            />
+            {/* Background Color - hidden for slideshow layout */}
+            {formData.layout.type !== "slideshow" && (
+              <ColorPicker
+                label="Background Color"
+                value={formData.customization.backgroundColor}
+                onChange={(color) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    customization: {
+                      ...prev.customization,
+                      backgroundColor: color,
+                    },
+                  }))
+                }
+              />
+            )}
 
             {/* Mat Color */}
             <ColorPicker
