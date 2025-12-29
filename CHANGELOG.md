@@ -1,3 +1,10 @@
+# [2.9.0](https://github.com/dimitriosdev/chrono-lens/compare/v2.8.1...v2.9.0) (2025-12-29)
+
+
+### Features
+
+* Refactor and enhance design system components ([55508ce](https://github.com/dimitriosdev/chrono-lens/commit/55508ce64c156a25f15e67bbb6f5babf773396c9))
+
 ## [2.8.1](https://github.com/dimitriosdev/chrono-lens/compare/v2.8.0...v2.8.1) (2025-12-29)
 
 
