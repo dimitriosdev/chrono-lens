@@ -1,6 +1,6 @@
 // Barrel export for albums feature components
 export { default as MatImage } from "./MatImage";
-export { default as EnhancedColorPicker } from "./EnhancedColorPicker";
+export { default as ColorPicker } from "./ColorPicker";
 export { default as SlideshowErrorBoundary } from "./SlideshowErrorBoundary";
 export { default as ImageErrorBoundary } from "./ImageErrorBoundary";
 
@@ -15,7 +15,7 @@ export { default as WizardImages } from "./WizardImages";
 
 // Re-export types
 export type { MatImageProps, MatConfig, GridInfo } from "./MatImage";
-export type { EnhancedColorPickerProps } from "./EnhancedColorPicker";
+export type { ColorPickerProps } from "./ColorPicker";
 export type {
   SlideshowErrorBoundaryProps,
   ErrorFallbackProps as SlideshowErrorFallbackProps,

@@ -84,41 +84,30 @@ const NavItem: React.FC<NavItemProps> = ({
         className={`
           relative flex flex-col items-center justify-center flex-1 py-2 min-w-0
           transition-colors duration-200
-          ${isAction ? "" : isActive ? "text-blue-500" : "text-neutral-400"}
+          ${isActive ? "text-blue-500" : "text-neutral-400"}
         `}
         aria-label={label}
         aria-current={isActive ? "page" : undefined}
       >
-        {/* Action button (Create) gets special treatment */}
-        {isAction ? (
-          <div className="relative -mt-4">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
-              <CurrentIcon className="w-6 h-6 text-white" />
-            </div>
-          </div>
-        ) : (
-          <>
-            <CurrentIcon
-              className={`w-6 h-6 ${
-                isActive ? "scale-110" : ""
-              } transition-transform duration-200`}
-            />
-            <span
-              className={`text-[10px] mt-0.5 font-medium ${
-                isActive ? "text-blue-500" : ""
-              }`}
-            >
-              {label}
-            </span>
-            {/* Active indicator */}
-            {isActive && (
-              <motion.div
-                layoutId="mobileActiveIndicator"
-                className="absolute -bottom-0.5 w-1 h-1 rounded-full bg-blue-500"
-                transition={{ type: "spring", stiffness: 500, damping: 30 }}
-              />
-            )}
-          </>
+        <CurrentIcon
+          className={`w-6 h-6 ${
+            isActive ? "scale-110" : ""
+          } transition-transform duration-200`}
+        />
+        <span
+          className={`text-[10px] mt-0.5 font-medium ${
+            isActive ? "text-blue-500" : ""
+          }`}
+        >
+          {label}
+        </span>
+        {/* Active indicator */}
+        {isActive && (
+          <motion.div
+            layoutId="mobileActiveIndicator"
+            className="absolute -bottom-0.5 w-1 h-1 rounded-full bg-blue-500"
+            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+          />
         )}
       </Link>
     );
@@ -136,18 +125,13 @@ const NavItem: React.FC<NavItemProps> = ({
             ? "bg-blue-600 text-white shadow-lg shadow-blue-500/25"
             : "text-neutral-400 hover:text-white hover:bg-neutral-800"
         }
-        ${
-          isAction
-            ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25"
-            : ""
-        }
       `}
       aria-label={label}
       aria-current={isActive ? "page" : undefined}
     >
       <CurrentIcon
         className={`w-5 h-5 transition-transform duration-200 ${
-          !isActive && !isAction ? "group-hover:scale-110" : ""
+          !isActive ? "group-hover:scale-110" : ""
         }`}
       />
 
@@ -166,7 +150,7 @@ const NavItem: React.FC<NavItemProps> = ({
       </div>
 
       {/* Active indicator bar */}
-      {isActive && !isAction && (
+      {isActive && (
         <motion.div
           layoutId="desktopActiveIndicator"
           className="absolute -right-0.5 w-1 h-5 bg-blue-400 rounded-full"
@@ -291,7 +275,7 @@ export default function Navigation() {
         {/* Main nav items */}
         <nav className="flex flex-col items-center gap-2 flex-1">
           {visibleItems
-            .filter((item) => !item.isAction && item.label !== "About")
+            .filter((item) => item.label !== "About")
             .map((item) => (
               <NavItem
                 key={item.href}
@@ -300,22 +284,6 @@ export default function Navigation() {
                 icon={item.icon}
                 iconActive={item.iconActive}
                 isActive={pathname === item.href}
-                variant="desktop"
-              />
-            ))}
-
-          {/* Create button - prominent placement */}
-          {visibleItems
-            .filter((item) => item.isAction)
-            .map((item) => (
-              <NavItem
-                key={item.href}
-                href={item.href}
-                label={item.label}
-                icon={item.icon}
-                iconActive={item.iconActive}
-                isActive={pathname === item.href}
-                isAction
                 variant="desktop"
               />
             ))}

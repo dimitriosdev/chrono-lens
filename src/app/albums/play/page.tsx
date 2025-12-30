@@ -19,10 +19,7 @@ import { useAsyncErrorHandler } from "@/shared/hooks/useErrorHandler";
 import { useSlideshow, useColorPreferences } from "@/features/albums/hooks";
 
 // Components
-import {
-  LayoutViewer,
-  EnhancedColorPicker,
-} from "@/features/albums/components";
+import { LayoutViewer, ColorPicker } from "@/features/albums/components";
 import SlideshowErrorBoundary from "@/features/albums/components/SlideshowErrorBoundary";
 
 /**
@@ -35,14 +32,14 @@ interface ControlButtonsProps {
 }
 
 /**
- * Common button styles for control buttons
+ * Common button styles for control buttons - designed to be discreet but visible on any background
  */
 const getControlButtonStyles = (isFullscreen: boolean): string => {
   const baseStyles =
-    "bg-gray-900/80 hover:bg-gray-800 text-white p-2 rounded-lg shadow-lg transition-all duration-300";
+    "text-white p-1.5 rounded bg-black/20 backdrop-blur-sm shadow-[0_0_8px_rgba(0,0,0,0.3)] transition-all duration-300";
   const opacityStyles = isFullscreen
-    ? "opacity-30 hover:opacity-80"
-    : "opacity-80 hover:opacity-100";
+    ? "opacity-20 hover:opacity-70"
+    : "opacity-40 hover:opacity-90";
 
   return `${baseStyles} ${opacityStyles}`;
 };
@@ -55,7 +52,7 @@ const ControlButtons: React.FC<ControlButtonsProps> = ({
   onToggleFullscreen,
   onToggleColorPicker,
 }) => (
-  <div className="absolute top-4 right-4 flex gap-2 z-50">
+  <div className="absolute top-3 right-3 flex gap-1 z-50">
     {/* Fullscreen toggle button */}
     <button
       type="button"
@@ -64,9 +61,9 @@ const ControlButtons: React.FC<ControlButtonsProps> = ({
       className={getControlButtonStyles(isFullscreen)}
     >
       {isFullscreen ? (
-        <ArrowsPointingInIcon className="w-5 h-5" />
+        <ArrowsPointingInIcon className="w-4 h-4" />
       ) : (
-        <ArrowsPointingOutIcon className="w-5 h-5" />
+        <ArrowsPointingOutIcon className="w-4 h-4" />
       )}
     </button>
 
@@ -77,7 +74,7 @@ const ControlButtons: React.FC<ControlButtonsProps> = ({
       aria-label="Open configuration"
       className={getControlButtonStyles(isFullscreen)}
     >
-      <Cog6ToothIcon className="w-5 h-5" />
+      <Cog6ToothIcon className="w-4 h-4" />
     </button>
   </div>
 );
@@ -175,26 +172,63 @@ const SlideshowPage: React.FC = () => {
           type="button"
           onClick={handleBack}
           aria-label="Back to albums"
-          className={`absolute top-4 left-4 bg-gray-900 text-white p-2 rounded-lg shadow-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white z-50 transition-all duration-300 ${
+          className={`absolute top-3 left-3 text-white p-1.5 rounded bg-black/20 backdrop-blur-sm shadow-[0_0_8px_rgba(0,0,0,0.3)] z-50 transition-all duration-300 ${
             fullscreen.isFullscreen
-              ? "bg-opacity-40 opacity-30 hover:opacity-80"
-              : "bg-opacity-80 opacity-80 hover:opacity-100"
+              ? "opacity-20 hover:opacity-70"
+              : "opacity-40 hover:opacity-90"
           }`}
         >
-          <ChevronLeftIcon className="w-5 h-5" />
+          <ChevronLeftIcon className="w-4 h-4" />
         </button>
 
-        {/* Color picker overlay */}
+        {/* Color picker panel */}
         {showColorPicker && album?.id && (
-          <EnhancedColorPicker
-            effectiveMatColor={colorPrefs.effectiveMatColor}
-            effectiveBackgroundColor={colorPrefs.effectiveBackgroundColor}
-            onMatColorSelect={colorPrefs.selectMatColor}
-            onBackgroundColorSelect={colorPrefs.selectBackgroundColor}
-            onSave={colorPrefs.saveColors}
-            onClose={handleCloseColorPicker}
-            hideBackgroundColor={album?.layout?.type === "slideshow"}
-          />
+          <div className="absolute top-12 right-3 z-50">
+            <div className="bg-gray-900/95 backdrop-blur-sm rounded-xl p-4 shadow-2xl border border-gray-700/50">
+              {/* Header with close and save */}
+              <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-700/50">
+                <span className="text-white text-sm font-medium">Colors</span>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      await colorPrefs.saveColors();
+                      handleCloseColorPicker();
+                    }}
+                    className="text-xs text-green-400 hover:text-green-300 transition-colors"
+                  >
+                    Save
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCloseColorPicker}
+                    className="text-gray-400 hover:text-white transition-colors text-sm"
+                    aria-label="Close"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+
+              {/* Color pickers - same as album edit/create */}
+              <div className="flex justify-center gap-4">
+                {album?.layout?.type !== "slideshow" && (
+                  <ColorPicker
+                    label="Background"
+                    value={colorPrefs.effectiveBackgroundColor}
+                    onChange={colorPrefs.selectBackgroundColor}
+                    compact
+                  />
+                )}
+                <ColorPicker
+                  label="Mat"
+                  value={colorPrefs.effectiveMatColor}
+                  onChange={colorPrefs.selectMatColor}
+                  compact
+                />
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Main layout viewer */}

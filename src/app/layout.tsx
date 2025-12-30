@@ -8,7 +8,7 @@ import {
 } from "next/font/google";
 import "./globals.css";
 import { AuthProvider, FullscreenProvider } from "../context";
-import { Navigation } from "../features/navigation";
+import NavigationWrapper from "../components/NavigationWrapper";
 import {
   ErrorBoundary,
   VersionLogger,
@@ -114,7 +114,7 @@ export default function RootLayout({
             <ErrorBoundary>
               <VersionLogger />
               <div className="flex min-h-screen w-full bg-gray-950 antialiased">
-                <Navigation />
+                <NavigationWrapper />
                 <main className="flex-1 w-full transition-smooth">
                   <div className="px-4 sm:px-6 lg:px-8 pt-16 pb-8 sm:pt-8 sm:ml-20">
                     <div className="max-w-7xl mx-auto">{children}</div>

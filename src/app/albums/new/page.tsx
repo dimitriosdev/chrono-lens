@@ -93,11 +93,10 @@ const NewAlbumPage: React.FC = () => {
   };
 
   return (
-    <div className="py-8 px-4">
+    <div className="min-h-screen bg-gray-950">
       <ErrorBoundary
         onError={(error, errorInfo) => {
           console.error("Album creation form error:", error, errorInfo);
-          // Could add error reporting here
         }}
       >
         <AlbumForm mode="create" onSave={handleSave} loading={albumLoading} />

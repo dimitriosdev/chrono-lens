@@ -187,12 +187,12 @@ const AlbumGrid: React.FC = () => {
   return (
     <section className="pt-4 sm:pt-8 pb-4 sm:pb-8 w-full flex flex-col items-center">
       <div className="w-full max-w-screen-xl px-3 sm:px-4 lg:px-0">
-        {/* Header with Delete All button for development */}
+        {/* Discreet Delete All - only in development */}
         {process.env.NODE_ENV === "development" && albums.length > 0 && (
-          <div className="flex justify-end mb-4">
+          <div className="flex justify-end mb-2">
             <button
               onClick={handleDeleteAllClick}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors duration-200 font-medium"
+              className="text-[10px] text-neutral-500 hover:text-red-400 transition-colors"
             >
               Delete all
             </button>
@@ -255,7 +255,7 @@ const AlbumGrid: React.FC = () => {
         title="Delete All Albums"
         message="This will permanently delete ALL albums and images. This action cannot be undone."
         requireTextConfirmation={true}
-        requiredText="delete all albums"
+        requiredText="delete"
         confirmButtonText="Delete All"
         type="danger"
       />

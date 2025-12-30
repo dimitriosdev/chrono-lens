@@ -95,13 +95,17 @@ export default function EditAlbumPage() {
 
   if (!albumId) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
-        <div className="text-white text-center">
-          <h1 className="text-2xl font-bold mb-4">Album Not Found</h1>
-          <p className="mb-4">No album ID provided in the URL.</p>
+      <div className="min-h-screen flex items-center justify-center bg-gray-950">
+        <div className="text-center p-6">
+          <h1 className="text-xl sm:text-2xl font-bold text-white mb-3">
+            Album Not Found
+          </h1>
+          <p className="text-neutral-400 mb-4 text-sm sm:text-base">
+            No album ID provided in the URL.
+          </p>
           <button
             onClick={() => router.push("/albums")}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+            className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
           >
             Back to Albums
           </button>
@@ -112,21 +116,28 @@ export default function EditAlbumPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
-        <div className="text-white">Loading album...</div>
+      <div className="min-h-screen flex items-center justify-center bg-gray-950">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+          <span className="text-neutral-400 text-sm">Loading album...</span>
+        </div>
       </div>
     );
   }
 
   if (!album) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-900">
-        <div className="text-white text-center">
-          <h1 className="text-2xl font-bold mb-4">Album Not Found</h1>
-          <p className="mb-4">Could not load album data.</p>
+      <div className="min-h-screen flex items-center justify-center bg-gray-950">
+        <div className="text-center p-6">
+          <h1 className="text-xl sm:text-2xl font-bold text-white mb-3">
+            Album Not Found
+          </h1>
+          <p className="text-neutral-400 mb-4 text-sm sm:text-base">
+            Could not load album data.
+          </p>
           <button
             onClick={() => router.push("/albums")}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
+            className="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
           >
             Back to Albums
           </button>
@@ -136,17 +147,14 @@ export default function EditAlbumPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-900">
-      <div className="container mx-auto px-4 py-8 pb-24">
-        <ErrorBoundary
-          onError={(error, errorInfo) => {
-            console.error("Album edit form error:", error, errorInfo);
-            // Could add error reporting here
-          }}
-        >
-          <AlbumForm mode="edit" album={album} onSave={handleSubmit} />
-        </ErrorBoundary>
-      </div>
+    <div className="min-h-screen bg-gray-950">
+      <ErrorBoundary
+        onError={(error, errorInfo) => {
+          console.error("Album edit form error:", error, errorInfo);
+        }}
+      >
+        <AlbumForm mode="edit" album={album} onSave={handleSubmit} />
+      </ErrorBoundary>
     </div>
   );
 }
