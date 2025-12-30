@@ -7,7 +7,6 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
-  deleteField,
   serverTimestamp,
   query,
   where,
@@ -56,10 +55,7 @@ const getDB = () => {
  * @returns Album data if accessible, null if not found
  * @throws Error if access is denied or quota exceeded
  */
-export async function getAlbum(
-  id: string,
-  shareToken?: string | null
-): Promise<Album | null> {
+export async function getAlbum(id: string): Promise<Album | null> {
   // Check if read operation is allowed
   const canRead = firebaseUsageMonitor.canPerformOperation("read", 1);
   if (!canRead.allowed) {
@@ -78,12 +74,15 @@ export async function getAlbum(
     if (!albumDoc.exists()) {
       return null;
     }
-  } catch (firestoreError: any) {
+  } catch (firestoreError: unknown) {
     // Check if it's a permissions error (album exists but is private)
-    if (firestoreError?.code === 'permission-denied') {
-      throw new Error(
-        "This album is private. Please sign in to view it."
-      );
+    if (
+      firestoreError &&
+      typeof firestoreError === "object" &&
+      "code" in firestoreError &&
+      firestoreError.code === "permission-denied"
+    ) {
+      throw new Error("This album is private. Please sign in to view it.");
     }
     throw firestoreError;
   }
@@ -111,9 +110,7 @@ export async function getAlbum(
         "This album is private and can only be viewed by the owner."
       );
     } else {
-      throw new Error(
-        "You do not have permission to view this album."
-      );
+      throw new Error("You do not have permission to view this album.");
     }
   }
 
@@ -346,7 +343,7 @@ export async function updateAlbum(
   const cleanedAlbum = cleanAlbumData(secureAlbum);
 
   // Remove shareToken if it exists (legacy field)
-  if ('shareToken' in cleanedAlbum) {
+  if ("shareToken" in cleanedAlbum) {
     delete cleanedAlbum.shareToken;
   }
 
@@ -454,3 +451,4 @@ export async function updateAlbumPrivacy(
     privacy: newPrivacy,
     updatedAt: new Date(),
   });
+}

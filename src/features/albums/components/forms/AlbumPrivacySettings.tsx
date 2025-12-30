@@ -6,10 +6,7 @@
 
 import React from "react";
 import { AlbumPrivacy } from "@/shared/types/album";
-import {
-  GlobeAltIcon,
-  LockClosedIcon,
-} from "@heroicons/react/24/outline";
+import { GlobeAltIcon, LockClosedIcon } from "@heroicons/react/24/outline";
 
 interface AlbumPrivacySettingsProps {
   privacy: AlbumPrivacy;

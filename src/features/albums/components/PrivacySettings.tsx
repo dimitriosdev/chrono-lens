@@ -20,13 +20,11 @@ import { Album } from "@/shared/types/album";
 
 interface PrivacySettingsProps {
   album: Album;
-  onUpdate?: () => void;
   className?: string;
 }
 
 export function PrivacySettings({
   album,
-  onUpdate,
   className = "",
 }: PrivacySettingsProps) {
   return (

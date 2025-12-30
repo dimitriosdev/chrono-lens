@@ -5,7 +5,6 @@ import {
   InformationCircleIcon,
   GlobeAltIcon,
   LockClosedIcon,
-  UserGroupIcon,
   CheckCircleIcon,
 } from "@heroicons/react/24/outline";
 import { helpers } from "@/shared/constants/design";
@@ -316,9 +315,7 @@ export const WizardBasicInfo: React.FC<WizardBasicInfoProps> = ({
                       {option.label}
                     </h4>
                     <div className="text-xs text-gray-400 mt-1">
-                      {option.value === "shared"
-                        ? "Link-based access"
-                        : option.value === "private"
+                      {option.value === "private"
                         ? "Your eyes only"
                         : "Open access"}
                     </div>

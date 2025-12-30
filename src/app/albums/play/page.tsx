@@ -114,9 +114,9 @@ const SlideshowPageInner: React.FC = () => {
       try {
         const data = await getAlbum(albumId!);
         setAlbum(data || undefined);
-      } catch (error: any) {
+      } catch (error: unknown) {
         // Handle specific error cases
-        if (error?.message?.includes("private")) {
+        if (error instanceof Error && error.message.includes("private")) {
           // Private album - redirect to login
           router.replace(
             "/?redirect=" +

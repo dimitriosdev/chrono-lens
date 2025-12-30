@@ -177,10 +177,8 @@ export function getPrivacyMetadata(privacy: AlbumPrivacy): {
 export function recommendPrivacy(options: {
   hasPersonalPhotos?: boolean;
   hasSensitiveContent?: boolean;
-  intendedForSharing?: boolean;
 }): AlbumPrivacy {
-  const { hasPersonalPhotos, hasSensitiveContent, intendedForSharing } =
-    options;
+  const { hasPersonalPhotos, hasSensitiveContent } = options;
 
   // Sensitive content should always be private
   if (hasSensitiveContent) {
