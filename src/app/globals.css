@@ -5,6 +5,15 @@
    CSS CUSTOM PROPERTIES & VARIABLES
    ================================================================== */
 
+/* Safe area utilities for mobile devices with notches/home indicators */
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.safe-area-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
 :root {
   /* Core theme colors */
   --background: #ffffff;

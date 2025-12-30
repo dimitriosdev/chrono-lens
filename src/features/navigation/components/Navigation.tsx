@@ -1,103 +1,234 @@
 "use client";
-import React, { useState } from "react";
-import { HomeIcon } from "@heroicons/react/24/solid";
+
+import React from "react";
+import { usePathname } from "next/navigation";
+import Link from "next/link";
+import { motion } from "framer-motion";
+import {
+  HomeIcon,
+  PhotoIcon,
+  PlusCircleIcon,
+  InformationCircleIcon,
+  ArrowRightOnRectangleIcon,
+} from "@heroicons/react/24/outline";
+import {
+  HomeIcon as HomeIconSolid,
+  PhotoIcon as PhotoIconSolid,
+  InformationCircleIcon as InformationCircleIconSolid,
+} from "@heroicons/react/24/solid";
 import { useAuth } from "../../../context/AuthContext";
-import Sidebar from "./Sidebar";
-import MobileMenu from "./MobileMenu";
-import FullscreenButton from "./FullscreenButton";
 import { signOutUser } from "../../auth";
 
-// Shared navigation links
-export const NAV_LINKS = [
+// Navigation configuration - single source of truth
+const NAV_ITEMS = [
   {
     href: "/",
     label: "Home",
-    icon: <HomeIcon className="h-6 w-6 text-white" />,
+    icon: HomeIcon,
+    iconActive: HomeIconSolid,
+    authRequired: true,
   },
   {
     href: "/albums",
     label: "Albums",
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={1.5}
-        stroke="currentColor"
-        className="h-6 w-6 text-white"
-      >
-        <rect
-          x="3"
-          y="5"
-          width="18"
-          height="14"
-          rx="3"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          fill="none"
-        />
-        <circle
-          cx="8.5"
-          cy="10.5"
-          r="2"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          fill="none"
-        />
-        <path
-          d="M21 19l-5-5a2 2 0 0 0-2.8 0l-2.2 2.2"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          fill="none"
-        />
-      </svg>
-    ),
+    icon: PhotoIcon,
+    iconActive: PhotoIconSolid,
+    authRequired: true,
+  },
+  {
+    href: "/albums/new",
+    label: "Create",
+    icon: PlusCircleIcon,
+    iconActive: PlusCircleIcon,
+    authRequired: true,
+    isAction: true, // Special styling for primary action
   },
   {
     href: "/about",
     label: "About",
-    icon: (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        fill="none"
-        viewBox="0 0 24 24"
-        strokeWidth={1.5}
-        stroke="currentColor"
-        className="h-6 w-6 text-white"
-      >
-        <circle
-          cx="12"
-          cy="12"
-          r="10"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          fill="none"
-        />
-        <line
-          x1="12"
-          y1="16"
-          x2="12"
-          y2="12"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-        />
-        <circle cx="12" cy="8.5" r="1" fill="currentColor" />
-      </svg>
-    ),
-  },
-  {
-    href: "/albums/new",
-    label: "Add new album",
-    icon: null,
+    icon: InformationCircleIcon,
+    iconActive: InformationCircleIconSolid,
+    authRequired: false,
   },
 ];
 
+export { NAV_ITEMS as NAV_LINKS };
+
+// Shared nav item component
+interface NavItemProps {
+  href: string;
+  label: string;
+  icon: React.ElementType;
+  iconActive: React.ElementType;
+  isActive: boolean;
+  isAction?: boolean;
+  variant: "mobile" | "desktop";
+  onClick?: () => void;
+}
+
+const NavItem: React.FC<NavItemProps> = ({
+  href,
+  label,
+  icon: Icon,
+  iconActive: IconActive,
+  isActive,
+  isAction,
+  variant,
+}) => {
+  const CurrentIcon = isActive ? IconActive : Icon;
+
+  if (variant === "mobile") {
+    return (
+      <Link
+        href={href}
+        className={`
+          relative flex flex-col items-center justify-center flex-1 py-2 min-w-0
+          transition-colors duration-200
+          ${isAction ? "" : isActive ? "text-blue-500" : "text-neutral-400"}
+        `}
+        aria-label={label}
+        aria-current={isActive ? "page" : undefined}
+      >
+        {/* Action button (Create) gets special treatment */}
+        {isAction ? (
+          <div className="relative -mt-4">
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
+              <CurrentIcon className="w-6 h-6 text-white" />
+            </div>
+          </div>
+        ) : (
+          <>
+            <CurrentIcon
+              className={`w-6 h-6 ${
+                isActive ? "scale-110" : ""
+              } transition-transform duration-200`}
+            />
+            <span
+              className={`text-[10px] mt-0.5 font-medium ${
+                isActive ? "text-blue-500" : ""
+              }`}
+            >
+              {label}
+            </span>
+            {/* Active indicator */}
+            {isActive && (
+              <motion.div
+                layoutId="mobileActiveIndicator"
+                className="absolute -bottom-0.5 w-1 h-1 rounded-full bg-blue-500"
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+              />
+            )}
+          </>
+        )}
+      </Link>
+    );
+  }
+
+  // Desktop variant
+  return (
+    <Link
+      href={href}
+      className={`
+        group relative flex items-center justify-center w-12 h-12 rounded-xl
+        transition-all duration-200 ease-out
+        ${
+          isActive
+            ? "bg-blue-600 text-white shadow-lg shadow-blue-500/25"
+            : "text-neutral-400 hover:text-white hover:bg-neutral-800"
+        }
+        ${
+          isAction
+            ? "bg-gradient-to-br from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25"
+            : ""
+        }
+      `}
+      aria-label={label}
+      aria-current={isActive ? "page" : undefined}
+    >
+      <CurrentIcon
+        className={`w-5 h-5 transition-transform duration-200 ${
+          !isActive && !isAction ? "group-hover:scale-110" : ""
+        }`}
+      />
+
+      {/* Tooltip */}
+      <div
+        className="
+        absolute left-full ml-3 px-2.5 py-1.5 
+        bg-neutral-800 text-white text-xs font-medium rounded-lg
+        opacity-0 invisible group-hover:opacity-100 group-hover:visible
+        transition-all duration-200 whitespace-nowrap
+        shadow-lg pointer-events-none z-50
+      "
+      >
+        {label}
+        <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-neutral-800" />
+      </div>
+
+      {/* Active indicator bar */}
+      {isActive && !isAction && (
+        <motion.div
+          layoutId="desktopActiveIndicator"
+          className="absolute -right-0.5 w-1 h-5 bg-blue-400 rounded-full"
+          transition={{ type: "spring", stiffness: 500, damping: 30 }}
+        />
+      )}
+    </Link>
+  );
+};
+
+// Sign out button component
+const SignOutButton: React.FC<{
+  variant: "mobile" | "desktop";
+  onClick: () => void;
+}> = ({ variant, onClick }) => {
+  if (variant === "mobile") {
+    return (
+      <button
+        onClick={onClick}
+        className="flex flex-col items-center justify-center flex-1 py-2 text-red-400"
+        aria-label="Sign out"
+      >
+        <ArrowRightOnRectangleIcon className="w-6 h-6" />
+        <span className="text-[10px] mt-0.5 font-medium">Sign Out</span>
+      </button>
+    );
+  }
+
+  return (
+    <button
+      onClick={onClick}
+      className="
+        group relative flex items-center justify-center w-12 h-12 rounded-xl
+        text-red-400 hover:text-red-300 hover:bg-red-500/10
+        transition-all duration-200
+      "
+      aria-label="Sign out"
+    >
+      <ArrowRightOnRectangleIcon className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
+
+      {/* Tooltip */}
+      <div
+        className="
+        absolute left-full ml-3 px-2.5 py-1.5 
+        bg-neutral-800 text-white text-xs font-medium rounded-lg
+        opacity-0 invisible group-hover:opacity-100 group-hover:visible
+        transition-all duration-200 whitespace-nowrap
+        shadow-lg pointer-events-none z-50
+      "
+      >
+        Sign Out
+        <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-neutral-800" />
+      </div>
+    </button>
+  );
+};
+
+// Main Navigation Component
 export default function Navigation() {
-  const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
   const { isSignedIn, setIsSignedIn } = useAuth();
 
-  // Sign out handler
   const handleSignOut = async () => {
     await signOutUser();
     if (typeof window !== "undefined") {
@@ -107,65 +238,112 @@ export default function Navigation() {
     }
   };
 
-  // Home and other links only visible when signed in
-  const homeLink = NAV_LINKS.find((link) => link.label === "Home");
-  const aboutLink = NAV_LINKS.find((link) => link.label === "About");
-  const otherLinks = NAV_LINKS.filter(
-    (link) => link.label !== "Home" && link.label !== "About"
+  // Filter visible nav items based on auth state
+  const visibleItems = NAV_ITEMS.filter(
+    (item) => !item.authRequired || isSignedIn
   );
-  const visibleLinks = [
-    ...(isSignedIn && homeLink ? [homeLink] : []),
-    ...(isSignedIn ? otherLinks : []),
-    ...(aboutLink ? [aboutLink] : []),
-  ].filter(Boolean);
 
   return (
     <>
-      {/* Mobile hamburger */}
-      <div className="sm:hidden fixed top-0 left-0 w-full h-14 bg-gray-950 z-40 flex items-center justify-between px-4 border-b border-gray-800">
-        <button
-          onClick={() => setMenuOpen(true)}
-          className="bg-gray-900 rounded-full p-2 shadow-lg"
-          aria-label="Open menu"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="h-7 w-7 text-white"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M3.75 6.75h16.5m-16.5 5.5h16.5m-16.5 5.5h16.5"
+      {/* ============ MOBILE BOTTOM TAB BAR ============ */}
+      <nav
+        className="
+          sm:hidden fixed bottom-0 left-0 right-0 z-50
+          bg-neutral-900/95 backdrop-blur-lg
+          border-t border-neutral-800
+          safe-area-bottom
+        "
+        role="navigation"
+        aria-label="Main navigation"
+      >
+        <div className="flex items-end justify-around px-2 pb-1 pt-1">
+          {visibleItems.map((item) => (
+            <NavItem
+              key={item.href}
+              href={item.href}
+              label={item.label}
+              icon={item.icon}
+              iconActive={item.iconActive}
+              isActive={pathname === item.href}
+              isAction={item.isAction}
+              variant="mobile"
             />
-          </svg>
-        </button>
+          ))}
+          {isSignedIn && (
+            <SignOutButton variant="mobile" onClick={handleSignOut} />
+          )}
+        </div>
+      </nav>
 
-        {/* Fullscreen button for mobile */}
-        <FullscreenButton size="md" />
-      </div>
-      {/* Sidebar for desktop */}
-      <div className="hidden sm:fixed sm:inset-y-0 sm:left-0 sm:w-20 sm:block">
-        <Sidebar
-          navLinks={visibleLinks.filter((link) => link !== undefined)}
-          onSignOut={isSignedIn ? handleSignOut : undefined}
-        />
-        {/* Google Sign-In button for desktop */}
-      </div>
-      {/* Mobile menu overlay */}
-      <MobileMenu
-        open={menuOpen}
-        onClose={() => setMenuOpen(false)}
-        navLinks={visibleLinks.map((link) => ({
-          href: link!.href,
-          label: link!.label,
-        }))}
-        isLoggedIn={isSignedIn}
-        onSignOut={isSignedIn ? handleSignOut : undefined}
-      />
+      {/* ============ DESKTOP LEFT SIDEBAR ============ */}
+      <aside
+        className="
+          hidden sm:flex fixed inset-y-0 left-0 z-40
+          w-16 flex-col items-center py-4
+          bg-neutral-900/95 backdrop-blur-lg
+          border-r border-neutral-800
+        "
+        role="navigation"
+        aria-label="Main navigation"
+      >
+        {/* Logo */}
+
+        {/* Main nav items */}
+        <nav className="flex flex-col items-center gap-2 flex-1">
+          {visibleItems
+            .filter((item) => !item.isAction && item.label !== "About")
+            .map((item) => (
+              <NavItem
+                key={item.href}
+                href={item.href}
+                label={item.label}
+                icon={item.icon}
+                iconActive={item.iconActive}
+                isActive={pathname === item.href}
+                variant="desktop"
+              />
+            ))}
+
+          {/* Create button - prominent placement */}
+          {visibleItems
+            .filter((item) => item.isAction)
+            .map((item) => (
+              <NavItem
+                key={item.href}
+                href={item.href}
+                label={item.label}
+                icon={item.icon}
+                iconActive={item.iconActive}
+                isActive={pathname === item.href}
+                isAction
+                variant="desktop"
+              />
+            ))}
+        </nav>
+
+        {/* Bottom section */}
+        <div className="flex flex-col items-center gap-2">
+          {/* About link */}
+          {visibleItems
+            .filter((item) => item.label === "About")
+            .map((item) => (
+              <NavItem
+                key={item.href}
+                href={item.href}
+                label={item.label}
+                icon={item.icon}
+                iconActive={item.iconActive}
+                isActive={pathname === item.href}
+                variant="desktop"
+              />
+            ))}
+
+          {/* Sign out */}
+          {isSignedIn && (
+            <SignOutButton variant="desktop" onClick={handleSignOut} />
+          )}
+        </div>
+      </aside>
     </>
   );
 }

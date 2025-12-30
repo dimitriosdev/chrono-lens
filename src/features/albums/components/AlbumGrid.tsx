@@ -194,7 +194,7 @@ const AlbumGrid: React.FC = () => {
               onClick={handleDeleteAllClick}
               className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors duration-200 font-medium"
             >
-              🗑️ Delete All Albums
+              Delete all
             </button>
           </div>
         )}
