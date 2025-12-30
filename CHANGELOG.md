@@ -1,3 +1,18 @@
+# [2.10.0](https://github.com/dimitriosdev/chrono-lens/compare/v2.9.0...v2.10.0) (2025-12-30)
+
+
+### Bug Fixes
+
+* enhance layout and styling for improved mobile responsiveness ([a0f1be9](https://github.com/dimitriosdev/chrono-lens/commit/a0f1be9a120d13f3493aaf4fe5befe8860bb3164))
+
+
+### Features
+
+* enhance navigation and layout components for improved mobile experience ([920631d](https://github.com/dimitriosdev/chrono-lens/commit/920631da52d3104128a0340e1da0f2cfe1981a31))
+* Implement album preview and image gallery components ([5a2d6fc](https://github.com/dimitriosdev/chrono-lens/commit/5a2d6fc322dfbe115485eb2c779b2b73c8044c6d))
+* Implement two-level privacy system for albums ([93a2ab3](https://github.com/dimitriosdev/chrono-lens/commit/93a2ab31650b1c1377b9957e9baf7d8241d4ec6d))
+* simplify LayoutSelector component and improve mobile responsiveness ([c3c28e2](https://github.com/dimitriosdev/chrono-lens/commit/c3c28e244cd46c937bf660373451cd5fef35c1b8))
+
 # [2.9.0](https://github.com/dimitriosdev/chrono-lens/compare/v2.8.1...v2.9.0) (2025-12-29)
 
 
