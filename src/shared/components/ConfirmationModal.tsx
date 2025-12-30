@@ -33,24 +33,6 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   );
 
   useEffect(() => {
-    if (isOpen) {
-      console.log("Modal props:", {
-        requireTextConfirmation,
-        requiredText,
-        message,
-        confirmButtonText,
-      });
-    }
-  }, [
-    isOpen,
-    title,
-    requireTextConfirmation,
-    requiredText,
-    message,
-    confirmButtonText,
-  ]);
-
-  useEffect(() => {
     if (requireTextConfirmation) {
       setIsConfirmEnabled(inputValue === requiredText);
     }
@@ -78,8 +60,6 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   };
 
   if (!isOpen) return null;
-
-  console.log("Modal rendering with isOpen:", isOpen);
 
   const getColors = () => {
     switch (type) {

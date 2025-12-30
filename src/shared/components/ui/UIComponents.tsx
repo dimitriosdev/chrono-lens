@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { helpers, componentVariants } from "@/shared/constants/designSystem";
+import { helpers, componentVariants } from "@/shared/constants/design";
 
 // Card Component
 interface CardProps {

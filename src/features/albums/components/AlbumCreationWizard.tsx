@@ -13,7 +13,7 @@ import {
   DocumentCheckIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
-import { helpers } from "@/shared/constants/designSystem";
+import { helpers } from "@/shared/constants/design";
 import {
   InteractiveCard,
   LoadingButton,

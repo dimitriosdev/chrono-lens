@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/shared/context";
 import { getAlbum, updateAlbum } from "@/shared/lib/firestore";
 import { uploadImage } from "@/shared/lib/storage";
 import { AlbumForm } from "@/features/albums/components/AlbumForm";

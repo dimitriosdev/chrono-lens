@@ -1,7 +1,7 @@
 "use client";
-import { AlbumGrid } from "../../features/albums";
-import Navigation from "../../features/navigation/components/Navigation";
-import { useAuth } from "../../context/AuthContext";
+import { AlbumGrid } from "@/features/albums";
+import { Navigation } from "@/features/navigation";
+import { useAuth } from "@/shared/context";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 

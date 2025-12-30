@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import { helpers } from "@/shared/constants/designSystem";
+import { helpers } from "@/shared/constants/design";
 
 // Interactive Card Component with enhanced hover effects
 interface InteractiveCardProps {

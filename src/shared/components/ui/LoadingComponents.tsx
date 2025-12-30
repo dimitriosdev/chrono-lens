@@ -1,6 +1,6 @@
 "use client";
 import React from "react";
-import { helpers } from "@/shared/constants/designSystem";
+import { helpers } from "@/shared/constants/design";
 
 // Loading Spinner Component
 interface LoadingSpinnerProps {

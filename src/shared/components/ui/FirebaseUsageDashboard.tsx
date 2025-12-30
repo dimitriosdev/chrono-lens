@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { firebaseUsageMonitor } from "@/shared/lib/firebaseUsageMonitor";
-import { helpers } from "@/shared/constants/designSystem";
+import { helpers } from "@/shared/constants/design";
 
 interface UsageDashboardProps {
   /** Show detailed breakdown */

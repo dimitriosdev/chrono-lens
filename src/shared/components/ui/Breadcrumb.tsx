@@ -2,7 +2,7 @@
 import React from "react";
 import Link from "next/link";
 import { ChevronRightIcon, HomeIcon } from "@heroicons/react/24/outline";
-import { helpers } from "@/shared/constants/designSystem";
+import { helpers } from "@/shared/constants/design";
 
 export interface BreadcrumbItem {
   label: string;

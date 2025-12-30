@@ -2,8 +2,8 @@
 import React from "react";
 import { usePathname } from "next/navigation";
 import "../globals.css";
-import Navigation from "../../features/navigation/components/Navigation";
-import { useAuth } from "@/context/AuthContext";
+import { Navigation } from "@/features/navigation";
+import { useAuth } from "@/shared/context";
 
 type AlbumsLayoutProps = {
   children: React.ReactNode;

@@ -1,7 +1,7 @@
 "use client";
 import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
+import { useAuth } from "@/shared/context";
 import { addAlbum } from "@/shared/lib/firestore";
 import { uploadImage } from "@/shared/lib/storage";
 import { AlbumForm } from "@/features/albums/components/AlbumForm";

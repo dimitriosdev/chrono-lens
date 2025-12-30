@@ -3,6 +3,8 @@ import { ValidationResult } from "../../types/form";
 /**
  * Validation utilities for form fields
  * Centralized validation logic for consistency and reusability
+ *
+ * Note: For file validation (security-related), use @/shared/utils/security
  */
 
 export const validateRequired = (value: string): ValidationResult => {
@@ -60,41 +62,6 @@ export const validateEmail = (email: string): ValidationResult => {
       ? "Please enter a valid email address"
       : undefined,
   };
-};
-
-export const validateFile = (file: File): ValidationResult => {
-  const maxSize = 10 * 1024 * 1024; // 10MB
-  const allowedTypes = [
-    "image/jpeg",
-    "image/png",
-    "image/gif",
-    "image/webp",
-    "image/heic",
-    "image/heif",
-  ];
-
-  if (!file) {
-    return {
-      isValid: false,
-      error: "No file selected",
-    };
-  }
-
-  if (file.size > maxSize) {
-    return {
-      isValid: false,
-      error: "File size must be less than 10MB",
-    };
-  }
-
-  if (!allowedTypes.includes(file.type)) {
-    return {
-      isValid: false,
-      error: "File must be an image (JPEG, PNG, GIF, WebP, or HEIC)",
-    };
-  }
-
-  return { isValid: true };
 };
 
 export const validateUrl = (url: string): ValidationResult => {

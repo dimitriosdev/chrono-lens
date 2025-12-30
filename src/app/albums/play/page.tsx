@@ -14,7 +14,7 @@ import { Album } from "@/shared/types/album";
 import { getAlbum } from "@/shared/lib/firestore";
 
 // Context and hooks
-import { useAuth, useGlobalFullscreen } from "@/context";
+import { useAuth, useGlobalFullscreen } from "@/shared/context";
 import { useAsyncErrorHandler } from "@/shared/hooks/useErrorHandler";
 import { useSlideshow, useColorPreferences } from "@/features/albums/hooks";
 

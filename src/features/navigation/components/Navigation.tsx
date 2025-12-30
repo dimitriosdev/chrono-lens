@@ -16,8 +16,8 @@ import {
   PhotoIcon as PhotoIconSolid,
   InformationCircleIcon as InformationCircleIconSolid,
 } from "@heroicons/react/24/solid";
-import { useAuth } from "../../../context/AuthContext";
-import { signOutUser } from "../../auth";
+import { useAuth } from "@/shared/context";
+import { signOutUser } from "@/shared/lib/auth";
 
 // Navigation configuration - single source of truth
 const NAV_ITEMS = [
@@ -72,7 +72,6 @@ const NavItem: React.FC<NavItemProps> = ({
   icon: Icon,
   iconActive: IconActive,
   isActive,
-  isAction,
   variant,
 }) => {
   const CurrentIcon = isActive ? IconActive : Icon;

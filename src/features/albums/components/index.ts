@@ -2,7 +2,6 @@
 export { default as MatImage } from "./MatImage";
 export { default as ColorPicker } from "./ColorPicker";
 export { default as SlideshowErrorBoundary } from "./SlideshowErrorBoundary";
-export { default as ImageErrorBoundary } from "./ImageErrorBoundary";
 
 // Layout Components
 export { LayoutViewer } from "./LayoutViewer";
@@ -20,7 +19,3 @@ export type {
   SlideshowErrorBoundaryProps,
   ErrorFallbackProps as SlideshowErrorFallbackProps,
 } from "./SlideshowErrorBoundary";
-export type {
-  ImageErrorBoundaryProps,
-  ImageErrorFallbackProps,
-} from "./ImageErrorBoundary";

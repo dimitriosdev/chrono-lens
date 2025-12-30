@@ -5,7 +5,7 @@ import * as Switch from "@radix-ui/react-switch";
 import * as RadioGroup from "@radix-ui/react-radio-group";
 import * as Slider from "@radix-ui/react-slider";
 import { FormSection } from "@/shared/components";
-import type { AlbumLayout } from "@/shared/types/layout";
+import type { AlbumLayout } from "@/shared/types/album";
 
 interface TimingConfig {
   slideshow?: {

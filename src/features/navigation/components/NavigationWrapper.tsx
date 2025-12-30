@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import Navigation from "../features/navigation/components/Navigation";
+import Navigation from "./Navigation";
 
 /**
  * Wrapper component that conditionally renders Navigation

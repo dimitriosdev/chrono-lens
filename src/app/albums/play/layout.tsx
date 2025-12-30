@@ -1,12 +1,12 @@
 "use client";
 
 import React from "react";
-import { AuthProvider, FullscreenProvider } from "../../../context";
+import { AuthProvider, FullscreenProvider } from "@/shared/context";
 import {
   ErrorBoundary,
   VersionLogger,
   UserDebugPanel,
-} from "../../../shared/components";
+} from "@/shared/components";
 
 /**
  * Custom layout for the play/slideshow page

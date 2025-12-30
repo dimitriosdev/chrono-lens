@@ -33,10 +33,8 @@ import {
   isFirebaseStorageUrl,
 } from "../utils/imageProcessing";
 import { PayloadSizeIndicator } from "./PayloadSizeIndicator";
-import { matColors } from "@/features/albums/hooks/useColorPreferences";
 import ColorPicker from "./ColorPicker";
-import MatImage from "./MatImage";
-import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
+import { AlbumPreview } from "./AlbumPreview";
 
 interface AlbumFormProps {
   album?: Album;
@@ -596,166 +594,14 @@ export const AlbumForm: React.FC<AlbumFormProps> = ({
     () => (
       <div className="space-y-4">
         {/* Live Preview - Always at top, most important */}
-        {formData.images.length > 0 && (
-          <div className="rounded-xl overflow-hidden shadow-lg">
-            {/* Preview Container */}
-            <div
-              className="relative"
-              style={{
-                backgroundColor: formData.customization.backgroundColor,
-                minHeight: "200px",
-                height: "min(50vh, 320px)",
-              }}
-            >
-              {/* Slideshow Layout Preview */}
-              {formData.layout.type === "slideshow" && (
-                <>
-                  {/* Current Image with Mat */}
-                  <div className="absolute inset-0 flex items-center justify-center p-3">
-                    <div
-                      className="relative flex items-center justify-center rounded-lg shadow-2xl max-w-[85%] max-h-[85%]"
-                      style={{
-                        backgroundColor:
-                          formData.customization.matColor || "#000000",
-                        padding: "6px",
-                      }}
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={
-                          formData.images[previewIndex]?.thumbnailUrl ||
-                          formData.images[previewIndex]?.url
-                        }
-                        alt={
-                          formData.images[previewIndex]?.description ||
-                          "Preview"
-                        }
-                        className="max-w-full max-h-[calc(min(50vh,320px)-80px)] object-contain rounded"
-                        style={{ display: "block" }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Navigation Arrows */}
-                  {formData.images.length > 1 && (
-                    <>
-                      <button
-                        onClick={() =>
-                          setPreviewIndex(
-                            (prev) =>
-                              (prev - 1 + formData.images.length) %
-                              formData.images.length
-                          )
-                        }
-                        className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-1.5 rounded-full transition-colors"
-                        aria-label="Previous image"
-                      >
-                        <ChevronLeftIcon className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() =>
-                          setPreviewIndex(
-                            (prev) => (prev + 1) % formData.images.length
-                          )
-                        }
-                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-1.5 rounded-full transition-colors"
-                        aria-label="Next image"
-                      >
-                        <ChevronRightIcon className="w-4 h-4" />
-                      </button>
-                    </>
-                  )}
-
-                  {/* Image counter badge */}
-                  {formData.images.length > 1 && (
-                    <div className="absolute top-2 right-2 bg-black/40 text-white text-xs px-2 py-0.5 rounded-full backdrop-blur-sm">
-                      {previewIndex + 1} / {formData.images.length}
-                    </div>
-                  )}
-                </>
-              )}
-
-              {/* Grid Layout Preview */}
-              {formData.layout.type === "grid" && (
-                <div className="absolute inset-0 p-3 overflow-hidden">
-                  <div
-                    className={`grid gap-1.5 h-full ${
-                      formData.images.length === 1
-                        ? "grid-cols-1"
-                        : formData.images.length === 2
-                        ? "grid-cols-2"
-                        : formData.images.length <= 4
-                        ? "grid-cols-2 grid-rows-2"
-                        : "grid-cols-3 grid-rows-2"
-                    }`}
-                  >
-                    {formData.images.slice(0, 6).map((image, index) => (
-                      <div
-                        key={image.id}
-                        className="relative rounded-lg overflow-hidden"
-                        style={{
-                          backgroundColor:
-                            formData.customization.matColor || "#000000",
-                          padding: "3px",
-                        }}
-                      >
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={image.thumbnailUrl || image.url}
-                          alt={image.description || `Image ${index + 1}`}
-                          className="w-full h-full object-cover rounded"
-                        />
-                        {/* Show "+X more" on the last visible image if there are more */}
-                        {index === 5 && formData.images.length > 6 && (
-                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded">
-                            <span className="text-white font-semibold text-lg">
-                              +{formData.images.length - 6}
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Album Title */}
-              <div
-                className="absolute bottom-2 left-1/2 -translate-x-1/2 text-center z-10"
-                style={{ color: formData.customization.textColor }}
-              >
-                <h2 className="text-sm font-semibold drop-shadow-lg px-3 py-1 rounded-full bg-black/20 backdrop-blur-sm">
-                  {formData.title || "Album Title"}
-                </h2>
-              </div>
-            </div>
-
-            {/* Thumbnail Strip - Only for slideshow */}
-            {formData.layout.type === "slideshow" &&
-              formData.images.length > 1 && (
-                <div className="flex gap-1 overflow-x-auto p-2 bg-neutral-100 dark:bg-neutral-800">
-                  {formData.images.map((image, index) => (
-                    <button
-                      key={image.id}
-                      onClick={() => setPreviewIndex(index)}
-                      className={`flex-shrink-0 w-10 h-10 rounded overflow-hidden border-2 transition-all ${
-                        index === previewIndex
-                          ? "border-blue-500"
-                          : "border-transparent opacity-50 hover:opacity-100"
-                      }`}
-                    >
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={image.thumbnailUrl || image.url}
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
-                    </button>
-                  ))}
-                </div>
-              )}
-          </div>
-        )}
+        <AlbumPreview
+          images={formData.images}
+          layout={formData.layout}
+          customization={formData.customization}
+          title={formData.title}
+          previewIndex={previewIndex}
+          onPreviewIndexChange={setPreviewIndex}
+        />
 
         {/* Controls Grid - Unified card */}
         <div className="bg-white dark:bg-neutral-800 rounded-xl p-3 space-y-4 shadow-sm border border-neutral-200 dark:border-neutral-700">

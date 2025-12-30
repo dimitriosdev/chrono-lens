@@ -4,7 +4,7 @@ import React from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { FormSectionProps, FormFieldProps } from "@/shared/types/form";
 import { ButtonProps, LoadingSpinnerProps } from "@/shared/types/ui";
-import { componentVariants, helpers } from "@/shared/constants/designSystem";
+import { componentVariants, helpers } from "@/shared/constants/design";
 
 export function FormSection({
   title,

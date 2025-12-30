@@ -7,13 +7,13 @@ import {
   EB_Garamond,
 } from "next/font/google";
 import "./globals.css";
-import { AuthProvider, FullscreenProvider } from "../context";
-import NavigationWrapper from "../components/NavigationWrapper";
+import { AuthProvider, FullscreenProvider } from "@/shared/context";
+import { NavigationWrapper } from "@/features/navigation";
 import {
   ErrorBoundary,
   VersionLogger,
   UserDebugPanel,
-} from "../shared/components";
+} from "@/shared/components";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
