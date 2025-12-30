@@ -120,44 +120,66 @@ export const AlbumCreationWizard: React.FC<AlbumCreationWizardProps> = ({
         className
       )}
     >
+      {/* Compact Mobile Header */}
       <div className="bg-white dark:bg-neutral-800 border-b border-neutral-200 dark:border-neutral-700 sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4">
+        <div className="max-w-6xl mx-auto px-3 sm:px-6 py-3 sm:py-4">
           <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <Breadcrumb items={breadcrumbItems} className="mb-3" />
-              <div className="flex items-center space-x-4">
-                <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
-                  {mode === "create" ? "Create New Album" : "Edit Album"}
-                </h1>
-              </div>
+            <div className="flex-1 min-w-0">
+              <Breadcrumb
+                items={breadcrumbItems}
+                className="mb-2 hidden sm:block"
+              />
+              <h1 className="text-lg sm:text-2xl font-bold text-neutral-900 dark:text-neutral-100 truncate">
+                {mode === "create" ? "Create Album" : "Edit Album"}
+              </h1>
             </div>
           </div>
 
-          <div className="mt-4">
-            <div className="flex items-center justify-between text-sm text-neutral-600 dark:text-neutral-400 mb-2">
-              <span>
-                Step {currentStep + 1} of {steps.length}
+          {/* Progress bar with step indicators */}
+          <div className="mt-3">
+            <div className="flex items-center justify-between text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 mb-1.5">
+              <span className="font-medium">
+                Step {currentStep + 1}: {current?.title}
               </span>
-              <span>{Math.round(progress)}% complete</span>
+              <span>{Math.round(progress)}%</span>
             </div>
-            <div className="w-full bg-neutral-200 dark:bg-neutral-700 rounded-full h-2">
+            <div className="w-full bg-neutral-200 dark:bg-neutral-700 rounded-full h-1.5 sm:h-2">
               <motion.div
-                className="bg-gradient-to-r from-blue-500 to-blue-600 h-2 rounded-full"
+                className="bg-gradient-to-r from-blue-500 to-blue-600 h-full rounded-full"
                 initial={{ width: 0 }}
                 animate={{ width: `${progress}%` }}
                 transition={{ duration: 0.5, ease: "easeOut" }}
               />
             </div>
+            {/* Mobile step dots */}
+            <div className="flex justify-center gap-2 mt-2 sm:hidden">
+              {steps.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => handleStepClick(index)}
+                  disabled={
+                    !(completedSteps.has(index) || index <= currentStep + 1)
+                  }
+                  className={helpers.cn(
+                    "w-2 h-2 rounded-full transition-all",
+                    index === currentStep && "w-4 bg-blue-500",
+                    index < currentStep && "bg-green-500",
+                    index > currentStep && "bg-neutral-300 dark:bg-neutral-600"
+                  )}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+      <div className="max-w-6xl mx-auto px-2 sm:px-6 py-4 sm:py-8">
         <InteractiveCard variant="elevated" className="overflow-hidden">
-          <div className="grid grid-cols-1 lg:grid-cols-4">
-            <div className="lg:col-span-1 bg-neutral-50 dark:bg-neutral-800/50 p-6 border-b lg:border-b-0 lg:border-r border-neutral-200 dark:border-neutral-700">
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-3">
+          <div className="flex flex-col lg:grid lg:grid-cols-4">
+            {/* Sidebar - Hidden on mobile, shown on desktop */}
+            <div className="hidden lg:block lg:col-span-1 bg-neutral-50 dark:bg-neutral-800/50 p-4 border-r border-neutral-200 dark:border-neutral-700">
+              <div className="mb-4">
+                <div className="flex items-center justify-between mb-2">
                   <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
                     Progress
                   </h3>
@@ -166,7 +188,7 @@ export const AlbumCreationWizard: React.FC<AlbumCreationWizardProps> = ({
                   </span>
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-1.5">
                   {steps.map((step, index) => {
                     const isCompleted = completedSteps.has(index);
                     const isCurrent = index === currentStep;
@@ -296,31 +318,35 @@ export const AlbumCreationWizard: React.FC<AlbumCreationWizardProps> = ({
               </div>
             </div>
 
-            <div className="lg:col-span-3">
-              <div className="border-b border-neutral-200 dark:border-neutral-700 p-6">
-                <div className="flex items-start space-x-4">
-                  <div className="flex-shrink-0 w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center">
-                    <span className="text-blue-600 dark:text-blue-400">
+            <div className="lg:col-span-3 flex flex-col">
+              {/* Compact Step Header - smaller on mobile */}
+              <div className="border-b border-neutral-200 dark:border-neutral-700 p-3 sm:p-6">
+                <div className="flex items-center sm:items-start gap-3 sm:gap-4">
+                  <div className="flex-shrink-0 w-8 h-8 sm:w-12 sm:h-12 bg-blue-100 dark:bg-blue-900/30 rounded-lg sm:rounded-xl flex items-center justify-center">
+                    <span className="text-blue-600 dark:text-blue-400 [&>svg]:w-4 [&>svg]:h-4 sm:[&>svg]:w-6 sm:[&>svg]:h-6">
                       {current?.icon}
                     </span>
                   </div>
-                  <div className="flex-1">
-                    <h2 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100 mb-1">
-                      {current?.title}
-                    </h2>
-                    <p className="text-neutral-600 dark:text-neutral-400">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-base sm:text-xl font-semibold text-neutral-900 dark:text-neutral-100 truncate">
+                        {current?.title}
+                      </h2>
+                      {current?.optional && (
+                        <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] sm:text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 flex-shrink-0">
+                          Optional
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-400 hidden sm:block">
                       {current?.description}
                     </p>
-                    {current?.optional && (
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300 mt-2">
-                        Optional
-                      </span>
-                    )}
                   </div>
                 </div>
               </div>
 
-              <div className="p-6 flex-1 min-h-[500px]">
+              {/* Content Area */}
+              <div className="p-3 sm:p-6 flex-1 min-h-[300px] sm:min-h-[500px]">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={currentStep}
@@ -333,6 +359,54 @@ export const AlbumCreationWizard: React.FC<AlbumCreationWizardProps> = ({
                     {current && <current.component />}
                   </motion.div>
                 </AnimatePresence>
+              </div>
+
+              {/* Mobile Navigation Footer */}
+              <div className="lg:hidden border-t border-neutral-200 dark:border-neutral-700 p-3 bg-neutral-50 dark:bg-neutral-800/50">
+                <div className="flex gap-2">
+                  <LoadingButton
+                    variant="secondary"
+                    size="sm"
+                    onClick={onPrev}
+                    disabled={isFirstStep}
+                    icon={<ChevronLeftIcon className="w-4 h-4" />}
+                    className="flex-1"
+                  >
+                    Back
+                  </LoadingButton>
+
+                  {!isLastStep ? (
+                    <LoadingButton
+                      variant="primary"
+                      size="sm"
+                      onClick={handleNext}
+                      disabled={!canGoNext}
+                      className="flex-1"
+                    >
+                      <span>Next</span>
+                      <ChevronRightIcon className="w-4 h-4 ml-1" />
+                    </LoadingButton>
+                  ) : (
+                    <LoadingButton
+                      variant="primary"
+                      size="sm"
+                      onClick={handleSave}
+                      loading={loading}
+                      icon={<DocumentCheckIcon className="w-4 h-4" />}
+                      className="flex-1"
+                    >
+                      Save Album
+                    </LoadingButton>
+                  )}
+                </div>
+                {current?.optional && onSkipStep && (
+                  <button
+                    onClick={onSkipStep}
+                    className="w-full text-center text-xs text-neutral-500 dark:text-neutral-400 hover:text-blue-600 dark:hover:text-blue-400 underline mt-2"
+                  >
+                    Skip this step
+                  </button>
+                )}
               </div>
 
               {saveError && (

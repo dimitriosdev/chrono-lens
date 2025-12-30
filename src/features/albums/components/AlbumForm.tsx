@@ -594,288 +594,307 @@ export const AlbumForm: React.FC<AlbumFormProps> = ({
 
   const LayoutAndCustomizeComponent = useCallback(
     () => (
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div className="text-center">
-          <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-2">
-            Layout & Appearance
-          </h3>
-          <p className="text-neutral-600 dark:text-neutral-400">
-            Choose how your images will be displayed and customize the styling
-          </p>
-        </div>
-
-        {/* Layout Section */}
-        <div className="space-y-4">
-          <h4 className="text-md font-medium text-neutral-900 dark:text-neutral-100">
-            Choose Layout
-          </h4>
-          <AlbumLayoutSection
-            images={formData.images}
-            currentLayout={formData.layout}
-            onLayoutChange={(layout) =>
-              setFormData((prev) => ({ ...prev, layout }))
-            }
-            timing={formData.timing}
-            onTimingChange={(timing) =>
-              setFormData((prev) => ({ ...prev, timing }))
-            }
-          />
-        </div>
-
-        {/* Customization Section */}
-        <div className="space-y-6 pt-6 border-t border-neutral-200 dark:border-neutral-700">
-          <h4 className="text-md font-medium text-neutral-900 dark:text-neutral-100">
-            Customize Appearance
-          </h4>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Background Color - hidden for slideshow layout */}
-            {formData.layout.type !== "slideshow" && (
-              <ColorPicker
-                label="Background Color"
-                value={formData.customization.backgroundColor}
-                onChange={(color) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    customization: {
-                      ...prev.customization,
-                      backgroundColor: color,
-                    },
-                  }))
-                }
-              />
-            )}
-
-            {/* Mat Color */}
-            <ColorPicker
-              label="Mat Color"
-              value={formData.customization.matColor || "#000000"}
-              onChange={(color) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  customization: {
-                    ...prev.customization,
-                    matColor: color,
-                  },
-                }))
-              }
-            />
-
-            {/* Text Color */}
-            <ColorPicker
-              label="Text Color"
-              value={formData.customization.textColor}
-              onChange={(color) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  customization: {
-                    ...prev.customization,
-                    textColor: color,
-                  },
-                }))
-              }
-            />
-          </div>
-
-          {/* Color presets for quick combinations */}
-          <div>
-            <h4 className="text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-3">
-              Quick Combinations
-            </h4>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {[
-                {
-                  bg: "#ffffff",
-                  mat: "#000000",
-                  text: "#000000",
-                  name: "Classic White",
-                },
-                {
-                  bg: "#000000",
-                  mat: "#f8f8f8",
-                  text: "#ffffff",
-                  name: "Dark Mode",
-                },
-                {
-                  bg: "#f3f4f6",
-                  mat: "#bfc2c3",
-                  text: "#1f2937",
-                  name: "Soft Gray",
-                },
-                {
-                  bg: "#1e40af",
-                  mat: "#f8f8f8",
-                  text: "#ffffff",
-                  name: "Deep Blue",
-                },
-              ].map((preset) => (
-                <button
-                  key={preset.name}
-                  onClick={() =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      customization: {
-                        ...prev.customization,
-                        backgroundColor: preset.bg,
-                        matColor: preset.mat,
-                        textColor: preset.text,
-                      },
-                    }))
-                  }
-                  className="p-4 rounded-lg border border-neutral-200 dark:border-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600 transition-colors group"
-                >
-                  <div className="flex items-center space-x-2 mb-2">
-                    <div
-                      className="w-6 h-6 rounded border border-neutral-300"
-                      style={{ backgroundColor: preset.bg }}
-                      title="Background"
-                    />
-                    <div
-                      className="w-6 h-6 rounded border border-neutral-300"
-                      style={{ backgroundColor: preset.mat }}
-                      title="Mat"
-                    />
-                    <div
-                      className="w-6 h-6 rounded border border-neutral-300"
-                      style={{ backgroundColor: preset.text }}
-                      title="Text"
-                    />
-                  </div>
-                  <div className="text-sm font-medium text-neutral-900 dark:text-neutral-100 group-hover:text-blue-600">
-                    {preset.name}
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Live Preview Section */}
+      <div className="space-y-4">
+        {/* Live Preview - Always at top, most important */}
         {formData.images.length > 0 && (
-          <div className="space-y-4 pt-6 border-t border-neutral-200 dark:border-neutral-700">
-            <div className="flex items-center justify-between">
-              <h4 className="text-md font-medium text-neutral-900 dark:text-neutral-100">
-                Live Preview
-              </h4>
-              {formData.images.length > 1 && (
-                <span className="text-sm text-neutral-500">
-                  {previewIndex + 1} of {formData.images.length}
-                </span>
-              )}
-            </div>
-
+          <div className="rounded-xl overflow-hidden shadow-lg">
             {/* Preview Container */}
             <div
-              className="relative rounded-lg overflow-hidden"
+              className="relative"
               style={{
                 backgroundColor: formData.customization.backgroundColor,
-                height: "400px",
+                minHeight: "200px",
+                height: "min(50vh, 320px)",
               }}
             >
-              {/* Current Image with Mat */}
-              <div className="absolute inset-0 flex items-center justify-center p-4">
-                <div
-                  className="relative flex items-center justify-center rounded-lg shadow-2xl"
-                  style={{
-                    backgroundColor:
-                      formData.customization.matColor || "#000000",
-                    padding: "16px",
-                    maxWidth: "90%",
-                    maxHeight: "90%",
-                  }}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={
-                      formData.images[previewIndex]?.thumbnailUrl ||
-                      formData.images[previewIndex]?.url
-                    }
-                    alt={
-                      formData.images[previewIndex]?.description || "Preview"
-                    }
-                    className="max-w-full max-h-[320px] object-contain rounded"
-                    style={{ display: "block" }}
-                  />
-                  {/* Caption overlay */}
-                  {formData.images[previewIndex]?.description && (
-                    <div className="absolute bottom-0 left-0 right-0 bg-black/40 backdrop-blur-sm px-3 py-2 rounded-b">
-                      <p
-                        className="text-sm text-center truncate"
-                        style={{ color: formData.customization.textColor }}
+              {/* Slideshow Layout Preview */}
+              {formData.layout.type === "slideshow" && (
+                <>
+                  {/* Current Image with Mat */}
+                  <div className="absolute inset-0 flex items-center justify-center p-3">
+                    <div
+                      className="relative flex items-center justify-center rounded-lg shadow-2xl max-w-[85%] max-h-[85%]"
+                      style={{
+                        backgroundColor:
+                          formData.customization.matColor || "#000000",
+                        padding: "6px",
+                      }}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={
+                          formData.images[previewIndex]?.thumbnailUrl ||
+                          formData.images[previewIndex]?.url
+                        }
+                        alt={
+                          formData.images[previewIndex]?.description ||
+                          "Preview"
+                        }
+                        className="max-w-full max-h-[calc(min(50vh,320px)-80px)] object-contain rounded"
+                        style={{ display: "block" }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Navigation Arrows */}
+                  {formData.images.length > 1 && (
+                    <>
+                      <button
+                        onClick={() =>
+                          setPreviewIndex(
+                            (prev) =>
+                              (prev - 1 + formData.images.length) %
+                              formData.images.length
+                          )
+                        }
+                        className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-1.5 rounded-full transition-colors"
+                        aria-label="Previous image"
                       >
-                        {formData.images[previewIndex].description}
-                      </p>
+                        <ChevronLeftIcon className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() =>
+                          setPreviewIndex(
+                            (prev) => (prev + 1) % formData.images.length
+                          )
+                        }
+                        className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/40 hover:bg-black/60 text-white p-1.5 rounded-full transition-colors"
+                        aria-label="Next image"
+                      >
+                        <ChevronRightIcon className="w-4 h-4" />
+                      </button>
+                    </>
+                  )}
+
+                  {/* Image counter badge */}
+                  {formData.images.length > 1 && (
+                    <div className="absolute top-2 right-2 bg-black/40 text-white text-xs px-2 py-0.5 rounded-full backdrop-blur-sm">
+                      {previewIndex + 1} / {formData.images.length}
                     </div>
                   )}
-                </div>
-              </div>
-
-              {/* Navigation Arrows */}
-              {formData.images.length > 1 && (
-                <>
-                  <button
-                    onClick={() =>
-                      setPreviewIndex(
-                        (prev) =>
-                          (prev - 1 + formData.images.length) %
-                          formData.images.length
-                      )
-                    }
-                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors z-10"
-                    aria-label="Previous image"
-                  >
-                    <ChevronLeftIcon className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={() =>
-                      setPreviewIndex(
-                        (prev) => (prev + 1) % formData.images.length
-                      )
-                    }
-                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors z-10"
-                    aria-label="Next image"
-                  >
-                    <ChevronRightIcon className="w-5 h-5" />
-                  </button>
                 </>
               )}
 
-              {/* Album Title Preview */}
+              {/* Grid Layout Preview */}
+              {formData.layout.type === "grid" && (
+                <div className="absolute inset-0 p-3 overflow-hidden">
+                  <div
+                    className={`grid gap-1.5 h-full ${
+                      formData.images.length === 1
+                        ? "grid-cols-1"
+                        : formData.images.length === 2
+                        ? "grid-cols-2"
+                        : formData.images.length <= 4
+                        ? "grid-cols-2 grid-rows-2"
+                        : "grid-cols-3 grid-rows-2"
+                    }`}
+                  >
+                    {formData.images.slice(0, 6).map((image, index) => (
+                      <div
+                        key={image.id}
+                        className="relative rounded-lg overflow-hidden"
+                        style={{
+                          backgroundColor:
+                            formData.customization.matColor || "#000000",
+                          padding: "3px",
+                        }}
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={image.thumbnailUrl || image.url}
+                          alt={image.description || `Image ${index + 1}`}
+                          className="w-full h-full object-cover rounded"
+                        />
+                        {/* Show "+X more" on the last visible image if there are more */}
+                        {index === 5 && formData.images.length > 6 && (
+                          <div className="absolute inset-0 bg-black/50 flex items-center justify-center rounded">
+                            <span className="text-white font-semibold text-lg">
+                              +{formData.images.length - 6}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Album Title */}
               <div
-                className="absolute bottom-4 left-1/2 -translate-x-1/2 text-center z-10"
+                className="absolute bottom-2 left-1/2 -translate-x-1/2 text-center z-10"
                 style={{ color: formData.customization.textColor }}
               >
-                <h2 className="text-lg font-bold drop-shadow-lg">
+                <h2 className="text-sm font-semibold drop-shadow-lg px-3 py-1 rounded-full bg-black/20 backdrop-blur-sm">
                   {formData.title || "Album Title"}
                 </h2>
               </div>
             </div>
 
-            {/* Thumbnail Strip */}
-            {formData.images.length > 1 && (
-              <div className="flex gap-2 overflow-x-auto py-2">
-                {formData.images.map((image, index) => (
-                  <button
-                    key={image.id}
-                    onClick={() => setPreviewIndex(index)}
-                    className={`flex-shrink-0 w-16 h-16 rounded overflow-hidden border-2 transition-all ${
-                      index === previewIndex
-                        ? "border-blue-500 ring-2 ring-blue-500/30"
-                        : "border-transparent opacity-60 hover:opacity-100"
-                    }`}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={image.thumbnailUrl || image.url}
-                      alt={`Thumbnail ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
+            {/* Thumbnail Strip - Only for slideshow */}
+            {formData.layout.type === "slideshow" &&
+              formData.images.length > 1 && (
+                <div className="flex gap-1 overflow-x-auto p-2 bg-neutral-100 dark:bg-neutral-800">
+                  {formData.images.map((image, index) => (
+                    <button
+                      key={image.id}
+                      onClick={() => setPreviewIndex(index)}
+                      className={`flex-shrink-0 w-10 h-10 rounded overflow-hidden border-2 transition-all ${
+                        index === previewIndex
+                          ? "border-blue-500"
+                          : "border-transparent opacity-50 hover:opacity-100"
+                      }`}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={image.thumbnailUrl || image.url}
+                        alt=""
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
           </div>
         )}
+
+        {/* Controls Grid - Unified card */}
+        <div className="bg-white dark:bg-neutral-800 rounded-xl p-3 space-y-4 shadow-sm border border-neutral-200 dark:border-neutral-700">
+          {/* Layout Type Toggle */}
+          <div>
+            <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-2 block">
+              Layout
+            </label>
+            <AlbumLayoutSection
+              images={formData.images}
+              currentLayout={formData.layout}
+              onLayoutChange={(layout) =>
+                setFormData((prev) => ({ ...prev, layout }))
+              }
+              timing={formData.timing}
+              onTimingChange={(timing) =>
+                setFormData((prev) => ({ ...prev, timing }))
+              }
+            />
+          </div>
+
+          {/* Color Controls - Centered row */}
+          <div>
+            <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-2 block">
+              Colors
+            </label>
+            <div className="flex justify-center gap-4">
+              {formData.layout.type !== "slideshow" && (
+                <ColorPicker
+                  label="Background"
+                  value={formData.customization.backgroundColor}
+                  onChange={(color) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      customization: {
+                        ...prev.customization,
+                        backgroundColor: color,
+                      },
+                    }))
+                  }
+                  compact
+                />
+              )}
+              <ColorPicker
+                label="Mat"
+                value={formData.customization.matColor || "#000000"}
+                onChange={(color) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    customization: {
+                      ...prev.customization,
+                      matColor: color,
+                    },
+                  }))
+                }
+                compact
+              />
+              <ColorPicker
+                label="Text"
+                value={formData.customization.textColor}
+                onChange={(color) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    customization: {
+                      ...prev.customization,
+                      textColor: color,
+                    },
+                  }))
+                }
+                compact
+              />
+            </div>
+          </div>
+
+          {/* Quick Themes */}
+          <div>
+            <label className="text-xs font-medium text-neutral-500 dark:text-neutral-400 uppercase tracking-wide mb-2 block">
+              Themes
+            </label>
+            <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
+              {[
+                {
+                  bg: "#ffffff",
+                  mat: "#000000",
+                  text: "#000000",
+                  name: "Light",
+                },
+                {
+                  bg: "#000000",
+                  mat: "#ffffff",
+                  text: "#ffffff",
+                  name: "Dark",
+                },
+                {
+                  bg: "#1e293b",
+                  mat: "#94a3b8",
+                  text: "#f1f5f9",
+                  name: "Slate",
+                },
+                {
+                  bg: "#fef3c7",
+                  mat: "#92400e",
+                  text: "#78350f",
+                  name: "Warm",
+                },
+              ].map((theme) => (
+                <button
+                  key={theme.name}
+                  onClick={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      customization: {
+                        ...prev.customization,
+                        backgroundColor: theme.bg,
+                        matColor: theme.mat,
+                        textColor: theme.text,
+                      },
+                    }))
+                  }
+                  className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-neutral-200 dark:border-neutral-600 hover:border-blue-400 transition-colors bg-white dark:bg-neutral-700"
+                >
+                  <div className="flex -space-x-1">
+                    <div
+                      className="w-3 h-3 rounded-full border border-white"
+                      style={{ backgroundColor: theme.bg }}
+                    />
+                    <div
+                      className="w-3 h-3 rounded-full border border-white"
+                      style={{ backgroundColor: theme.mat }}
+                    />
+                  </div>
+                  <span className="text-xs font-medium text-neutral-700 dark:text-neutral-300">
+                    {theme.name}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     ),
     [formData, setFormData, previewIndex]

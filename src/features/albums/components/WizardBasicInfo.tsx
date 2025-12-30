@@ -205,7 +205,12 @@ export const WizardBasicInfo: React.FC<WizardBasicInfoProps> = ({
   ).slice(0, 6);
 
   return (
-    <div className={helpers.cn("max-w-2xl mx-auto space-y-8", className)}>
+    <div
+      className={helpers.cn(
+        "max-w-2xl mx-auto space-y-4 sm:space-y-8",
+        className
+      )}
+    >
       {/* Welcome Message */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -214,9 +219,9 @@ export const WizardBasicInfo: React.FC<WizardBasicInfoProps> = ({
       ></motion.div>
 
       {/* Album Title */}
-      <div className="space-y-4">
+      <div className="space-y-2 sm:space-y-4">
         <div>
-          <label className="block text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-2">
+          <label className="block text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-1.5 sm:mb-2">
             Album Title *
             <Tooltip content="Give your album a memorable name that captures its essence">
               <InformationCircleIcon className="w-4 h-4 ml-1 inline text-neutral-400" />
@@ -228,32 +233,32 @@ export const WizardBasicInfo: React.FC<WizardBasicInfoProps> = ({
             placeholder="Enter a title for your album..."
             maxLength={60}
             className={helpers.cn(
-              "w-full px-4 py-3 rounded-lg border text-neutral-900 dark:text-neutral-100 bg-white dark:bg-neutral-800 transition-colors",
+              "w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border text-neutral-900 dark:text-neutral-100 bg-white dark:bg-neutral-800 transition-colors text-base",
               "border-neutral-300 dark:border-neutral-600 focus:border-blue-500 focus:ring-blue-500"
             )}
           />
-          <div className="flex items-center justify-between mt-2">
-            <p className="text-sm text-neutral-500 dark:text-neutral-400">
+          <div className="flex items-center justify-between mt-1.5">
+            <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400">
               {value.title.length}/60 characters
             </p>
           </div>
         </div>
       </div>
 
-      {/* Privacy Settings */}
+      {/* Privacy Settings - Compact on mobile */}
       <div>
-        <label className="block text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-4">
+        <label className="block text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-2 sm:mb-4">
           Privacy
           <Tooltip content="Choose who can view your album">
             <InformationCircleIcon className="w-4 h-4 ml-1 inline text-neutral-400" />
           </Tooltip>
         </label>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-1 md:grid-cols-3 sm:gap-4">
           {PRIVACY_OPTIONS.map((option) => (
             <button
               key={option.value}
               onClick={() => handlePrivacyChange(option.value)}
-              className={`group relative p-6 rounded-xl border-2 text-left transition-all duration-300 transform hover:scale-[1.02] ${
+              className={`group relative p-3 sm:p-6 rounded-xl border-2 text-left transition-all duration-300 transform hover:scale-[1.02] ${
                 value.privacy === option.value
                   ? option.selectedColor
                   : `border-gray-600 bg-gradient-to-br from-gray-700 to-gray-800 ${option.hoverColor} hover:shadow-lg`
@@ -261,81 +266,116 @@ export const WizardBasicInfo: React.FC<WizardBasicInfoProps> = ({
             >
               {/* Selected indicator */}
               {value.privacy === option.value && (
-                <div className="absolute top-3 right-3">
-                  <CheckCircleIcon className={`w-6 h-6 ${option.color}`} />
+                <div className="absolute top-2 right-2 sm:top-3 sm:right-3">
+                  <CheckCircleIcon
+                    className={`w-4 h-4 sm:w-6 sm:h-6 ${option.color}`}
+                  />
                 </div>
               )}
 
-              {/* Icon */}
-              <div className="flex items-center mb-4">
+              {/* Mobile: Icon + Label only */}
+              <div className="sm:hidden flex flex-col items-center text-center">
                 <div
-                  className={`p-3 rounded-lg mr-4 ${
+                  className={`p-2 rounded-lg mb-1.5 ${
                     value.privacy === option.value
                       ? option.iconBg
                       : `bg-gray-600 ${option.iconBgHover}`
                   }`}
                 >
                   <span
-                    className={
+                    className={`[&>svg]:w-4 [&>svg]:h-4 ${
                       value.privacy === option.value
                         ? option.color
                         : "text-gray-300"
-                    }
+                    }`}
                   >
                     {option.icon}
                   </span>
                 </div>
-                <div>
-                  <h4
-                    className={`font-bold text-lg ${
-                      value.privacy === option.value
-                        ? option.textColor
-                        : "text-white"
-                    }`}
-                  >
-                    {option.label}
-                  </h4>
-                  <div className="text-xs text-gray-400 mt-1">
-                    {option.value === "shared"
-                      ? "Link-based access"
-                      : option.value === "private"
-                      ? "Your eyes only"
-                      : "Open access"}
-                  </div>
-                </div>
+                <h4
+                  className={`font-semibold text-xs ${
+                    value.privacy === option.value
+                      ? option.textColor
+                      : "text-white"
+                  }`}
+                >
+                  {option.label}
+                </h4>
               </div>
 
-              {/* Description */}
-              <p
-                className={`text-sm leading-relaxed ${
-                  value.privacy === option.value
-                    ? option.descColor
-                    : "text-gray-300"
-                }`}
-              >
-                {option.description}
-              </p>
-
-              {/* Features */}
-              <div className="mt-4 space-y-1">
-                {option.features.map((feature, index) => (
+              {/* Desktop: Full layout with features */}
+              <div className="hidden sm:block">
+                {/* Icon */}
+                <div className="flex items-center mb-4">
                   <div
-                    key={index}
-                    className="flex items-center text-xs text-gray-400"
+                    className={`p-3 rounded-lg mr-4 ${
+                      value.privacy === option.value
+                        ? option.iconBg
+                        : `bg-gray-600 ${option.iconBgHover}`
+                    }`}
                   >
-                    <div className="w-1.5 h-1.5 bg-current rounded-full mr-2"></div>
-                    {feature}
+                    <span
+                      className={
+                        value.privacy === option.value
+                          ? option.color
+                          : "text-gray-300"
+                      }
+                    >
+                      {option.icon}
+                    </span>
                   </div>
-                ))}
+                  <div>
+                    <h4
+                      className={`font-bold text-lg ${
+                        value.privacy === option.value
+                          ? option.textColor
+                          : "text-white"
+                      }`}
+                    >
+                      {option.label}
+                    </h4>
+                    <div className="text-xs text-gray-400 mt-1">
+                      {option.value === "shared"
+                        ? "Link-based access"
+                        : option.value === "private"
+                        ? "Your eyes only"
+                        : "Open access"}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Description */}
+                <p
+                  className={`text-sm leading-relaxed ${
+                    value.privacy === option.value
+                      ? option.descColor
+                      : "text-gray-300"
+                  }`}
+                >
+                  {option.description}
+                </p>
+
+                {/* Features - Desktop only */}
+                <div className="mt-4 space-y-1">
+                  {option.features.map((feature, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center text-xs text-gray-400"
+                    >
+                      <div className="w-1.5 h-1.5 bg-current rounded-full mr-2"></div>
+                      {feature}
+                    </div>
+                  ))}
+                </div>
               </div>
             </button>
           ))}
         </div>
       </div>
 
-      {/* Tags */}
+      {/* Tags - More compact on mobile */}
       <div>
-        <label className="block text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-2">
+        <label className="block text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-1.5 sm:mb-2">
           Tags
           <span className="text-neutral-500 dark:text-neutral-400 font-normal ml-1">
             (optional)
@@ -347,16 +387,16 @@ export const WizardBasicInfo: React.FC<WizardBasicInfoProps> = ({
 
         {/* Existing Tags */}
         {value.tags.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-3">
+          <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-2 sm:mb-3">
             {value.tags.map((tag) => (
               <span
                 key={tag}
-                className="inline-flex items-center px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded-full text-sm"
+                className="inline-flex items-center px-2 sm:px-3 py-0.5 sm:py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 rounded-full text-xs sm:text-sm"
               >
                 {tag}
                 <button
                   onClick={() => handleTagRemove(tag)}
-                  className="ml-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200"
+                  className="ml-1.5 sm:ml-2 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200"
                 >
                   ×
                 </button>
@@ -374,8 +414,8 @@ export const WizardBasicInfo: React.FC<WizardBasicInfoProps> = ({
             onFocus={handleTagInputFocus}
             onBlur={handleTagInputBlur}
             onKeyPress={handleTagInputKeyPress}
-            placeholder="Add tags to help organize your album..."
-            className="w-full px-4 py-3 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:border-blue-500 focus:ring-blue-500"
+            placeholder="Add tags..."
+            className="w-full px-3 sm:px-4 py-2.5 sm:py-3 rounded-lg border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 focus:border-blue-500 focus:ring-blue-500 text-base"
             disabled={value.tags.length >= 10}
           />
 
@@ -401,9 +441,8 @@ export const WizardBasicInfo: React.FC<WizardBasicInfoProps> = ({
             )}
         </div>
 
-        <div className="flex justify-between mt-2">
-          <span />
-          <p className="text-sm text-neutral-500 dark:text-neutral-400">
+        <div className="flex justify-end mt-1.5">
+          <p className="text-xs sm:text-sm text-neutral-500 dark:text-neutral-400">
             {value.tags.length}/10 tags
           </p>
         </div>

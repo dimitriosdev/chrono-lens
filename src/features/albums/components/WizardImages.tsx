@@ -305,14 +305,14 @@ export const WizardImages: React.FC<WizardImagesProps> = ({
     });
 
   return (
-    <div className={helpers.cn("space-y-6", className)}>
-      {/* Upload Area */}
+    <div className={helpers.cn("space-y-4 sm:space-y-6", className)}>
+      {/* Upload Area - More compact on mobile */}
       <div
         onDrop={handleDrop}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         className={helpers.cn(
-          "border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200",
+          "border-2 border-dashed rounded-xl p-4 sm:p-8 text-center transition-all duration-200",
           dragOver
             ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
             : "border-neutral-300 dark:border-neutral-600 hover:border-neutral-400 dark:hover:border-neutral-500"
@@ -327,31 +327,28 @@ export const WizardImages: React.FC<WizardImagesProps> = ({
           className="hidden"
         />
 
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           <div>
-            <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-2">
+            <h3 className="text-base sm:text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-1 sm:mb-2">
               {value.length === 0 ? "Add your first images" : "Add more images"}
             </h3>
-            <p className="text-neutral-600 dark:text-neutral-400 mb-4">
+            <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-3 sm:mb-4 hidden sm:block">
               Drag and drop images here, or click to browse
             </p>
             <LoadingButton
               variant="primary"
               loading={uploading}
               onClick={() => fileInputRef.current?.click()}
-              icon={<PhotoIcon className="w-5 h-5" />}
+              icon={<PhotoIcon className="w-4 h-4 sm:w-5 sm:h-5" />}
             >
               {uploading ? "Processing..." : "Choose Images"}
             </LoadingButton>
           </div>
 
-          <div className="text-xs text-neutral-500 dark:text-neutral-400 space-y-1">
-            <p>
-              Supports: JPEG, PNG, WebP, GIF, HEIC • Max 10MB per file • Up to
-              50 images
-            </p>
+          <div className="text-[10px] sm:text-xs text-neutral-500 dark:text-neutral-400 space-y-0.5 sm:space-y-1">
+            <p>JPEG, PNG, WebP, GIF, HEIC • Max 10MB • Up to 50 images</p>
             {value.length > 0 && (
-              <p className="font-medium">{value.length}/50 images uploaded</p>
+              <p className="font-medium">{value.length}/50 images</p>
             )}
           </div>
         </div>
@@ -359,44 +356,47 @@ export const WizardImages: React.FC<WizardImagesProps> = ({
 
       {/* Images Management */}
       {value.length > 0 && (
-        <div className="space-y-4">
-          {/* Toolbar */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
-            <div className="flex items-center space-x-4">
-              <div className="relative">
-                <MagnifyingGlassIcon className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400" />
-                <input
-                  type="text"
-                  placeholder="Search captions and tags..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 pr-4 py-2 bg-white dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 rounded-lg text-sm"
-                />
-              </div>
+        <div className="space-y-3 sm:space-y-4">
+          {/* Toolbar - Simplified on mobile */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-4 p-2 sm:p-4 bg-neutral-50 dark:bg-neutral-800 rounded-lg">
+            {/* Search - Full width on mobile */}
+            <div className="relative flex-1 sm:max-w-xs">
+              <MagnifyingGlassIcon className="w-4 h-4 absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 text-neutral-400" />
+              <input
+                type="text"
+                placeholder="Search..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-7 sm:pl-9 pr-3 sm:pr-4 py-1.5 sm:py-2 bg-white dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 rounded-lg text-sm"
+              />
+            </div>
 
+            {/* Controls row */}
+            <div className="flex items-center justify-between sm:justify-end gap-2">
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-                className="px-3 py-2 bg-white dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 rounded-lg text-sm"
+                className="px-2 sm:px-3 py-1.5 sm:py-2 bg-white dark:bg-neutral-700 border border-neutral-300 dark:border-neutral-600 rounded-lg text-xs sm:text-sm"
               >
-                <option value="order">Custom Order</option>
+                <option value="order">Order</option>
                 <option value="name">Caption</option>
-                <option value="size">File Size</option>
-                <option value="date">Date Taken</option>
+                <option value="size">Size</option>
+                <option value="date">Date</option>
               </select>
-            </div>
 
-            <div className="flex items-center space-x-2">
-              <Tooltip content="Auto-organize images">
-                <LoadingButton
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleAutoOrganize}
-                  icon={<SparklesIcon className="w-4 h-4" />}
-                >
-                  Auto-organize
-                </LoadingButton>
-              </Tooltip>
+              {/* Hide auto-organize on mobile to save space */}
+              <div className="hidden sm:block">
+                <Tooltip content="Auto-organize images">
+                  <LoadingButton
+                    variant="secondary"
+                    size="sm"
+                    onClick={handleAutoOrganize}
+                    icon={<SparklesIcon className="w-4 h-4" />}
+                  >
+                    Auto-organize
+                  </LoadingButton>
+                </Tooltip>
+              </div>
 
               {selectedImages.size > 0 && (
                 <LoadingButton
@@ -405,11 +405,13 @@ export const WizardImages: React.FC<WizardImagesProps> = ({
                   onClick={handleBulkDelete}
                   icon={<TrashIcon className="w-4 h-4" />}
                 >
-                  Delete ({selectedImages.size})
+                  <span className="hidden sm:inline">Delete</span> (
+                  {selectedImages.size})
                 </LoadingButton>
               )}
 
-              <div className="flex border border-neutral-300 dark:border-neutral-600 rounded-lg overflow-hidden">
+              {/* View mode toggle - Only show on sm+ */}
+              <div className="hidden sm:flex border border-neutral-300 dark:border-neutral-600 rounded-lg overflow-hidden">
                 <button
                   onClick={() => setViewMode("grid")}
                   className={helpers.cn(
@@ -438,7 +440,7 @@ export const WizardImages: React.FC<WizardImagesProps> = ({
 
           {/* Images Display */}
           {viewMode === "grid" ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-4">
               <AnimatePresence>
                 {filteredImages.map((image) => (
                   <motion.div
@@ -449,7 +451,7 @@ export const WizardImages: React.FC<WizardImagesProps> = ({
                     exit={{ opacity: 0, scale: 0.8 }}
                     className="group relative"
                   >
-                    <InteractiveCard className="p-2 h-full">
+                    <InteractiveCard className="p-1 sm:p-2 h-full">
                       <div className="relative aspect-square rounded-lg overflow-hidden bg-neutral-100 dark:bg-neutral-700">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img

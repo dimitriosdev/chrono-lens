@@ -5,7 +5,6 @@
 "use client";
 
 import React from "react";
-import { FormSection } from "@/shared/components";
 import { LayoutSelector } from "@/features/albums/components/LayoutSelector";
 import {
   createLayout,
@@ -62,18 +61,12 @@ export function AlbumLayoutSection({
   };
 
   return (
-    <FormSection
-      title="Layout Selection"
-      description="Choose how your images will be displayed and configure settings"
+    <LayoutSelector
+      currentLayoutType={currentLayout.type}
+      onLayoutChange={handleLayoutTypeChange}
+      timing={timing}
+      onTimingChange={onTimingChange}
       className={className}
-    >
-      <LayoutSelector
-        imageCount={imageCount}
-        currentLayoutType={currentLayout.type}
-        onLayoutChange={handleLayoutTypeChange}
-        timing={timing}
-        onTimingChange={onTimingChange}
-      />
-    </FormSection>
+    />
   );
 }
