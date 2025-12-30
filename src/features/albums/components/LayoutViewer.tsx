@@ -3,7 +3,6 @@
 import React from "react";
 import { Album } from "@/shared/types/album";
 import { AlbumLayout } from "@/features/albums/constants/AlbumLayout";
-import { FrameAssembly } from "@/shared/types/frameTextures";
 import MatImage from "./MatImage";
 
 interface LayoutViewerProps {
@@ -16,7 +15,6 @@ interface LayoutViewerProps {
   currentIndex?: number;
   onNext?: () => void;
   onPrevious?: () => void;
-  frameAssembly?: FrameAssembly; // Advanced frame texture system
 }
 
 export function LayoutViewer({
@@ -29,7 +27,6 @@ export function LayoutViewer({
   currentIndex = 0,
   onNext,
   onPrevious,
-  frameAssembly,
 }: LayoutViewerProps) {
   const images = album.images || [];
   const totalImages = images.length;
@@ -64,16 +61,7 @@ export function LayoutViewer({
         <div className="absolute inset-0 flex items-center justify-center">
           <MatImage
             src={currentImage.url}
-            matConfig={
-              frameAssembly
-                ? {
-                    matWidth: 5,
-                    matColor,
-                    frameAssembly,
-                    useAdvancedFraming: true,
-                  }
-                : { matWidth: 5, matColor }
-            }
+            matConfig={{ matWidth: 5, matColor }}
             containerMode={false}
             description={currentImage.description}
             alt={`${album.title} - Image ${currentIndex + 1}`}
@@ -147,16 +135,7 @@ export function LayoutViewer({
             <MatImage
               key={`${currentIndex}-${index}`}
               src={image.url}
-              matConfig={
-                frameAssembly
-                  ? {
-                      matWidth: 3,
-                      matColor,
-                      frameAssembly,
-                      useAdvancedFraming: true,
-                    }
-                  : { matWidth: 3, matColor }
-              }
+              matConfig={{ matWidth: 3, matColor }}
               containerMode={true}
               gridInfo={{ rows, cols }}
               description={image.description}

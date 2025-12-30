@@ -207,7 +207,6 @@ const SlideshowPage: React.FC = () => {
           currentIndex={slideshow.currentIndex}
           onNext={slideshow.goToNext}
           onPrevious={slideshow.goToPrevious}
-          frameAssembly={album.matConfig?.frameAssembly}
         />
       </div>
     </SlideshowErrorBoundary>

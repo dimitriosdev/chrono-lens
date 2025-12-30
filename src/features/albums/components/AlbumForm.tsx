@@ -16,7 +16,6 @@ import {
   SparklesIcon,
   PhotoIcon,
   PaintBrushIcon,
-  EyeIcon,
 } from "@heroicons/react/24/outline";
 import { Album } from "@/shared/types/album";
 import {
@@ -36,9 +35,8 @@ import {
 import { PayloadSizeIndicator } from "./PayloadSizeIndicator";
 import { matColors } from "@/features/albums/hooks/useColorPreferences";
 import ColorPicker from "./ColorPicker";
-import { FrameTexturePicker } from "./FrameTexturePicker";
-import { FrameAssembly } from "@/shared/types/frameTextures";
-import { FRAME_PRESETS } from "@/shared/constants/frameTextures";
+import MatImage from "./MatImage";
+import { ChevronLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 
 interface AlbumFormProps {
   album?: Album;
@@ -78,10 +76,6 @@ interface FormData {
     backgroundColor: string;
     textColor: string;
     matColor?: string;
-    backgroundImage?: string;
-    music?: string;
-    frameAssembly?: FrameAssembly;
-    useAdvancedFraming?: boolean;
   };
   timing?: {
     slideshow?: {
@@ -104,6 +98,7 @@ export const AlbumForm: React.FC<AlbumFormProps> = ({
   // Determine mode from props or data
   const mode = propMode || (album ? "edit" : "create");
   const [currentStep, setCurrentStep] = useState(0);
+  const [previewIndex, setPreviewIndex] = useState(0);
 
   // Helper function to convert existing album images to wizard format
   const convertAlbumImagesToWizardFormat = (
@@ -251,7 +246,6 @@ export const AlbumForm: React.FC<AlbumFormProps> = ({
           0: !!(albumFormData.title && albumFormData.title.length >= 3), // Basic info valid if title exists
           1: !!(albumFormData.images && albumFormData.images.length > 0), // Images valid if any exist
           2: true, // Layout & Customization always valid (has defaults)
-          3: true, // Preview always valid
         };
       };
 
@@ -272,7 +266,6 @@ export const AlbumForm: React.FC<AlbumFormProps> = ({
       0: !!(initialFormData.title && initialFormData.title.length >= 3), // Basic info valid if title exists
       1: !!(initialFormData.images && initialFormData.images.length > 0), // Images valid if any exist
       2: true, // Layout & Customization always valid (has defaults)
-      3: true, // Preview always valid
     };
   };
 
@@ -372,9 +365,7 @@ export const AlbumForm: React.FC<AlbumFormProps> = ({
     setStepValidations({
       0: false, // Basic info invalid until title is entered
       1: false, // Images invalid until images are added
-      2: true, // Layout always valid (has defaults)
-      3: true, // Customization always valid (has defaults)
-      4: true, // Preview always valid
+      2: true, // Layout & Finalize always valid (has defaults)
     });
   }, [formData.images, cleanupBlobUrls]);
 
@@ -686,29 +677,6 @@ export const AlbumForm: React.FC<AlbumFormProps> = ({
             />
           </div>
 
-          {/* Frame Texture System */}
-          <div className="space-y-4">
-            <h4 className="text-sm font-medium text-neutral-900 dark:text-neutral-100">
-              Advanced Frame System
-            </h4>
-            <FrameTexturePicker
-              assembly={
-                formData.customization.frameAssembly ||
-                FRAME_PRESETS[0].assembly
-              }
-              onAssemblyChange={(frameAssembly: FrameAssembly) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  customization: {
-                    ...prev.customization,
-                    frameAssembly,
-                    useAdvancedFraming: true,
-                  },
-                }))
-              }
-            />
-          </div>
-
           {/* Color presets for quick combinations */}
           <div>
             <h4 className="text-sm font-medium text-neutral-900 dark:text-neutral-100 mb-3">
@@ -781,148 +749,136 @@ export const AlbumForm: React.FC<AlbumFormProps> = ({
             </div>
           </div>
         </div>
-      </div>
-    ),
-    [formData, setFormData]
-  );
 
-  const PreviewComponent = useCallback(
-    () => (
-      <div className="max-w-4xl mx-auto space-y-6">
-        <div className="text-center">
-          <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-2">
-            Album Preview
-          </h3>
-          <p className="text-neutral-600 dark:text-neutral-400">
-            Review how your album will look to viewers
-          </p>
-        </div>
-
-        <div
-          className="rounded-lg p-8 min-h-[400px]"
-          style={{
-            backgroundColor: formData.customization.backgroundColor,
-            color: formData.customization.textColor,
-          }}
-        >
-          <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold mb-4">
-              {formData.title || "Untitled Album"}
-            </h2>
-            {formData.description && (
-              <p className="text-lg opacity-80">{formData.description}</p>
-            )}
-            <div className="flex items-center justify-center space-x-4 mt-4 text-sm opacity-60">
-              <span>{formData.images.length} photos</span>
-              <span>•</span>
-              <span className="capitalize">{formData.layout.type} layout</span>
-              {formData.privacy && (
-                <>
-                  <span>•</span>
-                  <span className="capitalize">{formData.privacy}</span>
-                </>
+        {/* Live Preview Section */}
+        {formData.images.length > 0 && (
+          <div className="space-y-4 pt-6 border-t border-neutral-200 dark:border-neutral-700">
+            <div className="flex items-center justify-between">
+              <h4 className="text-md font-medium text-neutral-900 dark:text-neutral-100">
+                Live Preview
+              </h4>
+              {formData.images.length > 1 && (
+                <span className="text-sm text-neutral-500">
+                  {previewIndex + 1} of {formData.images.length}
+                </span>
               )}
             </div>
-          </div>
 
-          {formData.images.length > 0 && (
-            <div className="space-y-6">
-              {/* Layout and Colors Summary */}
-              <div className="bg-black/10 dark:bg-white/10 rounded-lg p-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                  <div>
-                    <strong>Layout:</strong>{" "}
-                    {formData.layout.name || formData.layout.type}
-                  </div>
-                  <div>
-                    <strong>Mat Color:</strong>{" "}
-                    <span className="inline-flex items-center gap-2">
-                      <span
-                        className="w-4 h-4 rounded border border-black/20"
-                        style={{
-                          backgroundColor:
-                            formData.customization.matColor || "#000000",
-                        }}
-                      />
-                      {matColors.find(
-                        (c) => c.color === formData.customization.matColor
-                      )?.name || "Custom"}
-                    </span>
-                  </div>
-                  <div>
-                    <strong>Background:</strong>{" "}
-                    <span className="inline-flex items-center gap-2">
-                      <span
-                        className="w-4 h-4 rounded border border-black/20"
-                        style={{
-                          backgroundColor:
-                            formData.customization.backgroundColor,
-                        }}
-                      />
-                      Background Color
-                    </span>
-                  </div>
+            {/* Preview Container */}
+            <div
+              className="relative rounded-lg overflow-hidden"
+              style={{
+                backgroundColor: formData.customization.backgroundColor,
+                height: "400px",
+              }}
+            >
+              {/* Current Image with Mat */}
+              <div className="absolute inset-0 flex items-center justify-center p-4">
+                <div
+                  className="relative flex items-center justify-center rounded-lg shadow-2xl"
+                  style={{
+                    backgroundColor:
+                      formData.customization.matColor || "#000000",
+                    padding: "16px",
+                    maxWidth: "90%",
+                    maxHeight: "90%",
+                  }}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={
+                      formData.images[previewIndex]?.thumbnailUrl ||
+                      formData.images[previewIndex]?.url
+                    }
+                    alt={
+                      formData.images[previewIndex]?.description || "Preview"
+                    }
+                    className="max-w-full max-h-[320px] object-contain rounded"
+                    style={{ display: "block" }}
+                  />
+                  {/* Caption overlay */}
+                  {formData.images[previewIndex]?.description && (
+                    <div className="absolute bottom-0 left-0 right-0 bg-black/40 backdrop-blur-sm px-3 py-2 rounded-b">
+                      <p
+                        className="text-sm text-center truncate"
+                        style={{ color: formData.customization.textColor }}
+                      >
+                        {formData.images[previewIndex].description}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Preview with Mat Effect */}
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {formData.images.slice(0, 8).map((image) => (
-                  <div
-                    key={image.id}
-                    className="aspect-square p-3 rounded-lg"
-                    style={{
-                      backgroundColor:
-                        formData.customization.matColor || "#000000",
-                    }}
+              {/* Navigation Arrows */}
+              {formData.images.length > 1 && (
+                <>
+                  <button
+                    onClick={() =>
+                      setPreviewIndex(
+                        (prev) =>
+                          (prev - 1 + formData.images.length) %
+                          formData.images.length
+                      )
+                    }
+                    className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors z-10"
+                    aria-label="Previous image"
                   >
-                    <div className="w-full h-full rounded overflow-hidden bg-white">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={image.thumbnailUrl || image.url}
-                        alt={image.description || "Preview"}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  </div>
-                ))}
-                {formData.images.length > 8 && (
-                  <div
-                    className="aspect-square p-3 rounded-lg flex items-center justify-center"
-                    style={{
-                      backgroundColor:
-                        formData.customization.matColor || "#000000",
-                    }}
+                    <ChevronLeftIcon className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={() =>
+                      setPreviewIndex(
+                        (prev) => (prev + 1) % formData.images.length
+                      )
+                    }
+                    className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition-colors z-10"
+                    aria-label="Next image"
                   >
-                    <div className="w-full h-full rounded bg-white/20 flex items-center justify-center">
-                      <span className="text-sm opacity-60">
-                        +{formData.images.length - 8} more
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+                    <ChevronRightIcon className="w-5 h-5" />
+                  </button>
+                </>
+              )}
 
-          {formData.tags.length > 0 && (
-            <div className="mt-8 text-center">
-              <div className="inline-flex flex-wrap gap-2 justify-center">
-                {formData.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="px-3 py-1 rounded-full text-xs opacity-60 bg-white/10"
-                  >
-                    #{tag}
-                  </span>
-                ))}
+              {/* Album Title Preview */}
+              <div
+                className="absolute bottom-4 left-1/2 -translate-x-1/2 text-center z-10"
+                style={{ color: formData.customization.textColor }}
+              >
+                <h2 className="text-lg font-bold drop-shadow-lg">
+                  {formData.title || "Album Title"}
+                </h2>
               </div>
             </div>
-          )}
-        </div>
+
+            {/* Thumbnail Strip */}
+            {formData.images.length > 1 && (
+              <div className="flex gap-2 overflow-x-auto py-2">
+                {formData.images.map((image, index) => (
+                  <button
+                    key={image.id}
+                    onClick={() => setPreviewIndex(index)}
+                    className={`flex-shrink-0 w-16 h-16 rounded overflow-hidden border-2 transition-all ${
+                      index === previewIndex
+                        ? "border-blue-500 ring-2 ring-blue-500/30"
+                        : "border-transparent opacity-60 hover:opacity-100"
+                    }`}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={image.thumbnailUrl || image.url}
+                      alt={`Thumbnail ${index + 1}`}
+                      className="w-full h-full object-cover"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     ),
-    [formData]
+    [formData, setFormData, previewIndex]
   );
 
   // Create wizard steps with stable components
@@ -948,28 +904,18 @@ export const AlbumForm: React.FC<AlbumFormProps> = ({
       },
       {
         id: "layout-customize",
-        title: "Layout & Appearance",
-        description: "Choose layout and customize styling",
+        title: "Layout & Finalize",
+        description: "Choose layout, customize styling, and save",
         icon: <PaintBrushIcon className="w-6 h-6" />,
         component: LayoutAndCustomizeComponent,
-        estimatedTime: "3-4 min",
+        estimatedTime: "2-3 min",
         validation: () => stepValidations[2],
-      },
-      {
-        id: "preview",
-        title: "Preview & Finalize",
-        description: "Review your album before saving",
-        icon: <EyeIcon className="w-6 h-6" />,
-        component: PreviewComponent,
-        estimatedTime: "1 min",
-        validation: () => stepValidations[3],
       },
     ],
     [
       BasicInfoComponent,
       ImagesComponent,
       LayoutAndCustomizeComponent,
-      PreviewComponent,
       stepValidations,
     ]
   );

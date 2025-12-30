@@ -13,9 +13,6 @@ export { default as ImageProcessingStatus } from "./components/ImageProcessingSt
 // Layout Components
 export { LayoutViewer } from "./components";
 
-// Advanced Frame Components
-export { FrameTexturePicker } from "./components";
-
 // Form Components
 export * from "./components/forms";
 
@@ -32,6 +29,3 @@ export type {
 
 // Constants
 export * from "./constants/AlbumLayout";
-
-// Frame texture constants
-export * from "../../shared/constants/frameTextures";

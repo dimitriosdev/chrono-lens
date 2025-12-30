@@ -1,5 +1,4 @@
 // Album and image related types
-import { FrameAssembly } from "./frameTextures";
 
 export interface AlbumImage {
   url: string;
@@ -8,7 +7,7 @@ export interface AlbumImage {
   id?: string;
 }
 
-// Legacy mat config for backward compatibility
+// Simple mat config - only what's actually used
 export interface MatConfig {
   matWidth: number;
   matColor: string;
@@ -16,16 +15,9 @@ export interface MatConfig {
   textColor?: string; // Optional text color for captions and titles
 }
 
-// Enhanced mat config with advanced features
-export interface EnhancedMatConfig extends MatConfig {
-  frameAssembly?: FrameAssembly; // New frame texture system
-  useAdvancedFraming?: boolean; // Flag to use new system
-}
-
 export interface ViewerSettings {
   backgroundColor: string;
   matColor?: string; // Override for album mat color
-  frameAssemblyId?: string; // Reference to frame assembly
 }
 
 export type LayoutType = "slideshow" | "grid";
@@ -46,7 +38,7 @@ export interface Album {
   coverUrl?: string;
   images: AlbumImage[];
   layout?: AlbumLayout;
-  matConfig?: EnhancedMatConfig; // Updated to support advanced framing
+  matConfig?: MatConfig; // Simple mat configuration
   userId?: string;
   createdAt?: Date;
   updatedAt?: Date;

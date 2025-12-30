@@ -7,9 +7,6 @@ export { default as ImageErrorBoundary } from "./ImageErrorBoundary";
 // Layout Components
 export { LayoutViewer } from "./LayoutViewer";
 
-// Advanced Frame Components
-export { FrameTexturePicker } from "./FrameTexturePicker";
-
 // Enhanced Form Components
 export { default as AlbumForm } from "./AlbumForm";
 export { default as AlbumCreationWizard } from "./AlbumCreationWizard";
