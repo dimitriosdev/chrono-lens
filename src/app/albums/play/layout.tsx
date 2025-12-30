@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
 import { AuthProvider, FullscreenProvider } from "@/shared/context";
 import {
   ErrorBoundary,
@@ -24,7 +24,15 @@ export default function PlayLayout({
         <ErrorBoundary>
           <VersionLogger />
           <div className="w-full h-full bg-gray-950">
-            {children}
+            <Suspense
+              fallback={
+                <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
+                  Loading...
+                </div>
+              }
+            >
+              {children}
+            </Suspense>
             <UserDebugPanel />
           </div>
         </ErrorBoundary>

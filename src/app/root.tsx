@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "@/shared/context";
 import { Navigation } from "@/features/navigation";
 import { BackgroundImage } from "@/shared/components";
@@ -8,6 +8,7 @@ import { signInWithGoogle } from "@/shared/lib/auth";
 
 const Root = () => {
   const { isSignedIn, setIsSignedIn } = useAuth();
+  const [message, setMessage] = useState<string>("");
 
   // Sign in handler
   const handleSignIn = async () => {
@@ -17,11 +18,22 @@ const Root = () => {
       setIsSignedIn(true);
     }
   };
-  // Sync with localStorage on mount
+
+  // Sync with localStorage on mount and check for message
   useEffect(() => {
     if (typeof window !== "undefined") {
       const signedIn = localStorage.getItem("isSignedIn") === "true";
       setIsSignedIn(signedIn);
+
+      // Check for message in URL
+      const params = new URLSearchParams(window.location.search);
+      const urlMessage = params.get("message");
+      if (urlMessage) {
+        setMessage(urlMessage);
+        // Clear message from URL after reading
+        const newUrl = window.location.pathname;
+        window.history.replaceState({}, "", newUrl);
+      }
     }
     // Only run once on mount
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -63,6 +75,11 @@ const Root = () => {
             <h1 className="text-3xl font-bold text-cyan-400 mb-4">
               Chrono Lens
             </h1>
+            {message && (
+              <div className="mb-6 p-4 bg-yellow-900/50 border border-yellow-600 rounded-lg">
+                <p className="text-yellow-200">{message}</p>
+              </div>
+            )}
             {!isSignedIn && (
               <button
                 onClick={handleSignIn}

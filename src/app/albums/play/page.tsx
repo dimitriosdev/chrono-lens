@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 import {
   ChevronLeftIcon,
   ArrowsPointingInIcon,
@@ -29,6 +29,7 @@ interface ControlButtonsProps {
   isFullscreen: boolean;
   onToggleFullscreen: () => void;
   onToggleColorPicker: () => void;
+  showColorPicker: boolean; // Whether to show the color picker button
 }
 
 /**
@@ -51,6 +52,7 @@ const ControlButtons: React.FC<ControlButtonsProps> = ({
   isFullscreen,
   onToggleFullscreen,
   onToggleColorPicker,
+  showColorPicker,
 }) => (
   <div className="absolute top-3 right-3 flex gap-1 z-50">
     {/* Fullscreen toggle button */}
@@ -67,23 +69,36 @@ const ControlButtons: React.FC<ControlButtonsProps> = ({
       )}
     </button>
 
-    {/* Configuration toggle button */}
-    <button
-      type="button"
-      onClick={onToggleColorPicker}
-      aria-label="Open configuration"
-      className={getControlButtonStyles(isFullscreen)}
-    >
-      <Cog6ToothIcon className="w-4 h-4" />
-    </button>
+    {/* Configuration toggle button - only shown for authenticated users */}
+    {showColorPicker && (
+      <button
+        type="button"
+        onClick={onToggleColorPicker}
+        aria-label="Open configuration"
+        className={getControlButtonStyles(isFullscreen)}
+      >
+        <Cog6ToothIcon className="w-4 h-4" />
+      </button>
+    )}
   </div>
 );
 
-const SlideshowPage: React.FC = () => {
+// Get searchParams from URL directly using window.location
+const SlideshowPageInner: React.FC = () => {
   const { isSignedIn, loading } = useAuth();
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const albumId = searchParams.get("id");
+
+  // Get params from URL directly instead of useSearchParams
+  const [albumId, setAlbumId] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get("id");
+      setAlbumId(id);
+    }
+  }, []);
+
   const [album, setAlbum] = React.useState<Album | undefined>(undefined);
   const [showColorPicker, setShowColorPicker] = React.useState(false);
 
@@ -99,25 +114,55 @@ const SlideshowPage: React.FC = () => {
       try {
         const data = await getAlbum(albumId!);
         setAlbum(data || undefined);
-      } catch (error) {
+      } catch (error: any) {
+        // Handle specific error cases
+        if (error?.message?.includes("private")) {
+          // Private album - redirect to login
+          router.replace(
+            "/?redirect=" +
+              encodeURIComponent(
+                window.location.pathname + window.location.search
+              ) +
+              "&message=" +
+              encodeURIComponent(
+                "This album is private. Please sign in to view it."
+              )
+          );
+          return;
+        }
         handleAsyncError(error);
         setAlbum(undefined);
       }
     }
     if (albumId) fetchAlbum();
-  }, [albumId, handleAsyncError]);
+  }, [albumId, handleAsyncError, router]);
 
-  // Authentication check
+  // Authentication check - only redirect if album is private and user is not signed in
   React.useEffect(() => {
-    if (!loading && !isSignedIn) {
-      router.replace("/");
+    // Wait for both auth and album to load
+    if (loading || !album) {
+      return;
     }
-  }, [isSignedIn, loading, router]);
+
+    // If album is public, allow access without auth
+    if (album.privacy === "public") {
+      return;
+    }
+
+    // For private albums, require authentication
+    if (!isSignedIn) {
+      router.replace(
+        "/?redirect=" +
+          encodeURIComponent(window.location.pathname + window.location.search)
+      );
+    }
+  }, [isSignedIn, loading, router, album]);
 
   // Handlers
   const handleBack = React.useCallback(() => {
-    router.push("/albums");
-  }, [router]);
+    // Go to user's albums if signed in, otherwise to home page
+    router.push(isSignedIn ? "/albums" : "/");
+  }, [router, isSignedIn]);
 
   const handleToggleColorPicker = React.useCallback(() => {
     setShowColorPicker(!showColorPicker);
@@ -128,8 +173,6 @@ const SlideshowPage: React.FC = () => {
   }, []);
 
   // Early returns
-  if (loading || !isSignedIn) return null;
-
   if (!albumId) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900">
@@ -165,21 +208,24 @@ const SlideshowPage: React.FC = () => {
           isFullscreen={fullscreen.isFullscreen}
           onToggleFullscreen={fullscreen.toggleFullscreen}
           onToggleColorPicker={handleToggleColorPicker}
+          showColorPicker={isSignedIn}
         />
 
-        {/* Back button */}
-        <button
-          type="button"
-          onClick={handleBack}
-          aria-label="Back to albums"
-          className={`absolute top-3 left-3 text-white p-1.5 rounded bg-black/20 backdrop-blur-sm shadow-[0_0_8px_rgba(0,0,0,0.3)] z-50 transition-all duration-300 ${
-            fullscreen.isFullscreen
-              ? "opacity-20 hover:opacity-70"
-              : "opacity-40 hover:opacity-90"
-          }`}
-        >
-          <ChevronLeftIcon className="w-4 h-4" />
-        </button>
+        {/* Back button - only show for authenticated users */}
+        {isSignedIn && (
+          <button
+            type="button"
+            onClick={handleBack}
+            aria-label="Back to albums"
+            className={`absolute top-3 left-3 text-white p-1.5 rounded bg-black/20 backdrop-blur-sm shadow-[0_0_8px_rgba(0,0,0,0.3)] z-50 transition-all duration-300 ${
+              fullscreen.isFullscreen
+                ? "opacity-20 hover:opacity-70"
+                : "opacity-40 hover:opacity-90"
+            }`}
+          >
+            <ChevronLeftIcon className="w-4 h-4" />
+          </button>
+        )}
 
         {/* Color picker panel */}
         {showColorPicker && album?.id && (
@@ -244,6 +290,21 @@ const SlideshowPage: React.FC = () => {
         />
       </div>
     </SlideshowErrorBoundary>
+  );
+};
+
+// Wrapper component with Suspense
+const SlideshowPage: React.FC = () => {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-gray-900 text-white">
+          Loading album...
+        </div>
+      }
+    >
+      <SlideshowPageInner />
+    </React.Suspense>
   );
 };
 

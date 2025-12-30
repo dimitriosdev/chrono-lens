@@ -21,6 +21,9 @@ export {
   PressEffect,
 } from "./ui/InteractionComponents";
 
+// Modal Components
+export { default as ConfirmationModal } from "./ConfirmationModal";
+
 // Form Components
 export * from "./form/FormComponents";
 

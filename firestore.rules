@@ -1,0 +1,158 @@
+rules_version = '2';
+
+/**
+ * ChronoLens Firestore Security Rules
+ * 
+ * Privacy Levels:
+ * - PUBLIC: Viewable by anyone, no authentication required
+ * - PRIVATE: Only owner can access, authentication required
+ */
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ========================================
+    // HELPER FUNCTIONS
+    // ========================================
+    
+    /**
+     * Check if user is authenticated
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    /**
+     * Check if current user is the owner of the resource
+     */
+    function isOwner(resourceData) {
+      return isSignedIn() && request.auth.uid == resourceData.userId;
+    }
+    
+    /**
+     * Validate privacy value
+     */
+    function isValidPrivacy(privacy) {
+      return privacy in ['public', 'private'];
+    }
+    
+    /**
+     * Validate that required fields exist for album creation
+     */
+    function hasRequiredFields(data) {
+      return data.keys().hasAll(['title', 'userId', 'privacy', 'createdAt', 'updatedAt']);
+    }
+    
+    /**
+     * Validate album title length
+     */
+    function isValidTitle(title) {
+      return title is string && title.size() >= 3 && title.size() <= 100;
+    }
+    
+    // ========================================
+    // ALBUMS COLLECTION
+    // ========================================
+    
+    match /albums/{albumId} {
+      
+      // ========================================
+      // READ RULES
+      // ========================================
+      
+      /**
+       * Allow read if:
+       * 1. Album is public (anyone can view)
+       * 2. Album is private AND user is the owner
+       */
+      allow read: if 
+        // PUBLIC: Anyone can read
+        resource.data.privacy == 'public'
+        ||
+        // PRIVATE: Only owner can read
+        (resource.data.privacy == 'private' && isOwner(resource.data));
+      
+      // ========================================
+      // CREATE RULES
+      // ========================================
+      
+      /**
+       * Allow create if:
+       * 1. User is authenticated
+       * 2. userId matches authenticated user
+       * 3. Privacy is valid (public or private)
+       * 4. Required fields exist
+       * 5. Title is valid
+       */
+      allow create: if 
+        isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && isValidPrivacy(request.resource.data.privacy)
+        && hasRequiredFields(request.resource.data)
+        && isValidTitle(request.resource.data.title);
+      
+      // ========================================
+      // UPDATE RULES
+      // ========================================
+      
+      /**
+       * Allow update if:
+       * 1. User is the owner
+       * 2. userId cannot be changed
+       * 3. Privacy is valid
+       * 4. Title is valid (if present)
+       * 5. updatedAt field is present (serverTimestamp sentinel or timestamp)
+       */
+      allow update: if 
+        isOwner(resource.data)
+        && request.resource.data.userId == resource.data.userId
+        && isValidPrivacy(request.resource.data.privacy)
+        && isValidTitle(request.resource.data.title)
+        && request.resource.data.keys().hasAll(['updatedAt']);
+      
+      // ========================================
+      // DELETE RULES
+      // ========================================
+      
+      /**
+       * Only the owner can delete their albums
+       */
+      allow delete: if isOwner(resource.data);
+    }
+    
+    // ========================================
+    // LIST/QUERY OPERATIONS
+    // ========================================
+    
+    /**
+     * Allow listing/querying albums with restrictions:
+     * 1. Public albums can be queried by anyone
+     * 2. User's own albums can be queried (all privacy levels)
+     * 
+     * Note: Queries must include privacy filter for public albums
+     * or userId filter for private/owned albums
+     */
+    match /albums/{document=**} {
+      allow list: if 
+        // Public album queries (e.g., public gallery)
+        request.query.limit <= 50
+        ||
+        // User's own albums (authenticated)
+        (isSignedIn() && 
+         request.query.limit <= 100);
+    }
+    
+    // ========================================
+    // FUTURE: USER PROFILES COLLECTION
+    // ========================================
+    
+    /**
+     * User profiles for storing preferences, quotas, etc.
+     * Not implemented yet, but included for future expansion
+     */
+    match /users/{userId} {
+      allow read: if isSignedIn() && request.auth.uid == userId;
+      allow write: if isSignedIn() && request.auth.uid == userId;
+    }
+  }
+}

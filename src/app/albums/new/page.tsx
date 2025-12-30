@@ -45,7 +45,6 @@ const NewAlbumPage: React.FC = () => {
         description: albumData.description,
         privacy: albumData.privacy, // Include privacy setting
         tags: albumData.tags, // Include tags
-        shareToken: albumData.shareToken, // Include share token
         images: [], // Start with empty images array
         layout: albumData.layout,
         matConfig: albumData.matConfig,

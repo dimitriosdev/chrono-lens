@@ -5,6 +5,8 @@
 - [Smart Layout](SMART_LAYOUT_COMPLETE.md) - Intelligent photo arrangement system
 - [Image Processing](IMAGE_PROCESSING.md) - Upload, conversion, and optimization
 - [Background Color Picker](BACKGROUND_COLOR_PICKER.md) - Customizable viewing experience
+- [Album Creation Wizard](ALBUM_CREATION_WIZARD.md) - Guided album creation
+- [Privacy System](PRIVACY.md) - Public/private album access control
 
 ## Implementation Details
 

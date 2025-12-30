@@ -22,7 +22,7 @@ export interface ViewerSettings {
 
 export type LayoutType = "slideshow" | "grid";
 
-export type AlbumPrivacy = "public" | "private" | "shared";
+export type AlbumPrivacy = "public" | "private";
 
 export interface AlbumLayout {
   type: LayoutType;
@@ -45,7 +45,6 @@ export interface Album {
   cycleDuration?: number;
   // Simple privacy settings
   privacy: AlbumPrivacy;
-  shareToken?: string; // Simple share token for shared albums
   tags?: string[]; // Support for tags mentioned in the form
 }
 

@@ -10,6 +10,7 @@
 - [Smart Layout](features/SMART_LAYOUT_COMPLETE.md) - Layout algorithm details
 - [Image Processing](features/IMAGE_PROCESSING.md) - Image handling and optimization
 - [Background Color Picker](features/BACKGROUND_COLOR_PICKER.md) - Color customization
+- [Privacy System](features/PRIVACY.md) - Album access control
 
 ## Configuration
 

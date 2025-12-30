@@ -11,9 +11,18 @@ import { Album } from "@/shared/types/album";
 import { getAlbums, deleteAlbum } from "@/shared/lib/firestore";
 import { executeDeleteAll } from "@/shared/utils/deleteAllData";
 import ConfirmationModal from "@/shared/components/ConfirmationModal";
-const AlbumGrid: React.FC = () => {
-  const [albums, setAlbums] = React.useState<Album[]>([]);
-  const [loading, setLoading] = React.useState(true);
+
+interface AlbumGridProps {
+  albums?: Album[]; // Optional: if provided, use these instead of fetching
+  showActions?: boolean; // Optional: show edit/delete actions (default: true for user albums)
+}
+
+const AlbumGrid: React.FC<AlbumGridProps> = ({
+  albums: providedAlbums,
+  showActions = true,
+}) => {
+  const [albums, setAlbums] = React.useState<Album[]>(providedAlbums || []);
+  const [loading, setLoading] = React.useState(!providedAlbums); // Don't load if albums provided
   const [showDeleteAllModal, setShowDeleteAllModal] = React.useState(false);
   const [showDeleteModal, setShowDeleteModal] = React.useState(false);
   const [showResultModal, setShowResultModal] = React.useState(false);
@@ -112,6 +121,14 @@ const AlbumGrid: React.FC = () => {
   };
 
   React.useEffect(() => {
+    // If albums are provided as props, use them instead of fetching
+    if (providedAlbums) {
+      setAlbums(providedAlbums);
+      setLoading(false);
+      return;
+    }
+
+    // Otherwise, fetch user's albums
     async function fetchAlbums() {
       setLoading(true);
       try {
@@ -126,7 +143,7 @@ const AlbumGrid: React.FC = () => {
       setLoading(false);
     }
     fetchAlbums();
-  }, []);
+  }, [providedAlbums]);
 
   const handleAlbumClick = (idx: number) => {
     router.push(`/albums/play?id=${albums[idx].id}`);
@@ -187,17 +204,19 @@ const AlbumGrid: React.FC = () => {
   return (
     <section className="pt-4 sm:pt-8 pb-4 sm:pb-8 w-full flex flex-col items-center">
       <div className="w-full max-w-screen-xl px-3 sm:px-4 lg:px-0">
-        {/* Discreet Delete All - only in development */}
-        {process.env.NODE_ENV === "development" && albums.length > 0 && (
-          <div className="flex justify-end mb-2">
-            <button
-              onClick={handleDeleteAllClick}
-              className="text-[10px] text-neutral-500 hover:text-red-400 transition-colors"
-            >
-              Delete all
-            </button>
-          </div>
-        )}
+        {/* Discreet Delete All - only in development for user albums */}
+        {showActions &&
+          process.env.NODE_ENV === "development" &&
+          albums.length > 0 && (
+            <div className="flex justify-end mb-2">
+              <button
+                onClick={handleDeleteAllClick}
+                className="text-[10px] text-neutral-500 hover:text-red-400 transition-colors"
+              >
+                Delete all
+              </button>
+            </div>
+          )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 justify-center">
           {albums.length === 0 ? (
@@ -218,25 +237,27 @@ const AlbumGrid: React.FC = () => {
                 aria-label={album.title}
               >
                 {renderCardBackground(album)}
-                <div className="absolute top-2 right-2 z-20 flex gap-1 sm:gap-2">
-                  <button
-                    aria-label="Edit album"
-                    className="bg-gray-800 rounded-full p-2 sm:p-3 hover:bg-blue-600 transition-colors duration-150 block focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-md"
-                    onClick={(e) => handleEditClick(e, idx)}
-                    tabIndex={0}
-                    onMouseEnter={(e) => e.currentTarget.focus()}
-                  >
-                    <PencilSquareIcon className="h-5 w-5 sm:h-6 sm:w-6 text-white mx-auto" />
-                  </button>
-                  <button
-                    aria-label="Delete album"
-                    className="bg-gray-800 rounded-full p-2 sm:p-3 hover:bg-red-600 transition-colors duration-150 block focus:outline-none focus:ring-2 focus:ring-red-500 shadow-md"
-                    onClick={(e) => handleDeleteClick(e, idx)}
-                    tabIndex={0}
-                  >
-                    <TrashIcon className="h-5 w-5 sm:h-6 sm:w-6 text-white mx-auto" />
-                  </button>
-                </div>
+                {showActions && (
+                  <div className="absolute top-2 right-2 z-20 flex gap-1 sm:gap-2">
+                    <button
+                      aria-label="Edit album"
+                      className="bg-gray-800 rounded-full p-2 sm:p-3 hover:bg-blue-600 transition-colors duration-150 block focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-md"
+                      onClick={(e) => handleEditClick(e, idx)}
+                      tabIndex={0}
+                      onMouseEnter={(e) => e.currentTarget.focus()}
+                    >
+                      <PencilSquareIcon className="h-5 w-5 sm:h-6 sm:w-6 text-white mx-auto" />
+                    </button>
+                    <button
+                      aria-label="Delete album"
+                      className="bg-gray-800 rounded-full p-2 sm:p-3 hover:bg-red-600 transition-colors duration-150 block focus:outline-none focus:ring-2 focus:ring-red-500 shadow-md"
+                      onClick={(e) => handleDeleteClick(e, idx)}
+                      tabIndex={0}
+                    >
+                      <TrashIcon className="h-5 w-5 sm:h-6 sm:w-6 text-white mx-auto" />
+                    </button>
+                  </div>
+                )}
                 <div className="absolute left-0 top-0 w-full z-10 p-3 sm:p-4 flex items-start">
                   <span className="text-white text-base sm:text-lg font-semibold drop-shadow-lg text-shadow-md">
                     {album.title}

@@ -14,7 +14,7 @@ import { StableInput } from "./StableInput";
 
 interface BasicInfoData {
   title: string;
-  privacy: "public" | "private" | "shared";
+  privacy: "public" | "private";
   tags: string[];
   coverImageIndex?: number;
 }
@@ -60,25 +60,6 @@ const PRIVACY_OPTIONS = [
     textColor: "text-red-200",
     descColor: "text-red-100",
     features: ["Complete privacy", "Login required", "Personal access only"],
-  },
-  {
-    value: "shared" as const,
-    label: "Shared",
-    description: "Specific people you choose can view",
-    icon: <UserGroupIcon className="w-6 h-6" />,
-    color: "text-blue-400",
-    selectedColor:
-      "border-blue-500 bg-gradient-to-br from-blue-500/20 to-purple-500/10 shadow-lg shadow-blue-500/20",
-    hoverColor: "hover:border-blue-400",
-    iconBg: "bg-blue-500/30",
-    iconBgHover: "group-hover:bg-blue-500/20",
-    textColor: "text-blue-200",
-    descColor: "text-blue-100",
-    features: [
-      "Share with specific people",
-      "Link-based access",
-      "Controlled sharing",
-    ],
   },
 ];
 

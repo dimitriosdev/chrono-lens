@@ -75,7 +75,6 @@ export default function EditAlbumPage() {
         description: albumData.description,
         privacy: albumData.privacy, // Include privacy setting
         tags: albumData.tags, // Include tags
-        shareToken: albumData.shareToken, // Include share token
         images: processedImages,
         layout: albumData.layout,
         matConfig: albumData.matConfig,

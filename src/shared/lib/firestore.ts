@@ -7,6 +7,8 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
+  deleteField,
+  serverTimestamp,
   query,
   where,
   orderBy,
@@ -29,7 +31,7 @@ import {
 } from "@/shared/utils/security";
 import { ensureValidLayout } from "@/features/albums/utils/layoutDefaults";
 import { cleanAlbumData } from "@/shared/utils/firebaseUtils";
-import { getShareTokenFromUrl } from "@/shared/utils/albumSharing";
+import { canAccessAlbum } from "@/shared/utils/privacy";
 
 // Initialize Firestore lazily
 let db: Firestore | null = null;
@@ -47,7 +49,17 @@ const getDB = () => {
   return { db, albumsCollection: albumsCollection! };
 };
 
-export async function getAlbum(id: string): Promise<Album | null> {
+/**
+ * Get a single album by ID with privacy-aware access control
+ *
+ * @param id - Album ID
+ * @returns Album data if accessible, null if not found
+ * @throws Error if access is denied or quota exceeded
+ */
+export async function getAlbum(
+  id: string,
+  shareToken?: string | null
+): Promise<Album | null> {
   // Check if read operation is allowed
   const canRead = firebaseUsageMonitor.canPerformOperation("read", 1);
   if (!canRead.allowed) {
@@ -55,49 +67,54 @@ export async function getAlbum(id: string): Promise<Album | null> {
   }
 
   const { albumsCollection } = getDB();
-  const albumDoc = await getDoc(doc(albumsCollection, id));
 
-  // Record the read operation
-  firebaseUsageMonitor.recordOperation("read", 1);
+  let albumDoc;
+  try {
+    albumDoc = await getDoc(doc(albumsCollection, id));
 
-  if (!albumDoc.exists()) return null;
+    // Record the read operation
+    firebaseUsageMonitor.recordOperation("read", 1);
+
+    if (!albumDoc.exists()) {
+      return null;
+    }
+  } catch (firestoreError: any) {
+    // Check if it's a permissions error (album exists but is private)
+    if (firestoreError?.code === 'permission-denied') {
+      throw new Error(
+        "This album is private. Please sign in to view it."
+      );
+    }
+    throw firestoreError;
+  }
 
   const albumData = { id: albumDoc.id, ...albumDoc.data() } as Album;
 
-  // For public albums, allow access without authentication
-  if (albumData.privacy === "public") {
-    return albumData;
-  }
-
-  // For private/shared albums, check authentication
+  // Get current user (if authenticated)
   const { getFirebaseAuth } = await import("@/shared/lib/firebase");
   const auth = getFirebaseAuth();
+  const currentUser = auth?.currentUser
+    ? {
+        id: auth.currentUser.uid,
+        email: auth.currentUser.email || "",
+        displayName: auth.currentUser.displayName || undefined,
+        photoURL: auth.currentUser.photoURL || undefined,
+      }
+    : null;
 
-  // For shared albums, also check share token
-  if (albumData.privacy === "shared") {
-    const shareToken = getShareTokenFromUrl();
-    if (shareToken && shareToken === albumData.shareToken) {
-      return albumData; // Allow access with valid share token
+  // Check access using privacy utilities
+  const hasAccess = canAccessAlbum(albumData, currentUser);
+
+  if (!hasAccess) {
+    if (albumData.privacy === "private") {
+      throw new Error(
+        "This album is private and can only be viewed by the owner."
+      );
+    } else {
+      throw new Error(
+        "You do not have permission to view this album."
+      );
     }
-  }
-
-  // Require authentication for private albums and shared albums without token
-  if (!auth?.currentUser) {
-    throw new Error("User must be authenticated to access this album");
-  }
-
-  const userId = auth.currentUser.uid;
-
-  // Check ownership for private albums
-  if (albumData.privacy === "private" && albumData.userId !== userId) {
-    throw new Error(
-      "Permission denied: You can only access your own private albums"
-    );
-  }
-
-  // Check ownership for shared albums without valid token
-  if (albumData.privacy === "shared" && albumData.userId !== userId) {
-    throw new Error("Permission denied: Invalid share token");
   }
 
   return albumData;
@@ -145,6 +162,51 @@ export async function getAlbums(): Promise<Album[]> {
     );
 
     return userAlbums;
+  } catch (error) {
+    throw error;
+  }
+}
+
+/**
+ * Get public albums for discovery/gallery
+ * No authentication required - anyone can browse public albums
+ *
+ * @param limitCount - Maximum number of albums to return (default: 20)
+ * @returns Array of public albums
+ */
+export async function getPublicAlbums(
+  limitCount: number = 20
+): Promise<Album[]> {
+  const { albumsCollection } = getDB();
+
+  // Check if read operation is allowed
+  const canRead = firebaseUsageMonitor.canPerformOperation("read", limitCount);
+  if (!canRead.allowed) {
+    throw new Error(`Firebase quota exceeded: ${canRead.reason}`);
+  }
+
+  try {
+    // Query for public albums only
+    const publicQuery = query(
+      albumsCollection,
+      where("privacy", "==", "public"),
+      orderBy("createdAt", "desc"),
+      limit(limitCount)
+    );
+
+    const snapshot: QuerySnapshot<DocumentData> = await getDocs(publicQuery);
+
+    // Record actual reads performed
+    firebaseUsageMonitor.recordOperation("read", snapshot.docs.length);
+
+    const publicAlbums = snapshot.docs.map(
+      (doc: QueryDocumentSnapshot<DocumentData>) => {
+        const albumData = { id: doc.id, ...doc.data() } as Album;
+        return albumData;
+      }
+    );
+
+    return publicAlbums;
   } catch (error) {
     throw error;
   }
@@ -199,13 +261,6 @@ export async function addAlbum(album: Omit<Album, "id">): Promise<string> {
     throw new Error(limitValidation.error);
   }
 
-  // Generate share token for shared albums if not already provided
-  const { generateShareToken } = await import("@/shared/utils/albumSharing");
-  let shareToken = album.shareToken; // Use existing token if provided
-  if (album.privacy === "shared" && !shareToken) {
-    shareToken = generateShareToken(userId + "_" + Date.now());
-  }
-
   // Sanitize data and add user ownership
   const imageCount = album.images?.length || 0;
   const secureAlbum = {
@@ -215,7 +270,6 @@ export async function addAlbum(album: Omit<Album, "id">): Promise<string> {
     description: sanitizeText(album.description || ""),
     layout: ensureValidLayout(album.layout, imageCount), // Ensure we have a valid layout
     privacy: album.privacy || "private", // Default to private if not specified
-    shareToken,
     createdAt: new Date(),
     updatedAt: new Date(),
   };
@@ -273,11 +327,11 @@ export async function updateAlbum(
     }
   }
 
-  // Sanitize data and ensure user ownership
+  // Sanitize data and include userId to satisfy security rules
   const secureAlbum = {
     ...album,
-    userId, // Ensure userId is always set for security rules
-    updatedAt: new Date(),
+    userId, // Must include to satisfy security rule: request.resource.data.userId == resource.data.userId
+    updatedAt: serverTimestamp(),
   };
 
   // Sanitize text fields if they exist
@@ -288,8 +342,13 @@ export async function updateAlbum(
     secureAlbum.description = sanitizeText(secureAlbum.description);
   }
 
-  // Clean undefined values before sending to Firebase
+  // Clean undefined and null values before sending to Firebase
   const cleanedAlbum = cleanAlbumData(secureAlbum);
+
+  // Remove shareToken if it exists (legacy field)
+  if ('shareToken' in cleanedAlbum) {
+    delete cleanedAlbum.shareToken;
+  }
 
   const { albumsCollection } = getDB();
   await updateDoc(doc(albumsCollection, id), cleanedAlbum);
@@ -354,3 +413,44 @@ export async function deleteAlbum(id: string): Promise<void> {
   // Record the write operation (delete)
   firebaseUsageMonitor.recordOperation("write", 1);
 }
+
+/**
+ * Update album privacy setting
+ *
+ * @param albumId - The album ID
+ * @param newPrivacy - The new privacy level
+ * @returns void
+ * @throws Error if user is not authenticated or not the owner
+ */
+export async function updateAlbumPrivacy(
+  albumId: string,
+  newPrivacy: "public" | "private"
+): Promise<void> {
+  // Ensure Firebase Auth is properly initialized and user is authenticated
+  const { getFirebaseAuth } = await import("@/shared/lib/firebase");
+  const auth = getFirebaseAuth();
+
+  if (!auth?.currentUser) {
+    throw new Error("User must be authenticated to update album privacy");
+  }
+
+  const userId = auth.currentUser.uid;
+
+  // Get the album to verify ownership
+  const album = await getAlbum(albumId);
+  if (!album) {
+    throw new Error("Album not found");
+  }
+
+  // Check ownership
+  if (album.userId !== userId) {
+    throw new Error(
+      "Permission denied: Only the album owner can change privacy settings"
+    );
+  }
+
+  // Update the album
+  await updateAlbum(albumId, {
+    privacy: newPrivacy,
+    updatedAt: new Date(),
+  });

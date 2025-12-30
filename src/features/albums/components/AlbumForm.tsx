@@ -26,7 +26,6 @@ import { AlbumCreationWizard, WizardStep } from "./AlbumCreationWizard";
 import { WizardBasicInfo } from "./WizardBasicInfo";
 import { WizardImages } from "./WizardImages";
 import { AlbumLayoutSection } from "./forms/AlbumLayoutSection";
-import { generateShareToken as generateToken } from "@/shared/utils/albumSharing";
 import {
   validatePayloadSize,
   optimizeImagesForPayloadLimit,
@@ -48,7 +47,7 @@ interface AlbumFormProps {
 
 interface BasicInfoData {
   title: string;
-  privacy: "public" | "private" | "shared";
+  privacy: "public" | "private";
   tags: string[];
   coverImageIndex?: number;
 }
@@ -56,7 +55,7 @@ interface BasicInfoData {
 interface FormData {
   title: string;
   description: string;
-  privacy: "public" | "private" | "shared";
+  privacy: "public" | "private";
   tags: string[];
   category: string;
   images: Array<{
@@ -201,9 +200,6 @@ export const AlbumForm: React.FC<AlbumFormProps> = ({
   }, [album]); // Only recalculate when album changes
 
   const [formData, setFormData] = useState<FormData>(initialFormData);
-  const [shareToken, setShareToken] = useState<string | undefined>(
-    album?.shareToken
-  );
   const [isInitialized, setIsInitialized] = useState(false);
 
   // Update form data when album prop changes (for edit mode) - but only on initial load
@@ -248,7 +244,6 @@ export const AlbumForm: React.FC<AlbumFormProps> = ({
       };
 
       setFormData(albumFormData);
-      setShareToken(album.shareToken);
       setStepValidations(getUpdatedStepValidations());
       setIsInitialized(true);
     }
@@ -277,12 +272,6 @@ export const AlbumForm: React.FC<AlbumFormProps> = ({
   );
   handleBasicInfoChangeRef.current = (data: BasicInfoData) => {
     setFormData((prev) => ({ ...prev, ...data }));
-
-    // Auto-generate share token when privacy is set to shared
-    if (data.privacy === "shared" && !shareToken) {
-      const token = generateToken(Date.now().toString());
-      setShareToken(token);
-    }
   };
 
   const handleBasicInfoChange = useCallback((data: BasicInfoData) => {
@@ -476,7 +465,6 @@ export const AlbumForm: React.FC<AlbumFormProps> = ({
       description: currentFormData.description,
       privacy: currentFormData.privacy, // Include privacy setting
       tags: currentFormData.tags, // Include tags
-      shareToken: shareToken, // Include share token if generated
       // Don't set coverUrl here - let the calling code handle it after upload with proper Firebase URLs
       // If we ever need to set it here, use: coverUrl: isValidFirebaseUrl(currentFormData.images[0]?.url) ? currentFormData.images[0]?.url : undefined,
       images: currentFormData.images.map((img) => ({
@@ -501,7 +489,7 @@ export const AlbumForm: React.FC<AlbumFormProps> = ({
     };
 
     await onSave(albumData);
-  }, [onSave, shareToken]);
+  }, [onSave]);
 
   // Create memoized basic info value to prevent unnecessary re-renders
   const basicInfoValue = useMemo(
