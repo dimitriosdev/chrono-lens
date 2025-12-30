@@ -117,7 +117,7 @@ export const AlbumCreationWizard: React.FC<AlbumCreationWizardProps> = ({
     <div className={helpers.cn("min-h-screen bg-gray-950", className)}>
       {/* Compact Mobile Header */}
       <div className="bg-gray-900 border-b border-neutral-800 sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-3 sm:px-6 py-3 sm:py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4">
           <div className="flex items-center justify-between">
             <div className="flex-1 min-w-0">
               <Breadcrumb
@@ -168,10 +168,10 @@ export const AlbumCreationWizard: React.FC<AlbumCreationWizardProps> = ({
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-2 sm:px-6 py-4 sm:py-8">
+      <div className="max-w-7xl mx-auto py-4 sm:py-8">
         <InteractiveCard
           variant="elevated"
-          className="overflow-hidden bg-gray-900 border-neutral-800"
+          className="overflow-hidden bg-gray-900 border-neutral-800 mx-4 sm:mx-6 lg:mx-8"
         >
           <div className="flex flex-col lg:grid lg:grid-cols-4">
             {/* Sidebar - Hidden on mobile, shown on desktop */}
