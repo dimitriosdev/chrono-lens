@@ -153,8 +153,6 @@ html, body {
   font-family: var(--font-cinzel), var(--font-playfair), var(--font-eb-garamond), 'Times New Roman', serif;
   font-weight: 400;
   letter-spacing: 0.25px;
-  overflow: hidden;
-  height: 100%;
   margin: 0;
   padding: 0;
 }

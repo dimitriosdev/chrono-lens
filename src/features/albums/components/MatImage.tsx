@@ -2,21 +2,22 @@
 
 import React from "react";
 import Image from "next/image";
+import { MatConfig } from "@/shared/types/album";
 
-// Types
-interface MatConfig {
-  matWidth?: number;
-  matColor?: string;
-}
-
+/**
+ * Grid dimensions for layout calculations
+ */
 interface GridInfo {
   rows: number;
   cols: number;
 }
 
+/**
+ * Props for MatImage component
+ */
 interface MatImageProps {
   src: string;
-  matConfig: MatConfig;
+  matConfig: Partial<MatConfig>;
   containerMode?: boolean;
   gridInfo?: GridInfo;
   alt?: string;
@@ -24,11 +25,17 @@ interface MatImageProps {
   textColor?: string;
 }
 
+/**
+ * Screen dimensions for responsive calculations
+ */
 interface ScreenSize {
   width: number;
   height: number;
 }
 
+/**
+ * Calculated frame dimensions
+ */
 interface FrameDimensions {
   width: number;
   height: number;
@@ -91,7 +98,7 @@ const getFrameDimensions = (
   containerMode: boolean,
   screenWidth: number,
   screenHeight: number,
-  gridInfo?: GridInfo
+  gridInfo?: GridInfo,
 ): FrameDimensions => {
   if (!containerMode) {
     // Slideshow mode - use full screen with better fallbacks
@@ -189,7 +196,7 @@ const calculateMatDimensions = (
   frameW: number,
   frameH: number,
   imgAspect: number,
-  matPercent: number
+  matPercent: number,
 ) => {
   const artworkArea = Math.min(frameW, frameH) * (1 - matPercent / 100);
   let artworkWidth = artworkArea;
@@ -219,7 +226,7 @@ const calculateMatDimensions = (
  */
 const getCaptionStyles = (
   containerMode?: boolean,
-  gridInfo?: GridInfo
+  gridInfo?: GridInfo,
 ): string => {
   const isMultiImageLayout =
     containerMode && gridInfo && (gridInfo.rows > 1 || gridInfo.cols > 1);
@@ -256,18 +263,18 @@ const MatImage: React.FC<MatImageProps> = ({
       const img = e.target as HTMLImageElement;
       setImgDims({ width: img.naturalWidth, height: img.naturalHeight });
     },
-    []
+    [],
   );
 
   const { width: frameW, height: frameH } = React.useMemo(
     () =>
       getFrameDimensions(containerMode, screenWidth, screenHeight, gridInfo),
-    [containerMode, screenWidth, screenHeight, gridInfo]
+    [containerMode, screenWidth, screenHeight, gridInfo],
   );
 
   const adjustedMatPercent = React.useMemo(
     () => (containerMode ? Math.min(matPercent, 10) : matPercent),
-    [containerMode, matPercent]
+    [containerMode, matPercent],
   );
 
   const imgAspect = imgDims.width / imgDims.height;
@@ -287,7 +294,7 @@ const MatImage: React.FC<MatImageProps> = ({
         frameW,
         frameH,
         imgAspect,
-        adjustedMatPercent
+        adjustedMatPercent,
       );
     }, [frameW, frameH, imgAspect, adjustedMatPercent, isNoMat]);
 
@@ -302,7 +309,7 @@ const MatImage: React.FC<MatImageProps> = ({
       boxShadow: "0 4px 24px rgba(0,0,0,0.12)",
       flexShrink: 0,
     }),
-    [isNoMat, matColor, frameW, frameH, containerMode]
+    [isNoMat, matColor, frameW, frameH, containerMode],
   );
 
   const matStyle = React.useMemo(
@@ -317,7 +324,7 @@ const MatImage: React.FC<MatImageProps> = ({
       zIndex: 2,
       border: "none",
     }),
-    [frameW, frameH, matColor, containerMode]
+    [frameW, frameH, matColor, containerMode],
   );
 
   const artworkStyle = React.useMemo(
@@ -330,7 +337,7 @@ const MatImage: React.FC<MatImageProps> = ({
       boxShadow: !isNoMat ? "0 0 0 1px #ccc" : undefined,
       zIndex: 4,
     }),
-    [matVertical, matHorizontal, artworkWidth, artworkHeight, isNoMat]
+    [matVertical, matHorizontal, artworkWidth, artworkHeight, isNoMat],
   );
 
   return (
@@ -385,4 +392,5 @@ const MatImage: React.FC<MatImageProps> = ({
 };
 
 export default MatImage;
-export type { MatImageProps, MatConfig, GridInfo };
+export type { MatImageProps, GridInfo };
+// MatConfig is imported from @/shared/types/album

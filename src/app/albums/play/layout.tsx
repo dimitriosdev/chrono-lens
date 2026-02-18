@@ -2,11 +2,7 @@
 
 import React, { Suspense } from "react";
 import { AuthProvider, FullscreenProvider } from "@/shared/context";
-import {
-  ErrorBoundary,
-  VersionLogger,
-  UserDebugPanel,
-} from "@/shared/components";
+import { ErrorBoundary } from "@/shared/components";
 
 /**
  * Custom layout for the play/slideshow page
@@ -22,7 +18,6 @@ export default function PlayLayout({
     <AuthProvider>
       <FullscreenProvider>
         <ErrorBoundary>
-          <VersionLogger />
           <div className="w-full h-full bg-gray-950">
             <Suspense
               fallback={
@@ -33,7 +28,6 @@ export default function PlayLayout({
             >
               {children}
             </Suspense>
-            <UserDebugPanel />
           </div>
         </ErrorBoundary>
       </FullscreenProvider>

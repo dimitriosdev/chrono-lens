@@ -1,7 +1,5 @@
 # Browser Compatibility
 
-# Browser Compatibility
-
 ## Supported Browsers
 
 - **Chrome**: 92+ (July 2021)

@@ -10,13 +10,9 @@
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for system design details.
 
-## Recent Updates
-
-- [Slideshow Refactoring](SLIDESHOW_REFACTORING_SUMMARY.md) - Major performance improvements
-
 ## Standards
 
 - Follow TypeScript best practices
-- Use meaningful commit messages
+- Use meaningful commit messages (see [COMMIT_CONVENTION.md](COMMIT_CONVENTION.md))
 - Keep components small and focused
 - Write tests for new features

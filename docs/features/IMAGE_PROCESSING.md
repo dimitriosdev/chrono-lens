@@ -1,243 +1,185 @@
-# Image Processing and Optimization
+# Image Processing
 
-Chrono-lens now includes advanced image processing capabilities that automatically handle format conversion and optimization for better performance and compatibility.
+Comprehensive client-side image optimization and format conversion for universal browser compatibility.
+
+## Overview
+
+Chrono Lens includes automatic image processing that handles HEIC/HEIF conversion and image optimization to ensure optimal performance and compatibility across all devices.
 
 ## Features
 
-### Supported Formats
+### 🔄 HEIC/HEIF Conversion
 
-**Input Formats:**
+- **Automatic Detection**: Identifies HEIC/HEIF files from iOS devices
+- **Client-Side Conversion**: Converts to JPEG using the `heic2any` library
+- **No Server Required**: All processing happens in the browser
+- **Quality Preservation**: Maintains visual quality during conversion
 
-- JPEG/JPG
-- PNG
-- WebP
-- GIF
-- **HEIC/HEIF** (automatically converted)
+### 📏 Image Optimization
 
-**Output Formats:**
+- **Smart Resizing**: Reduces images larger than 2048px
+- **Quality Compression**: JPEG compression at 85% quality
+- **Size Reduction**: Typically 50-80% smaller file sizes
+- **Aspect Ratio Preservation**: Maintains original proportions
 
-- JPEG (for HEIC conversions)
-- PNG (preserved for transparency)
-- WebP (preserved)
-- GIF (preserved)
+## Architecture
 
-### Automatic Processing
+### File Location
 
-The application automatically processes uploaded images:
-
-1. **HEIC Conversion**: HEIC/HEIF files are automatically converted to JPEG format for browser compatibility
-2. **Image Optimization**: Large images are resized and compressed to improve performance
-3. **Quality Preservation**: Smart compression maintains visual quality while reducing file size
-
-## Configuration
-
-Image processing behavior can be configured in `src/utils/imageProcessing.ts`:
-
-```typescript
-export const IMAGE_OPTIMIZATION_CONFIG = {
-  // Maximum dimensions for optimized images
-  MAX_WIDTH: 1920,
-  MAX_HEIGHT: 1920,
-  // JPEG quality (0.1 to 1.0)
-  JPEG_QUALITY: 0.85,
-  // Maximum file size before optimization
-  MAX_FILE_SIZE_BEFORE_OPTIMIZATION: 2 * 1024 * 1024, // 2MB
-  // Target file size after optimization
-  TARGET_FILE_SIZE: 1 * 1024 * 1024, // 1MB
-};
+```
+src/features/albums/utils/imageProcessing.ts
 ```
 
-## Processing Logic
+### Core Functions
 
-### HEIC Conversion
+| Function                           | Purpose                              |
+| ---------------------------------- | ------------------------------------ |
+| `processImage(file)`               | Process single image file            |
+| `processImages(files, onProgress)` | Batch process with progress callback |
+| `isHeicFile(file)`                 | Detect HEIC/HEIF format              |
+| `convertHeicToJpeg(file)`          | Convert HEIC to JPEG                 |
+| `optimizeImage(file, options)`     | Resize and compress image            |
 
-- Uses the `heic2any` library for reliable conversion
-- Maintains original image quality during conversion
-- Automatically updates file extensions from .heic/.heif to .jpg
+### ProcessedImage Interface
 
-### Image Optimization
+```typescript
+interface ProcessedImage {
+  file: File;
+  originalFile: File;
+  originalSize: number;
+  processedSize: number;
+  originalFormat: string;
+  processedFormat: string;
+  wasConverted: boolean;
+  wasOptimized: boolean;
+  conversionTime: number;
+  dimensions: {
+    original: { width: number; height: number };
+    processed: { width: number; height: number };
+  };
+}
+```
 
-Images are optimized when they meet any of these criteria:
-
-- File size exceeds 2MB
-- Dimensions exceed 1920x1920 pixels
-
-Optimization includes:
-
-- Proportional resizing to fit within max dimensions
-- Quality-based compression to target file size
-- Multiple compression attempts to achieve optimal balance
-
-### Processing Pipeline
-
-1. **File Validation**: Check file type and size limits
-2. **HEIC Detection**: Identify HEIC/HEIF files for conversion
-3. **Format Conversion**: Convert HEIC to JPEG if needed
-4. **Optimization Check**: Determine if image needs resizing/compression
-5. **Processing**: Apply optimizations while maintaining quality
-6. **Result**: Return processed image with metadata
-
-## User Experience
-
-### Visual Feedback
-
-- Processing progress indicator during bulk uploads
-- Before/after file size comparison
-- Conversion and optimization status
-- Storage savings summary
-
-### Error Handling
-
-- Graceful fallback for processing failures
-- Detailed error messages for unsupported scenarios
-- Automatic retry with different quality settings
-
-## User Experience
-
-The image processing is seamlessly integrated into the album creation and editing workflow:
-
-- **Album Creation** (`/albums/new`): Upload images with automatic processing
-- **Album Editing** (`/albums/[id]/edit`): Add new images with processing
-- **Real-time Feedback**: Progress bars and processing status
-- **Transparency**: Users see exactly what was optimized
-- **Storage Savings**: Display compression ratios and space saved
-
-## Performance Benefits
-
-- **Faster Loading**: Optimized images load significantly faster
-- **Reduced Storage**: Lower storage costs with smaller file sizes
-- **Better UX**: Consistent performance across different devices
-- **Universal Compatibility**: JPEG format works in all browsers
-
-## Browser Compatibility
-
-- **HEIC Conversion**: Works in all modern browsers via JavaScript
-- **Image Optimization**: Universal canvas-based processing
-- **File Upload**: Standard HTML5 file input with format detection
-
-## Technical Implementation
-
-The image processing system uses:
-
-- `heic2any` library for HEIC conversion
-- HTML5 Canvas API for image manipulation
-- Web Workers (future enhancement) for background processing
-- Progressive compression for optimal quality/size balance
-
-## Integration Points
-
-### Upload Flow Integration
-
-The image processing is seamlessly integrated into the album creation workflow:
-
-1. **File Selection**: Updated file input accepts HEIC files (`.heic`, `.heif`)
-2. **Validation**: Extended validation supports new file types
-3. **Processing**: Automatic processing before Firebase upload
-4. **Storage**: Optimized files are uploaded to reduce storage costs
-5. **Display**: Processed images work universally across all browsers
-
-### Component Updates
-
-- **ImageGrid**: Updated to accept HEIC files
-- **AlbumImagesSection**: Includes processing status and progress
-- **ImageProcessingStatus**: New component for user feedback
-- **File Validation**: Extended to support HEIC formats
-
-### Storage Optimization
-
-- **Reduced Upload Time**: Smaller files upload faster
-- **Lower Storage Costs**: Optimized images use less Firebase storage
-- **Better Performance**: Faster loading in albums and slideshows
-- **Cache Efficiency**: Smaller images improve CDN performance
-
-## Code Examples
+## Usage
 
 ### Basic Processing
 
 ```typescript
-import { processImage } from "@/utils/imageProcessing";
+import { processImage } from "@/features/albums/utils/imageProcessing";
 
 const result = await processImage(file);
+
 if (result.wasConverted) {
   console.log(
-    `HEIC converted: ${result.originalFormat} → ${result.processedFormat}`
+    `Converted: ${result.originalFormat} → ${result.processedFormat}`,
   );
 }
+
 if (result.wasOptimized) {
   console.log(
-    `Size reduced: ${formatFileSize(result.originalSize)} → ${formatFileSize(
-      result.processedSize
-    )}`
+    `Reduced: ${result.originalSize} → ${result.processedSize} bytes`,
   );
 }
 ```
 
-### Batch Processing with Progress
+### Batch Processing
 
 ```typescript
-import { processImages } from "@/utils/imageProcessing";
+import { processImages } from "@/features/albums/utils/imageProcessing";
 
 const results = await processImages(files, (current, total, filename) => {
   console.log(`Processing ${current}/${total}: ${filename}`);
-  updateProgressBar(current / total);
+  setProgress((current / total) * 100);
 });
 ```
 
-### Usage in Components
+### Integration with Storage
 
-```tsx
-import { ImageProcessingStatus } from "@/components/ImageProcessingStatus";
+The `uploadImage` function in `src/shared/lib/storage.ts` automatically processes images before upload:
 
-function UploadSection() {
-  const [processing, setProcessing] = useState(false);
-  const [results, setResults] = useState([]);
+```typescript
+import { uploadImage } from "@/shared/lib/storage";
 
-  return (
-    <div>
-      <ImageProcessingStatus
-        isProcessing={processing}
-        processedImages={results}
-        progress={progress}
-      />
-      {/* Upload interface */}
-    </div>
-  );
-}
+// Images are automatically processed before upload
+const imageUrl = await uploadImage(file, `albums/${albumId}`);
 ```
 
-## Future Enhancements
+## Processing Pipeline
 
-### Planned Improvements
+```
+User selects files
+        ↓
+Format detection (HEIC/JPEG/PNG)
+        ↓
+HEIC → JPEG conversion (if needed)
+        ↓
+Size check (> 2048px?)
+        ↓
+Resize and compress
+        ↓
+Return ProcessedImage
+```
 
-- **WebP Conversion**: Convert all images to WebP for better compression
-- **Progressive Loading**: Generate multiple image sizes for responsive loading
-- **Background Processing**: Implement Web Workers for better performance
-- **EXIF Preservation**: Maintain important metadata during processing
-- **Thumbnail Generation**: Create optimized thumbnails for grid views
+## Optimization Settings
 
-### Additional Format Support
+| Setting       | Value       |
+| ------------- | ----------- |
+| Max Dimension | 2048px      |
+| JPEG Quality  | 85%         |
+| Target Format | JPEG        |
+| Processing    | Client-side |
 
-- **RAW Image Support**: Process camera RAW formats
-- **AVIF Format**: Next-generation image format support
-- **Animated Image Handling**: Better GIF and animated WebP processing
+## Browser Compatibility
 
-## Monitoring and Analytics
+- **HEIC Conversion**: All modern browsers via JavaScript
+- **Canvas API**: Universal support for image manipulation
+- **File API**: HTML5 file input with format detection
 
-### Processing Metrics
+### Supported Browsers
 
-- Conversion success rates
-- Average file size reduction
-- Processing time per image
-- Storage savings over time
+| Browser | Version | Notes        |
+| ------- | ------- | ------------ |
+| Chrome  | 92+     | Full support |
+| Safari  | 15.4+   | Full support |
+| Firefox | 90+     | Full support |
+| Edge    | 92+     | Full support |
 
-### Error Tracking
+## Benefits
 
-- Failed conversion attempts
-- Unsupported file scenarios
-- Browser compatibility issues
-- Performance bottlenecks
+- **Universal Compatibility**: JPEG works in all browsers
+- **Faster Loading**: Optimized images load quickly
+- **Reduced Storage**: Lower Firebase storage costs
+- **Better UX**: Consistent performance across devices
+
+## Technical Notes
+
+### HEIC Detection
+
+Files are identified as HEIC through:
+
+1. File extension (`.heic`, `.heif`)
+2. MIME type (`image/heic`, `image/heif`)
+
+### Canvas-Based Processing
+
+All image manipulation uses the HTML5 Canvas API:
+
+1. Load image into `<img>` element
+2. Draw to canvas at target dimensions
+3. Export as JPEG with compression
+4. Create new File object
+
+### Memory Management
+
+- Images are processed sequentially to avoid memory issues
+- Canvas elements are cleaned up after use
+- Large batches use progress callbacks for UI feedback
+
+## Dependencies
+
+- `heic2any`: HEIC/HEIF to JPEG conversion
+- Native Canvas API: Image resizing and compression
 
 ---
 
-_Implementation completed: August 26, 2025_
-_Last updated: August 26, 2025_
+_Last updated: February 2026_

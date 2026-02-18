@@ -1,3 +1,10 @@
+/**
+ * useSlideshow Hook
+ *
+ * Custom hook for managing slideshow state and navigation.
+ * Handles image cycling, layout management, and image preloading.
+ */
+
 import React from "react";
 import { Album } from "@/shared/types/album";
 import {
@@ -7,12 +14,27 @@ import {
 } from "@/features/albums/constants/AlbumLayout";
 import { useImagePreload } from "@/shared/hooks/useImagePreload";
 
+/** Default number of images to preload ahead/behind current */
+const DEFAULT_PRELOAD_RANGE = 2;
+
+/** Default slideshow duration in seconds */
+const DEFAULT_SLIDESHOW_DURATION = 5;
+
+/**
+ * Options for configuring the slideshow hook
+ */
 interface SlideshowOptions {
+  /** Album data to display */
   album?: Album;
+  /** Whether to auto-advance slides */
   autoPlay?: boolean;
+  /** Whether to preload nearby images */
   enablePreloading?: boolean;
 }
 
+/**
+ * Current slideshow state
+ */
 interface SlideshowState {
   currentIndex: number;
   images: string[];
@@ -21,6 +43,9 @@ interface SlideshowState {
   isPlaying: boolean;
 }
 
+/**
+ * Available slideshow actions
+ */
 interface SlideshowActions {
   goToNext: () => void;
   goToPrevious: () => void;
@@ -30,18 +55,26 @@ interface SlideshowActions {
   changeLayoutType: (layoutType: LayoutType) => void;
 }
 
+/**
+ * Complete return type for the slideshow hook
+ */
 interface SlideshowHookReturn extends SlideshowState, SlideshowActions {
   currentImage: string | null;
   currentDescription: string;
   hasNext: boolean;
   hasPrevious: boolean;
   totalImages: number;
-  // Image preloading state
   isCurrentImageLoaded: boolean;
   isCurrentImageLoading: boolean;
-  preloadProgress: number; // Percentage of nearby images preloaded
+  preloadProgress: number;
 }
 
+/**
+ * Hook for managing slideshow playback, navigation, and image preloading
+ *
+ * @param options - Configuration options
+ * @returns Slideshow state and actions
+ */
 export const useSlideshow = ({
   album,
   autoPlay = true,
@@ -64,31 +97,30 @@ export const useSlideshow = ({
 
   // Extract images and descriptions from album
   const images = React.useMemo(() => {
-    const albumImages = album?.images || [];
-    return albumImages.map((img) => img.url);
+    return (album?.images || []).map((img) => img.url);
   }, [album?.images]);
 
   const imageDescriptions = React.useMemo(() => {
-    const albumImages = album?.images || [];
-    return albumImages.map((img) => img.description || "");
+    return (album?.images || []).map((img) => img.description || "");
   }, [album?.images]);
 
   // Create layout based on current type and image count
   const layout: AlbumLayout = React.useMemo(() => {
-    const imageCount = images.length;
-    return createLayout(layoutType, imageCount);
+    return createLayout(layoutType, images.length);
   }, [layoutType, images.length]);
 
   // Auto-advance slideshow
   React.useEffect(() => {
-    if (layout.type === "slideshow" && images.length > 1 && isPlaying) {
-      const slideshowDuration = album?.cycleDuration ?? 5;
-      const timer = setInterval(() => {
-        setCurrentIndex((prev) => (prev + 1) % images.length);
-      }, slideshowDuration * 1000);
-
-      return () => clearInterval(timer);
+    if (layout.type !== "slideshow" || images.length <= 1 || !isPlaying) {
+      return;
     }
+
+    const duration = album?.cycleDuration ?? DEFAULT_SLIDESHOW_DURATION;
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % images.length);
+    }, duration * 1000);
+
+    return () => clearInterval(timer);
   }, [layout.type, images.length, album?.cycleDuration, isPlaying]);
 
   // Reset current index when images change
@@ -113,7 +145,7 @@ export const useSlideshow = ({
         setCurrentIndex(index);
       }
     },
-    [images.length]
+    [images.length],
   );
 
   const togglePlayback = React.useCallback(() => {
@@ -122,7 +154,6 @@ export const useSlideshow = ({
 
   const changeLayoutType = React.useCallback((newLayoutType: LayoutType) => {
     setLayoutType(newLayoutType);
-    // Reset index when changing layouts
     setCurrentIndex(0);
   }, []);
 
@@ -130,7 +161,7 @@ export const useSlideshow = ({
   const preloadHook = useImagePreload({
     images,
     currentIndex,
-    preloadRange: enablePreloading ? 2 : 0,
+    preloadRange: enablePreloading ? DEFAULT_PRELOAD_RANGE : 0,
   });
 
   // Computed values
@@ -152,11 +183,10 @@ export const useSlideshow = ({
   const preloadProgress = React.useMemo(() => {
     if (!enablePreloading || images.length === 0) return 100;
 
-    const preloadRange = 2;
     const imagesToCheck: string[] = [];
 
     // Add next and previous images within range
-    for (let i = 1; i <= preloadRange; i++) {
+    for (let i = 1; i <= DEFAULT_PRELOAD_RANGE; i++) {
       const nextIndex = (currentIndex + i) % images.length;
       const prevIndex = (currentIndex - i + images.length) % images.length;
       if (images[nextIndex]) imagesToCheck.push(images[nextIndex]);
@@ -165,7 +195,7 @@ export const useSlideshow = ({
 
     const uniqueImages = [...new Set(imagesToCheck)];
     const loadedCount = uniqueImages.filter((img) =>
-      preloadHook.isImageLoaded(img)
+      preloadHook.isImageLoaded(img),
     ).length;
 
     return uniqueImages.length > 0

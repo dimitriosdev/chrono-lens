@@ -2,19 +2,14 @@
 
 import React from "react";
 import { useRouter } from "next/navigation";
-import {
-  ChevronLeftIcon,
-  ArrowsPointingInIcon,
-  ArrowsPointingOutIcon,
-  Cog6ToothIcon,
-} from "@heroicons/react/24/solid";
+import { ChevronLeftIcon, Cog6ToothIcon } from "@heroicons/react/24/solid";
 
 // Types and API
 import { Album } from "@/shared/types/album";
 import { getAlbum } from "@/shared/lib/firestore";
 
 // Context and hooks
-import { useAuth, useGlobalFullscreen } from "@/shared/context";
+import { useAuth } from "@/shared/context";
 import { useAsyncErrorHandler } from "@/shared/hooks/useErrorHandler";
 import { useSlideshow, useColorPreferences } from "@/features/albums/hooks";
 
@@ -26,56 +21,32 @@ import SlideshowErrorBoundary from "@/features/albums/components/SlideshowErrorB
  * Props for the ControlButtons component
  */
 interface ControlButtonsProps {
-  isFullscreen: boolean;
-  onToggleFullscreen: () => void;
   onToggleColorPicker: () => void;
-  showColorPicker: boolean; // Whether to show the color picker button
+  showColorPicker: boolean;
 }
 
 /**
- * Common button styles for control buttons - designed to be discreet but visible on any background
+ * Common button styles for control buttons
  */
-const getControlButtonStyles = (isFullscreen: boolean): string => {
-  const baseStyles =
-    "text-white p-1.5 rounded bg-black/20 backdrop-blur-sm shadow-[0_0_8px_rgba(0,0,0,0.3)] transition-all duration-300";
-  const opacityStyles = isFullscreen
-    ? "opacity-20 hover:opacity-70"
-    : "opacity-40 hover:opacity-90";
-
-  return `${baseStyles} ${opacityStyles}`;
+const getControlButtonStyles = (): string => {
+  return "text-white p-1.5 rounded bg-black/20 backdrop-blur-sm shadow-[0_0_8px_rgba(0,0,0,0.3)] transition-all duration-300 opacity-40 hover:opacity-90";
 };
 
 /**
  * Control buttons component for slideshow interface
  */
 const ControlButtons: React.FC<ControlButtonsProps> = ({
-  isFullscreen,
-  onToggleFullscreen,
   onToggleColorPicker,
   showColorPicker,
 }) => (
   <div className="absolute top-3 right-3 flex gap-1 z-50">
-    {/* Fullscreen toggle button */}
-    <button
-      type="button"
-      onClick={onToggleFullscreen}
-      aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
-      className={getControlButtonStyles(isFullscreen)}
-    >
-      {isFullscreen ? (
-        <ArrowsPointingInIcon className="w-4 h-4" />
-      ) : (
-        <ArrowsPointingOutIcon className="w-4 h-4" />
-      )}
-    </button>
-
-    {/* Configuration toggle button - only shown for authenticated users */}
+    {/* Wall color toggle button - only shown for authenticated users */}
     {showColorPicker && (
       <button
         type="button"
         onClick={onToggleColorPicker}
-        aria-label="Open configuration"
-        className={getControlButtonStyles(isFullscreen)}
+        aria-label="Change wall color"
+        className={getControlButtonStyles()}
       >
         <Cog6ToothIcon className="w-4 h-4" />
       </button>
@@ -105,7 +76,6 @@ const SlideshowPageInner: React.FC = () => {
   // Custom hooks
   const slideshow = useSlideshow({ album });
   const colorPrefs = useColorPreferences(album);
-  const fullscreen = useGlobalFullscreen();
   const { handleAsyncError } = useAsyncErrorHandler("Album Loading");
 
   // Load album data
@@ -121,12 +91,12 @@ const SlideshowPageInner: React.FC = () => {
           router.replace(
             "/?redirect=" +
               encodeURIComponent(
-                window.location.pathname + window.location.search
+                window.location.pathname + window.location.search,
               ) +
               "&message=" +
               encodeURIComponent(
-                "This album is private. Please sign in to view it."
-              )
+                "This album is private. Please sign in to view it.",
+              ),
           );
           return;
         }
@@ -153,7 +123,7 @@ const SlideshowPageInner: React.FC = () => {
     if (!isSignedIn) {
       router.replace(
         "/?redirect=" +
-          encodeURIComponent(window.location.pathname + window.location.search)
+          encodeURIComponent(window.location.pathname + window.location.search),
       );
     }
   }, [isSignedIn, loading, router, album]);
@@ -205,8 +175,6 @@ const SlideshowPageInner: React.FC = () => {
       <div className="fixed inset-0 z-40">
         {/* Control buttons */}
         <ControlButtons
-          isFullscreen={fullscreen.isFullscreen}
-          onToggleFullscreen={fullscreen.toggleFullscreen}
           onToggleColorPicker={handleToggleColorPicker}
           showColorPicker={isSignedIn}
         />
@@ -217,23 +185,21 @@ const SlideshowPageInner: React.FC = () => {
             type="button"
             onClick={handleBack}
             aria-label="Back to albums"
-            className={`absolute top-3 left-3 text-white p-1.5 rounded bg-black/20 backdrop-blur-sm shadow-[0_0_8px_rgba(0,0,0,0.3)] z-50 transition-all duration-300 ${
-              fullscreen.isFullscreen
-                ? "opacity-20 hover:opacity-70"
-                : "opacity-40 hover:opacity-90"
-            }`}
+            className="absolute top-3 left-3 text-white p-1.5 rounded bg-black/20 backdrop-blur-sm shadow-[0_0_8px_rgba(0,0,0,0.3)] z-50 transition-all duration-300 opacity-40 hover:opacity-90"
           >
             <ChevronLeftIcon className="w-4 h-4" />
           </button>
         )}
 
-        {/* Color picker panel */}
+        {/* Wall color picker panel */}
         {showColorPicker && album?.id && (
           <div className="absolute top-12 right-3 z-50">
-            <div className="bg-gray-900/95 backdrop-blur-sm rounded-xl p-4 shadow-2xl border border-gray-700/50">
+            <div className="bg-gray-900/95 backdrop-blur-sm rounded-xl p-3 shadow-2xl border border-gray-700/50">
               {/* Header with close and save */}
-              <div className="flex items-center justify-between mb-4 pb-2 border-b border-gray-700/50">
-                <span className="text-white text-sm font-medium">Colors</span>
+              <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-700/50">
+                <span className="text-white text-sm font-medium">
+                  Wall Color
+                </span>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
@@ -256,23 +222,13 @@ const SlideshowPageInner: React.FC = () => {
                 </div>
               </div>
 
-              {/* Color pickers - same as album edit/create */}
-              <div className="flex justify-center gap-4">
-                {album?.layout?.type !== "slideshow" && (
-                  <ColorPicker
-                    label="Background"
-                    value={colorPrefs.effectiveBackgroundColor}
-                    onChange={colorPrefs.selectBackgroundColor}
-                    compact
-                  />
-                )}
-                <ColorPicker
-                  label="Mat"
-                  value={colorPrefs.effectiveMatColor}
-                  onChange={colorPrefs.selectMatColor}
-                  compact
-                />
-              </div>
+              {/* Wall color picker only */}
+              <ColorPicker
+                label=""
+                value={colorPrefs.effectiveBackgroundColor}
+                onChange={colorPrefs.selectBackgroundColor}
+                compact
+              />
             </div>
           </div>
         )}

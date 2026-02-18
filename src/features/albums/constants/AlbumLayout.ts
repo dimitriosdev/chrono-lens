@@ -1,12 +1,9 @@
 // AlbumLayout.ts - Simplified layout system
-export type LayoutType = "slideshow" | "grid";
+import { PhotoWallItem, AlbumLayout, LayoutType } from "@/shared/types/album";
+import { getWallLayoutPreset } from "./WallLayoutPresets";
 
-export type AlbumLayout = {
-  type: LayoutType;
-  name: string;
-  description: string;
-  grid?: { rows: number; cols: number }; // Only for grid layouts
-};
+// Re-export types from shared types for convenience
+export type { AlbumLayout, LayoutType };
 
 /**
  * Calculate optimal grid dimensions based on image count
@@ -33,13 +30,41 @@ export function getOptimalGridLayout(imageCount: number): {
  */
 export function createLayout(
   type: LayoutType,
-  imageCount: number
+  imageCount: number,
+  presetId?: string,
 ): AlbumLayout {
   if (type === "slideshow") {
     return {
       type: "slideshow",
       name: "Slideshow",
       description: "One image at a time with smooth transitions",
+    };
+  }
+
+  if (type === "wall") {
+    const preset = presetId
+      ? getWallLayoutPreset(presetId)
+      : getWallLayoutPreset("gallery-wall");
+
+    if (!preset) {
+      // Fallback to slideshow if preset not found
+      return createLayout("slideshow", imageCount);
+    }
+
+    // Assign images to wall positions (cycle if more positions than images)
+    const items: PhotoWallItem[] = preset.items.map((template, index) => ({
+      ...template,
+      imageIndex: index % imageCount,
+    }));
+
+    return {
+      type: "wall",
+      name: preset.name,
+      description: preset.description,
+      wall: {
+        presetId: preset.id,
+        items,
+      },
     };
   }
 

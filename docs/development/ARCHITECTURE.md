@@ -1,215 +1,121 @@
-# 🏗️ Architecture Overview
+# Architecture Overview
 
-This document provides a comprehensive overview of the Chrono Lens application architecture.
+## Design Principles
 
-## 🎯 Design Principles
-
-- **Simplicity First** - Clean, readable, and maintainable code
-- **Component Modularity** - Small, focused, reusable components
+- **Simplicity First** - Clean, readable, maintainable code
+- **Feature-Based Structure** - Organized by domain, not file type
 - **Type Safety** - Comprehensive TypeScript coverage
-- **Performance** - Optimized for speed and efficiency
-- **Accessibility** - WCAG 2.1 AA compliant interface
+- **DRY** - Shared utilities and reusable components
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 src/
-├── app/                    # Next.js App Router
-│   ├── page.tsx           # Home page
-│   ├── layout.tsx         # Root layout
-│   ├── globals.css        # Global styles
-│   ├── albums/            # Album-related pages
-│   └── api/               # API routes
-├── components/            # UI Components
-│   ├── forms/             # Form components
-│   └── ...                # Other UI components
-├── hooks/                 # Custom React hooks
-│   ├── useAlbumForm.ts    # Album form state management
-│   ├── useFormState.ts    # Generic form state
-│   └── useCommon.ts       # Common utilities
-├── types/                 # TypeScript definitions
-│   ├── album.ts           # Album-related types
-│   ├── form.ts            # Form-related types
-│   └── index.ts           # Centralized exports
-├── utils/                 # Utility functions
-│   ├── validation/        # Form validation
-│   └── imageAnalysis.ts   # Image processing
-└── lib/                   # Third-party integrations
-    ├── firebase.ts        # Firebase configuration
-    └── firestore.ts       # Database operations
+├── app/                      # Next.js App Router
+│   ├── layout.tsx           # Root layout
+│   ├── page.tsx             # Home page
+│   ├── globals.css          # Global styles
+│   ├── albums/              # Album pages
+│   │   ├── page.tsx         # Album list
+│   │   ├── new/             # Create album
+│   │   ├── edit/            # Edit album
+│   │   ├── play/            # View slideshow
+│   │   └── public/          # Public album view
+│   └── about/               # About page
+│
+├── features/                 # Feature modules
+│   ├── albums/              # Album feature
+│   │   ├── components/      # Album-specific components
+│   │   ├── hooks/           # Album hooks (useSlideshow, useColorPreferences)
+│   │   ├── constants/       # Layout templates, presets
+│   │   └── utils/           # Album utilities (albumSave, imageProcessing)
+│   └── navigation/          # Navigation feature
+│       └── components/      # Navigation, NavigationWrapper
+│
+└── shared/                   # Shared modules
+    ├── components/          # Reusable UI components
+    │   ├── ui/              # ErrorBoundary, Loading, BackgroundImage
+    │   └── layout/          # Layout wrapper
+    ├── hooks/               # Shared hooks (useImagePreload, useErrorHandler)
+    ├── context/             # React contexts (Auth, Fullscreen)
+    ├── lib/                 # External integrations
+    │   ├── firebase.ts      # Firebase config
+    │   ├── firestore.ts     # Database operations
+    │   └── storage.ts       # File storage
+    ├── types/               # TypeScript definitions
+    │   └── album.ts         # Album, AlbumPage, LayoutType, etc.
+    ├── utils/               # Utility functions
+    │   └── security.ts      # Validation, sanitization
+    └── constants/           # Design system tokens
+        └── design/          # Colors, typography, spacing
 ```
 
-## 🔄 Data Flow
+## Data Flow
 
 ### Album Creation Flow
 
-1. User interaction → Form component
-2. Form component → Custom hook (useAlbumForm)
-3. Custom hook → Validation utilities
-4. Validation success → Firebase operations
-5. Firebase success → UI update + Navigation
+1. User fills MultiPageLayoutStep component
+2. Component manages local state for pages/slots
+3. On save, `processAlbumPages()` uploads images
+4. `addAlbum()` / `updateAlbum()` writes to Firestore
+5. Router navigates to album list
 
 ### State Management
 
 - **Local State**: React hooks for component state
-- **Form State**: Custom hooks for complex forms
-- **Global State**: React Context for user authentication
-- **Server State**: Firebase real-time listeners
+- **Context**: AuthContext for user authentication, FullscreenContext
+- **Persistence**: localStorage for user preferences (colors, settings)
+- **Server State**: Firestore for album data
 
-## 🧩 Component Architecture
+## Key Components
 
-### Component Hierarchy
+### Album Feature
 
-```
-AlbumForm (Main Container)
-├── AlbumBasicInfo (Title input)
-├── AlbumImagesSection (Image management)
-├── AlbumLayoutSection (Layout selection)
-├── AlbumSlideshowSettings (Slideshow options)
-└── AlbumMatBoardSection (Mat board configuration)
-```
+- `MultiPageLayoutStep` - Main album editor with template selection
+- `LayoutViewer` - Renders album in play mode (slideshow/grid/wall)
+- `TemplateEditor` - Image positioning with pan/zoom
+- `AlbumPageHeader` - Reusable header for create/edit pages
 
-### Component Principles
+### Shared Components
 
-- **Single Responsibility** - Each component has one clear purpose
-- **Props Interface** - Well-defined TypeScript interfaces
-- **Composition over Inheritance** - Flexible component composition
-- **Controlled Components** - Explicit state management
+- `ErrorBoundary` - Graceful error handling
+- `LoadingSpinner` / `LoadingButton` - Loading states
+- `ConfirmationModal` - Destructive action confirmation
 
-## 🎣 Custom Hooks Pattern
+## Custom Hooks
 
-### Hook Responsibilities
+| Hook                  | Purpose                                    |
+| --------------------- | ------------------------------------------ |
+| `useSlideshow`        | Slideshow playback, navigation, preloading |
+| `useColorPreferences` | Mat/background color with persistence      |
+| `useImagePreload`     | Preload images for smooth transitions      |
+| `useErrorHandler`     | Error reporting and logging                |
 
-- **useAlbumForm**: Album-specific form logic
-- **useFormState**: Generic form state management
-- **useCommon**: Shared utilities and local storage
+## Type System
 
-### Hook Benefits
+Core types in `shared/types/album.ts`:
 
-- Reusable business logic
-- Cleaner component code
-- Easier testing
-- Better separation of concerns
+- `Album` - Main album entity
+- `AlbumPage` - Multi-page slideshow page
+- `TemplateSlot` - Image slot with position
+- `AlbumLayout` - Layout configuration
+- `LayoutType` - "slideshow" | "grid" | "wall" | "template"
+- `MatConfig` - Mat/frame styling
 
-## 🔐 Type System
+## Security
 
-### Centralized Types
+- Firebase Authentication for user management
+- Firestore security rules for data access
+- Client-side validation with `security.ts`
+- Rate limiting for API operations
 
-```typescript
-// types/album.ts
-export interface Album {
-  id: string;
-  title: string;
-  images: ImageItem[];
-  layout: LayoutType;
-  // ...
-}
-
-// types/form.ts
-export interface AlbumFormData {
-  title: string;
-  images: ImageItem[];
-  layout: LayoutType;
-  // ...
-}
-```
-
-### Type Safety Benefits
-
-- Compile-time error detection
-- Better IDE support and autocomplete
-- Self-documenting code
-- Refactoring safety
-
-## 🚀 Performance Optimizations
-
-### Code Splitting
+## Performance
 
 - Next.js automatic code splitting
-- Dynamic imports for heavy components
-- Route-based chunking
-
-### Image Optimization
-
-- Next.js Image component
-- Automatic format optimization
-- Responsive image loading
-- Progressive image enhancement
-
-### Bundle Optimization
-
-- Tree shaking for unused code
-- Minimized production builds
-- Compression and caching
-
-## 🔒 Security Architecture
-
-### Authentication
-
-- Firebase Authentication integration
-- Secure token management
-- Protected routes and API endpoints
-
-### Data Validation
-
-- Client-side validation with TypeScript
-- Server-side validation in Firebase rules
-- Input sanitization utilities
-
-### Security Best Practices
-
-- Environment variable protection
-- CORS configuration
-- XSS prevention
-- CSRF protection
-
-## 🧪 Testing Strategy
-
-### Test Pyramid
-
-- **Unit Tests**: Individual functions and components
-- **Integration Tests**: Component interactions
-- **E2E Tests**: Full user workflows
-
-### Testing Tools
-
-- Jest for unit testing
-- React Testing Library for component tests
-- Cypress for end-to-end testing
-
-## 📱 Responsive Design
-
-### Breakpoint Strategy
-
-- Mobile-first design approach
-- Tailwind CSS responsive utilities
-- Flexible grid systems
-- Adaptive component behavior
-
-### Accessibility
-
-- Semantic HTML structure
-- ARIA labels and roles
-- Keyboard navigation support
-- Screen reader compatibility
-
-## 🔄 Future Architecture Considerations
-
-### Scalability Improvements
-
-- Consider Redux for complex state
-- Implement micro-frontend architecture
-- Add caching layers
-- Optimize database queries
-
-### Technology Evolution
-
-- Monitor Next.js updates
-- Evaluate new React features
-- Consider performance improvements
-- Review security best practices
+- Image optimization with `imageProcessing.ts`
+- Image preloading via `useImagePreload`
+- Lazy loading for heavy components
 
 ---
 
-**Last Updated**: August 26, 2025
-**Version**: 1.6.0
+Last Updated: February 2026

@@ -51,15 +51,7 @@ const Root = () => {
         <BackgroundImage imageUrl="/bg-img.jpg" />
         <div className="flex min-h-screen w-full relative z-10">
           <Navigation />
-          <main className="flex-1 flex flex-col items-center justify-center pb-16 sm:pb-0 sm:pl-16">
-            <button
-              onClick={() => (window.location.href = "/albums")}
-              className={buttonClass}
-              aria-label="Go to Albums"
-            >
-              Go to Albums
-            </button>
-          </main>
+          <main className="flex-1 flex flex-col items-center justify-center pb-16 sm:pb-0 sm:pl-16"></main>
         </div>
       </div>
     );

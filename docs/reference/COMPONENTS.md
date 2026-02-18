@@ -1,315 +1,115 @@
-# 📝 Component Library Reference
+# Component Reference
 
-This document provides a comprehensive reference for all reusable components in Chrono Lens.
+## Album Components
 
-## 🧩 Form Components
+### AlbumGrid
 
-### FormSection
+Displays a grid of album cards with cover images.
 
-A container component for grouping related form elements.
+### LayoutViewer
 
-```typescript
-interface FormSectionProps {
-  title: string;
-  description?: string;
-  className?: string;
-  children: React.ReactNode;
-}
-```
+Renders album content in various layouts (slideshow, grid, wall, multi-page).
 
-**Usage:**
+### MultiPageLayoutStep
 
-```tsx
-<FormSection title="Album Settings" description="Configure your album">
-  <FormField label="Title">
-    <input type="text" />
-  </FormField>
-</FormSection>
-```
+Interactive multi-page album editor with template selection and image placement.
 
-### FormField
+### AlbumPageHeader
 
-A wrapper for form inputs with consistent styling and error handling.
+Reusable header for album create/edit pages with title input and save button.
 
-```typescript
-interface FormFieldProps {
-  label: string;
-  error?: string;
-  required?: boolean;
-  className?: string;
-  children: React.ReactNode;
-}
-```
+### TemplateLayoutViewer
 
-**Usage:**
+Displays template-based layouts with positioned images.
 
-```tsx
-<FormField label="Album Title" error={errors.title} required>
-  <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} />
-</FormField>
-```
+### TemplateEditor
 
-### Button
+Interactive editor for adjusting image position and zoom within template slots.
 
-A versatile button component with multiple variants and states.
+### MatImage
 
-```typescript
-interface ButtonProps {
-  variant?: "primary" | "secondary" | "ghost" | "danger";
-  size?: "sm" | "md" | "lg";
-  loading?: boolean;
-  disabled?: boolean;
-  fullWidth?: boolean;
-  className?: string;
-  children: React.ReactNode;
-  onClick?: () => void;
-}
-```
+Displays images with configurable mat borders.
 
-**Usage:**
+### ColorPicker
 
-```tsx
-<Button variant="primary" loading={isSubmitting} onClick={handleSave}>
-  Save Album
-</Button>
-```
+Color selection component for background and mat colors.
 
-## 🖼️ Album Components
+### PhotoFrame
 
-### AlbumBasicInfo
+Individual photo with customizable frame and mat styles.
 
-Handles basic album information input (title, description).
+### WallLayoutViewer
 
-```typescript
-interface AlbumBasicInfoProps {
-  title: string;
-  onTitleChange: (title: string) => void;
-  titleError?: string;
-}
-```
+Gallery-style wall layout with multiple positioned frames.
 
-### AlbumImagesSection
-
-Manages image upload and organization.
-
-```typescript
-interface AlbumImagesSectionProps {
-  images: ImageItem[];
-  onImagesChange: (images: ImageItem[]) => void;
-  error?: string;
-  maxImages?: number;
-}
-```
-
-### AlbumLayoutSection
-
-Provides layout selection and preview.
-
-```typescript
-interface AlbumLayoutSectionProps {
-  images: ImageItem[];
-  currentLayout: LayoutType;
-  onLayoutChange: (layout: LayoutType) => void;
-}
-```
-
-### AlbumSlideshowSettings
-
-Configures slideshow behavior and timing.
-
-```typescript
-interface AlbumSlideshowSettingsProps {
-  cycleDuration: number;
-  onCycleDurationChange: (duration: number) => void;
-  cycleDurationError?: string;
-  isVisible: boolean;
-}
-```
-
-### AlbumMatBoardSection
-
-Handles mat board configuration and preview.
-
-```typescript
-interface AlbumMatBoardSectionProps {
-  matConfig: MatBoardConfig;
-  onMatConfigChange: (config: MatBoardConfig) => void;
-  layout: LayoutType;
-  previewImages: string[];
-  showPreview: boolean;
-}
-```
-
-## 🎨 UI Components
-
-### SmartLayoutSelector
-
-Intelligent layout selection with preview capabilities.
-
-```typescript
-interface SmartLayoutSelectorProps {
-  images: ImageItem[];
-  currentLayout: LayoutType;
-  onLayoutChange: (layout: LayoutType) => void;
-  showAnalysis?: boolean;
-}
-```
-
-### EnhancedMatBoard
-
-Advanced mat board component with customization options.
-
-```typescript
-interface EnhancedMatBoardProps {
-  images: ImageItem[];
-  config: MatBoardConfig;
-  layout: LayoutType;
-  className?: string;
-}
-```
-
-### ImageGrid
-
-Responsive image grid with drag-and-drop support.
-
-```typescript
-interface ImageGridProps {
-  images: ImageItem[];
-  onImagesChange?: (images: ImageItem[]) => void;
-  maxImages?: number;
-  editable?: boolean;
-  layout?: "grid" | "masonry" | "flex";
-}
-```
-
-### Navigation
-
-Main navigation component with responsive design.
-
-```typescript
-interface NavigationProps {
-  currentPath: string;
-  user?: User | null;
-  onSignOut?: () => void;
-}
-```
-
-## 🔧 Utility Components
+## UI Components
 
 ### ErrorBoundary
 
 React error boundary for graceful error handling.
 
-```typescript
-interface ErrorBoundaryProps {
-  fallback?: React.ComponentType<{ error: Error }>;
-  children: React.ReactNode;
-}
-```
+### LoadingSpinner
+
+Animated loading indicator with size and color variants.
+
+### LoadingButton
+
+Button with integrated loading state.
 
 ### BackgroundImage
 
-Manages background image display and transitions.
+Full-screen background image with optional overlay.
 
-```typescript
-interface BackgroundImageProps {
-  src: string;
-  alt?: string;
-  overlay?: boolean;
-  className?: string;
-}
-```
+### ConfirmationModal
 
-### VersionDisplay
+Modal dialog for confirming destructive actions.
 
-Shows current application version information.
-
-```typescript
-interface VersionDisplayProps {
-  showBuildInfo?: boolean;
-  className?: string;
-}
-```
-
-## 📱 Layout Components
+## Layout Components
 
 ### Layout
 
 Main application layout wrapper.
 
-```typescript
-interface LayoutProps {
-  children: React.ReactNode;
-  showNavigation?: boolean;
-  className?: string;
-}
-```
+### Navigation
 
-### Sidebar
+Sidebar navigation with responsive design.
 
-Collapsible sidebar for navigation and tools.
+### NavigationWrapper
 
-```typescript
-interface SidebarProps {
-  isOpen: boolean;
-  onClose: () => void;
-  children: React.ReactNode;
-}
-```
+Context-aware navigation that hides on certain routes.
 
-### MobileMenu
+## Hooks
 
-Mobile-optimized navigation menu.
+### useSlideshow
 
-```typescript
-interface MobileMenuProps {
-  isOpen: boolean;
-  onClose: () => void;
-  menuItems: MenuItem[];
-}
-```
+Manages slideshow playback, navigation, and image preloading.
 
-## 🎯 Component Usage Guidelines
+### useColorPreferences
 
-### Best Practices
+Handles mat and background color selection with persistence.
 
-1. **Props Validation**: Always define TypeScript interfaces
-2. **Error Handling**: Include error states and fallbacks
-3. **Accessibility**: Add ARIA labels and keyboard support
-4. **Performance**: Use React.memo for expensive components
-5. **Testing**: Write tests for component behavior
+### useImagePreload
 
-### Styling Conventions
+Preloads images around current index for smooth transitions.
 
-- Use Tailwind CSS utility classes
-- Avoid inline styles
-- Use CSS variables for theming
-- Follow responsive design patterns
+### useErrorHandler
 
-### State Management
+Error reporting and logging utility.
 
-- Keep component state minimal
-- Use custom hooks for complex logic
-- Lift state up when needed
-- Avoid prop drilling
+## Utilities
 
-## 🔄 Component Evolution
+### processAlbumPages
 
-### Deprecation Process
+Uploads local images and returns processed album data.
 
-1. Mark component as deprecated in JSDoc
-2. Add migration guide in comments
-3. Provide transition period
-4. Remove in next major version
+### createAlbumLayoutMetadata
 
-### Version Compatibility
+Creates consistent layout metadata for albums.
 
-- Maintain backward compatibility
-- Document breaking changes
-- Provide migration scripts
-- Use semantic versioning
+### createMatConfigFromPages
+
+Extracts mat configuration from album pages.
 
 ---
 
-**Last Updated**: August 26, 2025
-**Maintained by**: Development Team
+Last Updated: February 2026

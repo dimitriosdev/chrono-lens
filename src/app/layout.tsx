@@ -9,11 +9,7 @@ import {
 import "./globals.css";
 import { AuthProvider, FullscreenProvider } from "@/shared/context";
 import { NavigationWrapper } from "@/features/navigation";
-import {
-  ErrorBoundary,
-  VersionLogger,
-  UserDebugPanel,
-} from "@/shared/components";
+import { ErrorBoundary } from "@/shared/components";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -112,13 +108,11 @@ export default function RootLayout({
         <AuthProvider>
           <FullscreenProvider>
             <ErrorBoundary>
-              <VersionLogger />
-              <div className="flex min-h-screen w-full bg-gray-950 antialiased">
+              <div className="flex w-full bg-gray-950 antialiased">
                 <NavigationWrapper />
                 <main className="flex-1 w-full transition-smooth sm:ml-20">
                   {children}
                 </main>
-                <UserDebugPanel />
               </div>
             </ErrorBoundary>
           </FullscreenProvider>

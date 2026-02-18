@@ -1,9 +1,15 @@
-// Barrel export for albums feature hooks
-export { useSlideshow } from "./useSlideshow";
-export { useColorPreferences, matColors } from "./useColorPreferences";
+/**
+ * Albums Feature Hooks
+ *
+ * Custom React hooks for album-related functionality.
+ */
 
-// Re-export types
+// Slideshow management
+export { useSlideshow } from "./useSlideshow";
 export type { SlideshowOptions, SlideshowHookReturn } from "./useSlideshow";
+
+// Color preferences
+export { useColorPreferences, matColors } from "./useColorPreferences";
 export type {
   ColorPreferences,
   ColorActions,
