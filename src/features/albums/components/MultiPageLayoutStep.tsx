@@ -149,6 +149,7 @@ const createDefaultPage = (): AlbumPage => {
     frameColor: "#1a1a1a",
     matWidth: 0,
     matColor: "#FFFFFF",
+    backgroundColor: "#000000",
   };
 };
 
@@ -461,7 +462,7 @@ export function MultiPageLayoutStep({
       {/* Collapsible Settings Panel */}
       {showSettings && (
         <div className="mb-2 rounded-lg border border-gray-200 bg-gray-50 p-2">
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-6">
             {/* Frame Width */}
             <div>
               <label className="mb-0.5 block text-xs font-medium text-gray-600">
@@ -521,6 +522,21 @@ export function MultiPageLayoutStep({
                 value={currentPage.matColor}
                 onChange={(e) =>
                   handleSettingChange("matColor", e.target.value)
+                }
+                className="h-6 w-full cursor-pointer rounded border border-gray-300"
+              />
+            </div>
+
+            {/* Wall / Background Color */}
+            <div>
+              <label className="mb-0.5 block text-xs font-medium text-gray-600">
+                Wall Color
+              </label>
+              <input
+                type="color"
+                value={currentPage.backgroundColor || "#f3f4f6"}
+                onChange={(e) =>
+                  handleSettingChange("backgroundColor", e.target.value)
                 }
                 className="h-6 w-full cursor-pointer rounded border border-gray-300"
               />

@@ -101,6 +101,7 @@ export interface AlbumPage {
   frameColor?: string;
   matWidth?: number;
   matColor?: string;
+  backgroundColor?: string;
 }
 
 export type LayoutType = "slideshow" | "grid" | "wall" | "template";

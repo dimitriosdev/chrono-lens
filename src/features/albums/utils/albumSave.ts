@@ -134,7 +134,7 @@ export function createMatConfigFromPages(pages: AlbumPage[]) {
   return {
     matWidth: firstPage?.matWidth ?? 8,
     matColor: firstPage?.matColor ?? "#FFFFFF",
-    backgroundColor: "#f3f4f6",
+    backgroundColor: firstPage?.backgroundColor ?? "#f3f4f6",
     textColor: "#000000",
   };
 }
