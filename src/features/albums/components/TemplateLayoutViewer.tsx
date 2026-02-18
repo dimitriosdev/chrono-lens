@@ -36,39 +36,56 @@ export function TemplateLayoutViewer({
     const slot = slots[0];
     const position = slot.position || { x: 0, y: 0, zoom: 1 };
 
+    // Derive the photo's aspect ratio from slot dimensions (slot lives in a 16:9 wall)
+    // e.g. portrait slot: width=25.3, height=80 → slotAspect = (25.3/80)*(16/9) ≈ 0.56 (9:16)
+    const slotAspect = (slot.width / slot.height) * (16 / 9);
+    const isPortrait = slotAspect < 1;
+
     return (
-      <div className={`relative h-full w-full ${className}`}>
-        {/* Mat layer */}
+      <div
+        className={`relative flex h-full w-full items-center justify-center ${className}`}
+      >
+        {/* For portrait photos, constrain to correct aspect ratio so object-cover + zoom/pan work correctly */}
         <div
-          className="relative h-full w-full overflow-hidden"
-          style={{
-            padding: matWidth > 0 ? `${matWidth * 0.5}%` : 0,
-            backgroundColor: matColor,
-          }}
+          className="relative overflow-hidden"
+          style={
+            isPortrait
+              ? { height: "100%", aspectRatio: String(slotAspect) }
+              : { height: "100%", width: "100%" }
+          }
         >
-          {/* Frame layer */}
+          {/* Mat layer */}
           <div
             className="relative h-full w-full overflow-hidden"
             style={{
-              borderWidth: frameWidth > 0 ? `${frameWidth}px` : 0,
-              borderColor: frameColor,
-              borderStyle: frameWidth > 0 ? "solid" : "none",
+              padding: matWidth > 0 ? `${matWidth * 0.5}%` : 0,
+              backgroundColor: matColor,
             }}
           >
-            {/* Image fills entire container */}
+            {/* Frame layer */}
             <div
-              className="relative h-full w-full"
+              className="relative h-full w-full overflow-hidden"
               style={{
-                transform: `translate(${position.x}%, ${position.y}%) scale(${position.zoom})`,
-                transformOrigin: "center center",
+                borderWidth: frameWidth > 0 ? `${frameWidth}px` : 0,
+                borderColor: frameColor,
+                borderStyle: frameWidth > 0 ? "solid" : "none",
               }}
             >
-              <Image
-                src={slot.imageId!}
-                alt="Photo"
-                fill
-                className="object-cover"
-              />
+              {/* Image with zoom/pan — object-cover fills the correctly-shaped container */}
+              <div
+                className="relative h-full w-full"
+                style={{
+                  transform: `translate(${position.x}%, ${position.y}%) scale(${position.zoom})`,
+                  transformOrigin: "center center",
+                }}
+              >
+                <Image
+                  src={slot.imageId!}
+                  alt="Photo"
+                  fill
+                  className="object-cover"
+                />
+              </div>
             </div>
           </div>
         </div>

@@ -78,7 +78,7 @@ export function LayoutViewer({
         <div className="relative flex h-full w-full items-center justify-center">
           {isSinglePhoto ? (
             /* Single photo - fill entire screen */
-            <div className="relative h-full w-full p-2">
+            <div className="relative h-full w-full">
               <TemplateLayoutViewer
                 slots={currentPage.slots}
                 frameWidth={currentPage.frameWidth}
