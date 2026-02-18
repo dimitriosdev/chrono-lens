@@ -1,3 +1,11 @@
+# [2.16.0](https://github.com/dimitriosdev/chrono-lens/compare/v2.15.0...v2.16.0) (2026-02-18)
+
+
+### Features
+
+* add fallback URLs for radio stations in RadioStations configuration ([19aa08f](https://github.com/dimitriosdev/chrono-lens/commit/19aa08f6658d144912a77b677081e615ffcea438))
+* enhance image handling in TemplateEditor and TemplateLayoutViewer ([6587d9d](https://github.com/dimitriosdev/chrono-lens/commit/6587d9de0fd002d2c25a617652501cccc8539a19))
+
 # [2.15.0](https://github.com/dimitriosdev/chrono-lens/compare/v2.14.0...v2.15.0) (2026-02-18)
 
 
