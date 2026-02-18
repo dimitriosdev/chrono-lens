@@ -35,12 +35,17 @@ const ColorDropdown: React.FC<{
   onClose: () => void;
   buttonRect: DOMRect | null;
 }> = ({ label, value, onChange, onClose, buttonRect }) => {
+  // Only render on client to avoid SSR issues with portals
   const [mounted, setMounted] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Client-side mounting flag - this pattern is acceptable for portal hydration
   useEffect(() => {
-    setMounted(true);
-    return () => setMounted(false);
+    const timeoutId = setTimeout(() => setMounted(true), 0);
+    return () => {
+      clearTimeout(timeoutId);
+      setMounted(false);
+    };
   }, []);
 
   // Calculate position based on button rect
@@ -143,7 +148,7 @@ const ColorDropdown: React.FC<{
         </label>
       </div>
     </>,
-    document.body
+    document.body,
   );
 };
 

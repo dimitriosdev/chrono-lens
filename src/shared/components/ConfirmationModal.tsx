@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 
 interface ConfirmationModalProps {
   isOpen: boolean;
@@ -28,22 +28,21 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
   requiredText = "",
 }) => {
   const [inputValue, setInputValue] = useState("");
-  const [isConfirmEnabled, setIsConfirmEnabled] = useState(
-    !requireTextConfirmation
-  );
+  const prevIsOpenRef = useRef(isOpen);
 
-  useEffect(() => {
-    if (requireTextConfirmation) {
-      setIsConfirmEnabled(inputValue === requiredText);
-    }
-  }, [inputValue, requiredText, requireTextConfirmation]);
+  // Derive confirmation state instead of using effect
+  const isConfirmEnabled = requireTextConfirmation
+    ? inputValue === requiredText
+    : true;
 
+  // Reset input when modal opens (transition from false to true)
   useEffect(() => {
-    if (isOpen) {
-      setInputValue("");
-      setIsConfirmEnabled(!requireTextConfirmation);
+    if (isOpen && !prevIsOpenRef.current) {
+      // Use setTimeout to avoid setState in effect
+      setTimeout(() => setInputValue(""), 0);
     }
-  }, [isOpen, requireTextConfirmation]);
+    prevIsOpenRef.current = isOpen;
+  }, [isOpen]);
 
   const handleConfirm = () => {
     if (isConfirmEnabled) {

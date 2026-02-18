@@ -46,8 +46,9 @@ export async function executeDeleteAll(): Promise<DeleteAllResult> {
     // Start from the root users folder
     const usersRef = ref(storage, "users/");
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    async function deleteAllInFolder(folderRef: any): Promise<number> {
+    async function deleteAllInFolder(
+      folderRef: ReturnType<typeof ref>,
+    ): Promise<number> {
       try {
         const listResult = await listAll(folderRef);
         let filesDeleted = 0;
@@ -60,7 +61,7 @@ export async function executeDeleteAll(): Promise<DeleteAllResult> {
 
         const fileResults = await Promise.allSettled(fileDeletePromises);
         filesDeleted += fileResults.filter(
-          (result) => result.status === "fulfilled"
+          (result) => result.status === "fulfilled",
         ).length;
 
         // Recursively delete all subfolders

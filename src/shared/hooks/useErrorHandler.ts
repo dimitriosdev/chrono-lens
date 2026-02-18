@@ -22,7 +22,7 @@ interface UseErrorHandlerReturn {
   reportError: (error: Error, errorInfo?: React.ErrorInfo) => void;
   clearErrorReports: () => void;
   getErrorReports: () => ErrorReport[];
-  errorCount: number;
+  getErrorCount: () => number;
 }
 
 /**
@@ -30,7 +30,7 @@ interface UseErrorHandlerReturn {
  * Provides consistent error logging and optional error reporting
  */
 export function useErrorHandler(
-  options: UseErrorHandlerOptions = {}
+  options: UseErrorHandlerOptions = {},
 ): UseErrorHandlerReturn {
   const {
     context = "Unknown",
@@ -86,7 +86,7 @@ export function useErrorHandler(
 
           // For now, we'll store in sessionStorage for debugging
           const sessionErrors = JSON.parse(
-            sessionStorage.getItem("chronolens_errors") || "[]"
+            sessionStorage.getItem("chronolens_errors") || "[]",
           );
           sessionErrors.push(report);
 
@@ -94,14 +94,14 @@ export function useErrorHandler(
           const recentErrors = sessionErrors.slice(-maxReportsPerSession);
           sessionStorage.setItem(
             "chronolens_errors",
-            JSON.stringify(recentErrors)
+            JSON.stringify(recentErrors),
           );
         } catch (reportingError) {
           console.warn("Failed to report error:", reportingError);
         }
       }
     },
-    [context, enableConsoleLogging, enableErrorReporting, maxReportsPerSession]
+    [context, enableConsoleLogging, enableErrorReporting, maxReportsPerSession],
   );
 
   const clearErrorReports = useCallback(() => {
@@ -117,11 +117,15 @@ export function useErrorHandler(
     return [...errorReports.current];
   }, []);
 
+  const getErrorCount = useCallback(() => {
+    return reportCount.current;
+  }, []);
+
   return {
     reportError,
     clearErrorReports,
     getErrorReports,
-    errorCount: reportCount.current,
+    getErrorCount,
   };
 }
 
@@ -138,7 +142,7 @@ export function useAsyncErrorHandler(context = "Async Operation") {
         error instanceof Error ? error : new Error(String(error));
       reportError(errorInstance);
     },
-    [reportError]
+    [reportError],
   );
 
   const asyncWrapper = useCallback(
@@ -152,7 +156,7 @@ export function useAsyncErrorHandler(context = "Async Operation") {
         }
       };
     },
-    [handleAsyncError]
+    [handleAsyncError],
   );
 
   return {
@@ -171,7 +175,7 @@ export function useErrorRecovery(maxRetries = 3) {
   const tryWithRecovery = useCallback(
     async <T>(
       operation: () => Promise<T>,
-      onError?: (error: Error, attempt: number) => void
+      onError?: (error: Error, attempt: number) => void,
     ): Promise<T | null> => {
       try {
         const result = await operation();
@@ -192,6 +196,8 @@ export function useErrorRecovery(maxRetries = 3) {
           // Exponential backoff
           const delay = Math.pow(2, retryCount.current - 1) * 1000;
           await new Promise((resolve) => setTimeout(resolve, delay));
+          // Retry by calling operation again (recursive call is intentional)
+          // eslint-disable-next-line react-hooks/immutability
           return tryWithRecovery(operation, onError);
         }
 
@@ -200,7 +206,7 @@ export function useErrorRecovery(maxRetries = 3) {
         return null;
       }
     },
-    [maxRetries, reportError]
+    [maxRetries, reportError],
   );
 
   const resetRetryCount = useCallback(() => {

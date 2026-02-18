@@ -61,7 +61,7 @@ export function TemplateEditor({
 
       try {
         setProcessingSlotId(slotId);
-        
+
         // Process image (handles HEIC conversion and optimization)
         const processed = await processImage(file);
         const processedFile = processed.file;
@@ -86,7 +86,9 @@ export function TemplateEditor({
       } catch (error) {
         console.error("Failed to process image:", error);
         setProcessingSlotId(null);
-        alert("Failed to process image. Please try a different file or convert HEIC to JPEG manually.");
+        alert(
+          "Failed to process image. Please try a different file or convert HEIC to JPEG manually.",
+        );
       }
     },
     [slots, onSlotsChange],

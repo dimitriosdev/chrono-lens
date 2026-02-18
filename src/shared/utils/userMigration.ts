@@ -40,7 +40,7 @@ export async function debugUserIdentity(): Promise<{
  * This can help resolve the issue where users have separate accounts on different domains
  */
 export async function migrateFromAnonymousUser(
-  anonymousUserId: string
+  anonymousUserId: string,
 ): Promise<UserMigrationResult> {
   const result: UserMigrationResult = {
     success: false,
@@ -57,7 +57,7 @@ export async function migrateFromAnonymousUser(
       currentUserId === anonymousUserId
     ) {
       result.errors.push(
-        "Cannot migrate: current user is anonymous or same as source"
+        "Cannot migrate: current user is anonymous or same as source",
       );
       return result;
     }
@@ -80,7 +80,7 @@ export async function migrateFromAnonymousUser(
 
     // Filter out albums that already belong to the current user
     const albumsFromAnonymousUser = albumsToMigrate.filter(
-      (album) => album.userId === anonymousUserId
+      (album) => album.userId === anonymousUserId,
     );
 
     if (albumsFromAnonymousUser.length === 0) {
@@ -100,9 +100,8 @@ export async function migrateFromAnonymousUser(
           updatedAt: new Date(),
         };
 
-        // Remove the ID to create a new album
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { id, ...albumWithoutId } = newAlbum;
+        // Remove the ID to create a new album (id is intentionally unused)
+        const { id: _id, ...albumWithoutId } = newAlbum;
 
         // Add the album under the new user
         await addAlbum(albumWithoutId);
@@ -158,7 +157,7 @@ export async function checkForMigratableData(): Promise<string[]> {
   // Remove duplicates and current user
   const currentUserId = await getCurrentUserId();
   return [...new Set(potentialAnonymousUserIds)].filter(
-    (id) => id !== currentUserId
+    (id) => id !== currentUserId,
   );
 }
 

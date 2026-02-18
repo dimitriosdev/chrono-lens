@@ -21,8 +21,26 @@ import {
   PlayIcon,
   ClockIcon,
   XMarkIcon,
+  Bars3Icon,
 } from "@heroicons/react/24/outline";
 import { CheckCircleIcon as CheckCircleSolidIcon } from "@heroicons/react/24/solid";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  horizontalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface MultiPageLayoutStepProps {
   onPagesChange: (pages: AlbumPage[], cycleDuration: number) => void;
@@ -34,6 +52,82 @@ interface MultiPageLayoutStepProps {
 // Generate unique ID
 const generateId = () =>
   `page-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+
+// Sortable Page Tab Component
+interface SortablePageTabProps {
+  page: AlbumPage;
+  index: number;
+  isActive: boolean;
+  isComplete: boolean;
+  onClick: () => void;
+  onRemove: (e: React.MouseEvent) => void;
+  canRemove: boolean;
+}
+
+function SortablePageTab({
+  page,
+  index,
+  isActive,
+  isComplete,
+  onClick,
+  onRemove,
+  canRemove,
+}: SortablePageTabProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: page.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      onClick={onClick}
+      className={`group relative flex cursor-pointer items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${
+        isActive
+          ? "bg-blue-600 text-white shadow-md"
+          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+      } ${isDragging ? "z-50" : ""}`}
+    >
+      {/* Drag Handle */}
+      <button
+        {...attributes}
+        {...listeners}
+        className={`cursor-grab active:cursor-grabbing ${
+          isActive
+            ? "text-white/70 hover:text-white"
+            : "text-gray-400 hover:text-gray-600"
+        }`}
+        onClick={(e) => e.stopPropagation()}
+        title="Drag to reorder"
+      >
+        <Bars3Icon className="h-3.5 w-3.5" />
+      </button>
+      <span>Page {index + 1}</span>
+      {isComplete && (
+        <CheckCircleSolidIcon className="h-3.5 w-3.5 text-green-400" />
+      )}
+      {canRemove && isActive && (
+        <button
+          onClick={onRemove}
+          className="ml-1 rounded-full p-0.5 hover:bg-blue-500"
+        >
+          <XMarkIcon className="h-3 w-3" />
+        </button>
+      )}
+    </div>
+  );
+}
 
 // Create a default page
 const createDefaultPage = (): AlbumPage => {
@@ -81,13 +175,6 @@ export function MultiPageLayoutStep({
   useEffect(() => {
     onPagesChange(pages, cycleDuration);
   }, [pages, cycleDuration, onPagesChange]);
-
-  // Update pages when initialPages changes (for editing)
-  useEffect(() => {
-    if (initialPages && initialPages.length > 0) {
-      setPages(initialPages);
-    }
-  }, [initialPages]);
 
   // Slideshow preview timer
   useEffect(() => {
@@ -166,7 +253,10 @@ export function MultiPageLayoutStep({
       slots: newTemplate.slots.map((slot, idx) => ({
         ...slot,
         imageId: currentPage.slots[idx]?.imageId,
-        position: currentPage.slots[idx]?.position,
+        // Reset position to default when changing orientation since layout changes
+        position: currentPage.slots[idx]?.imageId
+          ? { x: 0, y: 0, zoom: 1 }
+          : undefined,
       })),
     });
   };
@@ -196,6 +286,42 @@ export function MultiPageLayoutStep({
     }
   };
 
+  // Handle drag and drop reordering
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      setPages((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+
+        // Update current page index to follow the moved page
+        if (oldIndex === currentPageIndex) {
+          setCurrentPageIndex(newIndex);
+        } else if (
+          oldIndex < currentPageIndex &&
+          newIndex >= currentPageIndex
+        ) {
+          setCurrentPageIndex((prev) => prev - 1);
+        } else if (
+          oldIndex > currentPageIndex &&
+          newIndex <= currentPageIndex
+        ) {
+          setCurrentPageIndex((prev) => prev + 1);
+        }
+
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  };
+
   const photoCounts: (1 | 2 | 3 | 4 | 6 | 12)[] = [1, 2, 3, 4, 6, 12];
   const filledCount = currentPage.slots.filter((s) => s.imageId).length;
   const isPageComplete = filledCount === currentPage.photoCount;
@@ -207,44 +333,45 @@ export function MultiPageLayoutStep({
 
   return (
     <div className={`flex h-full flex-col ${className}`}>
-      {/* Page Tabs */}
+      {/* Page Tabs with Drag and Drop */}
       <div className="mb-2 flex items-center gap-2 overflow-x-auto pb-1">
-        <div className="flex items-center gap-1">
-          {pages.map((page, idx) => {
-            const pageFilledCount = page.slots.filter((s) => s.imageId).length;
-            const pageComplete = pageFilledCount === page.photoCount;
-            return (
-              <div
-                key={page.id}
-                onClick={() => {
-                  setCurrentPageIndex(idx);
-                  setIsPreviewPlaying(false);
-                }}
-                className={`group relative flex cursor-pointer items-center gap-1 rounded-lg px-3 py-1.5 text-sm font-medium transition-all ${
-                  currentPageIndex === idx
-                    ? "bg-blue-600 text-white shadow-md"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                <span>Page {idx + 1}</span>
-                {pageComplete && (
-                  <CheckCircleSolidIcon className="h-3.5 w-3.5 text-green-400" />
-                )}
-                {pages.length > 1 && currentPageIndex === idx && (
-                  <button
-                    onClick={(e) => {
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCenter}
+          onDragEnd={handleDragEnd}
+        >
+          <SortableContext
+            items={pages.map((p) => p.id)}
+            strategy={horizontalListSortingStrategy}
+          >
+            <div className="flex items-center gap-1">
+              {pages.map((page, idx) => {
+                const pageFilledCount = page.slots.filter(
+                  (s) => s.imageId,
+                ).length;
+                const pageComplete = pageFilledCount === page.photoCount;
+                return (
+                  <SortablePageTab
+                    key={page.id}
+                    page={page}
+                    index={idx}
+                    isActive={currentPageIndex === idx}
+                    isComplete={pageComplete}
+                    onClick={() => {
+                      setCurrentPageIndex(idx);
+                      setIsPreviewPlaying(false);
+                    }}
+                    onRemove={(e) => {
                       e.stopPropagation();
                       removePage(idx);
                     }}
-                    className="ml-1 rounded-full p-0.5 hover:bg-blue-500"
-                  >
-                    <XMarkIcon className="h-3 w-3" />
-                  </button>
-                )}
-              </div>
-            );
-          })}
-        </div>
+                    canRemove={pages.length > 1}
+                  />
+                );
+              })}
+            </div>
+          </SortableContext>
+        </DndContext>
         <button
           onClick={addPage}
           className="flex h-8 w-8 items-center justify-center rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200"
@@ -276,33 +403,41 @@ export function MultiPageLayoutStep({
         {/* Quick Actions */}
         <div className="flex items-center gap-1.5">
           {/* Orientation Toggle */}
-          {currentPage.photoCount !== 3 &&
-            currentPage.photoCount !== 4 &&
-            currentPage.photoCount !== 6 &&
-            currentPage.photoCount !== 12 && (
-              <div className="flex overflow-hidden rounded-md border border-gray-200">
-                <button
-                  onClick={() => handleOrientationChange("landscape")}
-                  className={`px-1.5 py-1 text-xs ${
-                    currentPage.orientation === "landscape"
-                      ? "bg-blue-600 text-white"
-                      : "bg-white text-gray-600"
-                  }`}
-                >
-                  ▬
-                </button>
-                <button
-                  onClick={() => handleOrientationChange("portrait")}
-                  className={`px-1.5 py-1 text-xs ${
-                    currentPage.orientation === "portrait"
-                      ? "bg-blue-600 text-white"
-                      : "bg-white text-gray-600"
-                  }`}
-                >
-                  ▮
-                </button>
-              </div>
-            )}
+          {currentPage.photoCount === 1 || currentPage.photoCount === 2 ? (
+            <div className="flex overflow-hidden rounded-md border border-gray-200">
+              <button
+                onClick={() => handleOrientationChange("landscape")}
+                className={`px-1.5 py-1 text-xs transition-colors ${
+                  currentPage.orientation === "landscape"
+                    ? "bg-blue-600 text-white"
+                    : "bg-white text-gray-600 hover:bg-gray-50"
+                }`}
+                title="Landscape orientation"
+              >
+                ▬
+              </button>
+              <button
+                onClick={() => handleOrientationChange("portrait")}
+                className={`px-1.5 py-1 text-xs transition-colors ${
+                  currentPage.orientation === "portrait"
+                    ? "bg-blue-600 text-white"
+                    : "bg-white text-gray-600 hover:bg-gray-50"
+                }`}
+                title="Portrait orientation"
+              >
+                ▮
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-1 rounded-md border border-gray-200 bg-gray-50 px-2 py-1">
+              <span
+                className="text-xs text-gray-500"
+                title="Fixed orientation for this layout"
+              >
+                {currentPage.orientation === "landscape" ? "▬" : "▮"}
+              </span>
+            </div>
+          )}
 
           {/* Settings Toggle */}
           <button

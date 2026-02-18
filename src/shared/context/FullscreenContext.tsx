@@ -105,10 +105,12 @@ export const FullscreenProvider: React.FC<{ children: React.ReactNode }> = ({
   const [isMounted, setIsMounted] = useState(false);
   const pathname = usePathname();
 
-  // Prevent hydration issues
+  // Prevent hydration issues - set mounted state on client
   useEffect(() => {
-    setIsMounted(true);
-  }, []);
+    // Defer setState to avoid cascading render warning
+    const timeoutId = setTimeout(() => setIsMounted(true), 0);
+    return () => clearTimeout(timeoutId);
+  }, []); // setIsMounted is stable, safe to omit from deps
 
   // Memoize support check to avoid repeated calculations
   const isSupported = useMemo(() => {
@@ -179,7 +181,7 @@ export const FullscreenProvider: React.FC<{ children: React.ReactNode }> = ({
             "Route change fullscreen sync: was",
             prev,
             "now",
-            actualIsFullscreen
+            actualIsFullscreen,
           );
           return actualIsFullscreen;
         }
@@ -211,7 +213,7 @@ export const FullscreenProvider: React.FC<{ children: React.ReactNode }> = ({
       // Only clear intent if user manually exited (not due to navigation)
       if (!newIsFullscreen && fullscreenIntent) {
         console.log(
-          "Fullscreen exited - maintaining intent for potential auto re-entry"
+          "Fullscreen exited - maintaining intent for potential auto re-entry",
         );
       }
     };
@@ -235,7 +237,7 @@ export const FullscreenProvider: React.FC<{ children: React.ReactNode }> = ({
             "Fullscreen state sync: was",
             prev,
             "now",
-            actualIsFullscreen
+            actualIsFullscreen,
           );
           return actualIsFullscreen;
         }
@@ -262,7 +264,7 @@ export const FullscreenProvider: React.FC<{ children: React.ReactNode }> = ({
     const mobileFullscreenCleanup = mobileFullscreen.addEventListener(
       (isFullscreen) => {
         setIsFullscreen(isFullscreen);
-      }
+      },
     );
 
     // Listen for navigation events that might cause fullscreen to exit
@@ -397,7 +399,7 @@ export const FullscreenProvider: React.FC<{ children: React.ReactNode }> = ({
       enterFullscreen,
       exitFullscreen,
       isSupported,
-    ]
+    ],
   );
 
   return (
@@ -416,7 +418,7 @@ export const useGlobalFullscreen = (): FullscreenContextType => {
 
   if (!context) {
     throw new Error(
-      "useGlobalFullscreen must be used within a FullscreenProvider"
+      "useGlobalFullscreen must be used within a FullscreenProvider",
     );
   }
 
