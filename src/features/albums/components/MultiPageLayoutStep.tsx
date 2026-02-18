@@ -5,13 +5,17 @@
  */
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { TemplateEditor } from "./TemplateEditor";
 import {
   getTemplateByCount,
   createInitialSlots,
 } from "@/features/albums/constants/LayoutTemplates";
 import { TemplateSlot, LayoutTemplate, AlbumPage } from "@/shared/types/album";
+import {
+  autoAssignLayouts,
+  type PageDefaults,
+} from "@/features/albums/utils/autoLayoutAssigner";
 import {
   ChevronDownIcon,
   ChevronUpIcon,
@@ -22,6 +26,7 @@ import {
   ClockIcon,
   XMarkIcon,
   Bars3Icon,
+  ArrowUpTrayIcon,
 } from "@heroicons/react/24/outline";
 import { CheckCircleIcon as CheckCircleSolidIcon } from "@heroicons/react/24/solid";
 import {
@@ -168,6 +173,13 @@ export function MultiPageLayoutStep({
   const [cycleDuration, setCycleDuration] = useState(initialCycleDuration);
   const [showSettings, setShowSettings] = useState(false);
   const [isPreviewPlaying, setIsPreviewPlaying] = useState(false);
+  const [isBatchUploading, setIsBatchUploading] = useState(false);
+  const [batchProgress, setBatchProgress] = useState<{
+    current: number;
+    total: number;
+    phase: string;
+  } | null>(null);
+  const batchInputRef = useRef<HTMLInputElement>(null);
 
   // Current page data
   const currentPage = pages[currentPageIndex] || pages[0];
@@ -279,6 +291,83 @@ export function MultiPageLayoutStep({
     setCurrentPageIndex(pages.length);
   };
 
+  // ─── Batch Upload & Auto-Layout ──────────────────────────────────────────
+
+  const handleBatchUpload = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const files = e.target.files;
+      if (!files || files.length === 0) return;
+
+      // Filter to image files (including HEIC)
+      const imageFiles = Array.from(files).filter(
+        (f) =>
+          f.type.startsWith("image/") ||
+          f.name.toLowerCase().endsWith(".heic") ||
+          f.name.toLowerCase().endsWith(".heif"),
+      );
+
+      if (imageFiles.length === 0) return;
+
+      setIsBatchUploading(true);
+      setBatchProgress({
+        current: 0,
+        total: imageFiles.length,
+        phase: "Analyzing images",
+      });
+
+      try {
+        // Use current page styling as defaults for new pages
+        const defaults: PageDefaults = {
+          frameWidth: currentPage.frameWidth ?? 0,
+          frameColor: currentPage.frameColor ?? "#1a1a1a",
+          matWidth: currentPage.matWidth ?? 0,
+          matColor: currentPage.matColor ?? "#FFFFFF",
+          backgroundColor: currentPage.backgroundColor ?? "#000000",
+        };
+
+        const result = await autoAssignLayouts(
+          imageFiles,
+          defaults,
+          (current, total, phase) => {
+            setBatchProgress({
+              current,
+              total,
+              phase:
+                phase === "analyzing"
+                  ? "Analyzing images"
+                  : "Assigning layouts",
+            });
+          },
+        );
+
+        if (result.pages.length > 0) {
+          // Check if current pages are all empty (only default page with no images)
+          const allEmpty = pages.every((p) => p.slots.every((s) => !s.imageId));
+
+          if (allEmpty) {
+            // Replace empty pages with auto-generated ones
+            setPages(result.pages);
+          } else {
+            // Append new pages to existing ones
+            setPages((prev) => [...prev, ...result.pages]);
+          }
+          setCurrentPageIndex(allEmpty ? 0 : pages.length);
+        }
+      } catch (error) {
+        console.error("Batch upload failed:", error);
+        alert("Some images could not be processed. Please try again.");
+      } finally {
+        setIsBatchUploading(false);
+        setBatchProgress(null);
+        // Reset the input so the same files can be re-selected
+        if (batchInputRef.current) {
+          batchInputRef.current.value = "";
+        }
+      }
+    },
+    [pages, currentPage],
+  );
+
   const removePage = (index: number) => {
     if (pages.length <= 1) return;
     setPages((prev) => prev.filter((_, idx) => idx !== index));
@@ -380,7 +469,50 @@ export function MultiPageLayoutStep({
         >
           <PlusIcon className="h-4 w-4" />
         </button>
+
+        {/* Batch Upload Button */}
+        <input
+          ref={batchInputRef}
+          type="file"
+          accept="image/*,.heic,.heif"
+          multiple
+          className="hidden"
+          onChange={handleBatchUpload}
+        />
+        <button
+          onClick={() => batchInputRef.current?.click()}
+          disabled={isBatchUploading}
+          className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+            isBatchUploading
+              ? "cursor-wait bg-blue-100 text-blue-400"
+              : "bg-blue-50 text-blue-700 hover:bg-blue-100"
+          }`}
+          title="Upload multiple images and auto-create pages"
+        >
+          <ArrowUpTrayIcon className="h-3.5 w-3.5" />
+          {isBatchUploading ? "Processing..." : "Auto Layout"}
+        </button>
       </div>
+
+      {/* Batch Upload Progress */}
+      {isBatchUploading && batchProgress && (
+        <div className="mb-2 rounded-lg border border-blue-200 bg-blue-50 p-2">
+          <div className="mb-1 flex items-center justify-between text-xs text-blue-700">
+            <span>{batchProgress.phase}</span>
+            <span>
+              {batchProgress.current}/{batchProgress.total}
+            </span>
+          </div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-blue-200">
+            <div
+              className="h-full rounded-full bg-blue-600 transition-all duration-300"
+              style={{
+                width: `${batchProgress.total > 0 ? (batchProgress.current / batchProgress.total) * 100 : 0}%`,
+              }}
+            />
+          </div>
+        </div>
+      )}
 
       {/* Compact Header with Template Count + Status */}
       <div className="flex flex-wrap items-center justify-between gap-2 pb-2">
