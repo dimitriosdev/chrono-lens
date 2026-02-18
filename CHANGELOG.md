@@ -1,3 +1,10 @@
+# [2.12.0](https://github.com/dimitriosdev/chrono-lens/compare/v2.11.1...v2.12.0) (2026-02-18)
+
+
+### Features
+
+* add TagsInput component and integrate tag management in album creation and editing ([297046e](https://github.com/dimitriosdev/chrono-lens/commit/297046e4bc05b3e5033317c3241563c8dd5ea8b6))
+
 ## [2.11.1](https://github.com/dimitriosdev/chrono-lens/compare/v2.11.0...v2.11.1) (2026-02-18)
 
 
