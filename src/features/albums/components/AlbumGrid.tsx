@@ -357,13 +357,6 @@ const AlbumGrid: React.FC<AlbumGridProps> = ({
                   <p className="text-sm text-gray-500">
                     Create your first album to get started!
                   </p>
-                  <button
-                    onClick={handleCreateAlbum}
-                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
-                  >
-                    <PlusIcon className="w-5 h-5" />
-                    Create Album
-                  </button>
                 </div>
               ) : (
                 <div>
