@@ -1,3 +1,10 @@
+## [2.11.1](https://github.com/dimitriosdev/chrono-lens/compare/v2.11.0...v2.11.1) (2026-02-18)
+
+
+### Bug Fixes
+
+* adjust layout for single photo display and improve aspect ratio handling in TemplateLayoutViewer ([35472fc](https://github.com/dimitriosdev/chrono-lens/commit/35472fc88fab1c4a9ad1c66672d7d3abae1b2e02))
+
 # [2.11.0](https://github.com/dimitriosdev/chrono-lens/compare/v2.10.0...v2.11.0) (2026-02-18)
 
 
