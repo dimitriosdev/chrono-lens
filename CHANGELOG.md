@@ -1,3 +1,10 @@
+# [2.15.0](https://github.com/dimitriosdev/chrono-lens/compare/v2.14.0...v2.15.0) (2026-02-18)
+
+
+### Features
+
+* implement batch upload and auto-layout assignment for images in MultiPageLayoutStep ([0baf39c](https://github.com/dimitriosdev/chrono-lens/commit/0baf39cf5bca89540dc0e90a1462ed7ade6830bf))
+
 # [2.14.0](https://github.com/dimitriosdev/chrono-lens/compare/v2.13.0...v2.14.0) (2026-02-18)
 
 
