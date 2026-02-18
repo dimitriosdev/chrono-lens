@@ -19,6 +19,7 @@ import {
   ImagePosition,
   LayoutTemplate,
 } from "@/shared/types/album";
+import { processImage } from "../utils/imageProcessing";
 
 interface TemplateEditorProps {
   template: LayoutTemplate;
@@ -36,6 +37,7 @@ export function TemplateEditor({
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOverSlotId, setDragOverSlotId] = useState<string | null>(null);
+  const [processingSlotId, setProcessingSlotId] = useState<string | null>(null);
   const dragRef = useRef<{
     slotId: string;
     startX: number;
@@ -48,7 +50,7 @@ export function TemplateEditor({
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
   const handleFileSelect = useCallback(
-    (slotId: string, file: File) => {
+    async (slotId: string, file: File) => {
       // Allow HEIC/HEIF files even if browser doesn't recognize them as images
       const isImage =
         file.type.startsWith("image/") ||
@@ -57,22 +59,35 @@ export function TemplateEditor({
 
       if (!isImage) return;
 
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const imageUrl = e.target?.result as string;
-        const updatedSlots = slots.map((slot) =>
-          slot.id === slotId
-            ? {
-                ...slot,
-                imageId: imageUrl,
-                position: slot.position || { x: 0, y: 0, zoom: 1 },
-              }
-            : slot,
-        );
-        onSlotsChange(updatedSlots);
-        setSelectedSlotId(slotId);
-      };
-      reader.readAsDataURL(file);
+      try {
+        setProcessingSlotId(slotId);
+        
+        // Process image (handles HEIC conversion and optimization)
+        const processed = await processImage(file);
+        const processedFile = processed.file;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const imageUrl = e.target?.result as string;
+          const updatedSlots = slots.map((slot) =>
+            slot.id === slotId
+              ? {
+                  ...slot,
+                  imageId: imageUrl,
+                  position: slot.position || { x: 0, y: 0, zoom: 1 },
+                }
+              : slot,
+          );
+          onSlotsChange(updatedSlots);
+          setSelectedSlotId(slotId);
+          setProcessingSlotId(null);
+        };
+        reader.readAsDataURL(processedFile);
+      } catch (error) {
+        console.error("Failed to process image:", error);
+        setProcessingSlotId(null);
+        alert("Failed to process image. Please try a different file or convert HEIC to JPEG manually.");
+      }
     },
     [slots, onSlotsChange],
   );
@@ -441,14 +456,23 @@ export function TemplateEditor({
                         }`}
                         onClick={(e) => {
                           e.stopPropagation();
-                          fileInputRefs.current[slot.id]?.click();
+                          if (processingSlotId !== slot.id) {
+                            fileInputRefs.current[slot.id]?.click();
+                          }
                         }}
                         onDragEnter={(e) => handleFileDragEnter(e, slot.id)}
                         onDragOver={handleFileDragOver}
                         onDragLeave={handleFileDragLeave}
                         onDrop={(e) => handleFileDrop(e, slot.id)}
                       >
-                        {slot.placeholder ? (
+                        {processingSlotId === slot.id ? (
+                          <div className="text-center">
+                            <div className="mb-2 h-8 w-8 animate-spin rounded-full border-4 border-gray-300 border-t-blue-500"></div>
+                            <span className="text-sm text-gray-600">
+                              Processing image...
+                            </span>
+                          </div>
+                        ) : slot.placeholder ? (
                           <div className="text-center">
                             <div className="text-2xl font-serif text-gray-400">
                               {slot.placeholder}
