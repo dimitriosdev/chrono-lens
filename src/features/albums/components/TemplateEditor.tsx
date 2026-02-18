@@ -35,6 +35,7 @@ export function TemplateEditor({
 }: TemplateEditorProps) {
   const [selectedSlotId, setSelectedSlotId] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
+  const [dragOverSlotId, setDragOverSlotId] = useState<string | null>(null);
   const dragRef = useRef<{
     slotId: string;
     startX: number;
@@ -48,7 +49,13 @@ export function TemplateEditor({
 
   const handleFileSelect = useCallback(
     (slotId: string, file: File) => {
-      if (!file.type.startsWith("image/")) return;
+      // Allow HEIC/HEIF files even if browser doesn't recognize them as images
+      const isImage =
+        file.type.startsWith("image/") ||
+        file.name.toLowerCase().endsWith(".heic") ||
+        file.name.toLowerCase().endsWith(".heif");
+
+      if (!isImage) return;
 
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -68,6 +75,48 @@ export function TemplateEditor({
       reader.readAsDataURL(file);
     },
     [slots, onSlotsChange],
+  );
+
+  // File drag and drop handlers
+  const handleFileDragEnter = useCallback(
+    (e: React.DragEvent, slotId: string) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setDragOverSlotId(slotId);
+    },
+    [],
+  );
+
+  const handleFileDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  }, []);
+
+  const handleFileDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragOverSlotId(null);
+  }, []);
+
+  const handleFileDrop = useCallback(
+    (e: React.DragEvent, slotId: string) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setDragOverSlotId(null);
+
+      const files = e.dataTransfer.files;
+      if (files && files.length > 0) {
+        const file = files[0];
+        if (
+          file.type.startsWith("image/") ||
+          file.name.toLowerCase().endsWith(".heic") ||
+          file.name.toLowerCase().endsWith(".heif")
+        ) {
+          handleFileSelect(slotId, file);
+        }
+      }
+    },
+    [handleFileSelect],
   );
 
   // Unified drag start for mouse and touch
@@ -385,11 +434,19 @@ export function TemplateEditor({
                       </div>
                     ) : (
                       <div
-                        className="flex h-full w-full cursor-pointer flex-col items-center justify-center bg-gray-50 transition-colors hover:bg-gray-100"
+                        className={`flex h-full w-full cursor-pointer flex-col items-center justify-center transition-colors ${
+                          dragOverSlotId === slot.id
+                            ? "bg-blue-100 border-2 border-blue-400 border-dashed"
+                            : "bg-gray-50 hover:bg-gray-100"
+                        }`}
                         onClick={(e) => {
                           e.stopPropagation();
                           fileInputRefs.current[slot.id]?.click();
                         }}
+                        onDragEnter={(e) => handleFileDragEnter(e, slot.id)}
+                        onDragOver={handleFileDragOver}
+                        onDragLeave={handleFileDragLeave}
+                        onDrop={(e) => handleFileDrop(e, slot.id)}
                       >
                         {slot.placeholder ? (
                           <div className="text-center">
@@ -399,9 +456,23 @@ export function TemplateEditor({
                           </div>
                         ) : (
                           <>
-                            <ArrowUpTrayIcon className="mb-2 h-8 w-8 text-gray-400" />
-                            <span className="text-sm text-gray-500">
-                              Upload Photo
+                            <ArrowUpTrayIcon
+                              className={`mb-2 h-8 w-8 ${
+                                dragOverSlotId === slot.id
+                                  ? "text-blue-500"
+                                  : "text-gray-400"
+                              }`}
+                            />
+                            <span
+                              className={`text-sm ${
+                                dragOverSlotId === slot.id
+                                  ? "text-blue-600 font-medium"
+                                  : "text-gray-500"
+                              }`}
+                            >
+                              {dragOverSlotId === slot.id
+                                ? "Drop image here"
+                                : "Upload Photo"}
                             </span>
                           </>
                         )}
@@ -410,7 +481,7 @@ export function TemplateEditor({
                             fileInputRefs.current[slot.id] = el;
                           }}
                           type="file"
-                          accept="image/*"
+                          accept="image/*,.heic,.heif"
                           className="hidden"
                           onChange={(e) => {
                             const file = e.target.files?.[0];

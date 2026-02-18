@@ -14,6 +14,7 @@ Chrono Lens includes automatic image processing that handles HEIC/HEIF conversio
 - **Client-Side Conversion**: Converts to JPEG using the `heic2any` library
 - **No Server Required**: All processing happens in the browser
 - **Quality Preservation**: Maintains visual quality during conversion
+- **Drag-and-Drop Support**: Upload HEIC images via drag-and-drop or file browser
 
 ### 📏 Image Optimization
 
@@ -21,6 +22,12 @@ Chrono Lens includes automatic image processing that handles HEIC/HEIF conversio
 - **Quality Compression**: JPEG compression at 85% quality
 - **Size Reduction**: Typically 50-80% smaller file sizes
 - **Aspect Ratio Preservation**: Maintains original proportions
+
+### 📤 Upload Methods
+
+- **Click to Browse**: Standard file input with explicit HEIC/HEIF support
+- **Drag and Drop**: Drag images directly onto template slots
+- **Visual Feedback**: Blue highlight when dragging files over drop zones
 
 ## Architecture
 

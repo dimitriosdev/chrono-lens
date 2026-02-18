@@ -26,6 +26,15 @@ Displays template-based layouts with positioned images.
 
 Interactive editor for adjusting image position and zoom within template slots.
 
+**Features:**
+
+- Drag-and-drop image upload support for HEIC/HEIF and standard image formats
+- Click to browse files (accepts image/\*, .heic, .heif)
+- Visual feedback when dragging files over slots
+- Image repositioning within slots via mouse/touch drag
+- Zoom controls and mouse wheel zoom
+- Position reset functionality
+
 ### MatImage
 
 Displays images with configurable mat borders.
