@@ -1,3 +1,15 @@
+# [2.14.0](https://github.com/dimitriosdev/chrono-lens/compare/v2.13.0...v2.14.0) (2026-02-18)
+
+
+### Bug Fixes
+
+* format background color assignment for consistency in EditAlbumPage ([c2622f5](https://github.com/dimitriosdev/chrono-lens/commit/c2622f52897aad86704cbf0d3ee2dff386233187))
+
+
+### Features
+
+* add background color customization for album pages and layout ([cac5d0c](https://github.com/dimitriosdev/chrono-lens/commit/cac5d0c749f67fc153c5d0cdf14239b5cf18d0f2))
+
 # [2.13.0](https://github.com/dimitriosdev/chrono-lens/compare/v2.12.0...v2.13.0) (2026-02-18)
 
 
