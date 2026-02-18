@@ -7,9 +7,10 @@ import { motion } from "framer-motion";
 import {
   HomeIcon,
   PhotoIcon,
-  PlusCircleIcon,
   InformationCircleIcon,
   ArrowRightOnRectangleIcon,
+  ArrowsPointingOutIcon,
+  ArrowsPointingInIcon,
 } from "@heroicons/react/24/outline";
 import {
   HomeIcon as HomeIconSolid,
@@ -17,7 +18,37 @@ import {
   InformationCircleIcon as InformationCircleIconSolid,
 } from "@heroicons/react/24/solid";
 import { useAuth } from "@/shared/context";
+import { useGlobalFullscreen } from "@/shared/context";
 import { signOutUser } from "@/shared/lib/auth";
+
+// ============ CLASS CONSTANTS ============
+const BUTTON_BASE =
+  "group relative flex items-center justify-center w-12 h-12 rounded-xl";
+const BUTTON_HOVER = "transition-all duration-200";
+const TOOLTIP_BASE =
+  "absolute left-full ml-3 px-2.5 py-1.5 bg-neutral-800 text-white text-xs font-medium rounded-lg";
+const TOOLTIP_VISIBILITY =
+  "opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap";
+const TOOLTIP_ARROW =
+  "absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-neutral-800";
+
+// ============ REUSABLE COMPONENTS ============
+interface TooltipProps {
+  label: string;
+  arrowColor?: string;
+}
+
+const Tooltip: React.FC<TooltipProps> = ({
+  label,
+  arrowColor = "border-r-neutral-800",
+}) => (
+  <div
+    className={`${TOOLTIP_BASE} ${TOOLTIP_VISIBILITY} shadow-lg pointer-events-none z-50`}
+  >
+    {label}
+    <div className={`${TOOLTIP_ARROW} ${arrowColor}`} />
+  </div>
+);
 
 // Navigation configuration - single source of truth
 const NAV_ITEMS = [
@@ -27,6 +58,7 @@ const NAV_ITEMS = [
     icon: HomeIcon,
     iconActive: HomeIconSolid,
     authRequired: true,
+    isAction: false,
   },
   {
     href: "/albums",
@@ -34,14 +66,7 @@ const NAV_ITEMS = [
     icon: PhotoIcon,
     iconActive: PhotoIconSolid,
     authRequired: true,
-  },
-  {
-    href: "/albums/new",
-    label: "Create",
-    icon: PlusCircleIcon,
-    iconActive: PlusCircleIcon,
-    authRequired: true,
-    isAction: true, // Special styling for primary action
+    isAction: false,
   },
   {
     href: "/about",
@@ -49,6 +74,7 @@ const NAV_ITEMS = [
     icon: InformationCircleIcon,
     iconActive: InformationCircleIconSolid,
     authRequired: false,
+    isAction: false,
   },
 ];
 
@@ -117,8 +143,7 @@ const NavItem: React.FC<NavItemProps> = ({
     <Link
       href={href}
       className={`
-        group relative flex items-center justify-center w-12 h-12 rounded-xl
-        transition-all duration-200 ease-out
+        ${BUTTON_BASE} transition-all duration-200 ease-out
         ${
           isActive
             ? "bg-blue-600 text-white shadow-lg shadow-blue-500/25"
@@ -133,22 +158,7 @@ const NavItem: React.FC<NavItemProps> = ({
           !isActive ? "group-hover:scale-110" : ""
         }`}
       />
-
-      {/* Tooltip */}
-      <div
-        className="
-        absolute left-full ml-3 px-2.5 py-1.5 
-        bg-neutral-800 text-white text-xs font-medium rounded-lg
-        opacity-0 invisible group-hover:opacity-100 group-hover:visible
-        transition-all duration-200 whitespace-nowrap
-        shadow-lg pointer-events-none z-50
-      "
-      >
-        {label}
-        <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-neutral-800" />
-      </div>
-
-      {/* Active indicator bar */}
+      <Tooltip label={label} />
       {isActive && (
         <motion.div
           layoutId="desktopActiveIndicator"
@@ -181,28 +191,44 @@ const SignOutButton: React.FC<{
   return (
     <button
       onClick={onClick}
-      className="
-        group relative flex items-center justify-center w-12 h-12 rounded-xl
-        text-red-400 hover:text-red-300 hover:bg-red-500/10
-        transition-all duration-200
-      "
+      className={`${BUTTON_BASE} text-red-400 hover:text-red-300 hover:bg-red-500/10 ${BUTTON_HOVER}`}
       aria-label="Sign out"
     >
       <ArrowRightOnRectangleIcon className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
+      <Tooltip label="Sign Out" arrowColor="border-r-neutral-800" />
+    </button>
+  );
+};
 
-      {/* Tooltip */}
-      <div
-        className="
-        absolute left-full ml-3 px-2.5 py-1.5 
-        bg-neutral-800 text-white text-xs font-medium rounded-lg
-        opacity-0 invisible group-hover:opacity-100 group-hover:visible
-        transition-all duration-200 whitespace-nowrap
-        shadow-lg pointer-events-none z-50
-      "
-      >
-        Sign Out
-        <div className="absolute right-full top-1/2 -translate-y-1/2 border-4 border-transparent border-r-neutral-800" />
-      </div>
+// Fullscreen button component
+const FullscreenButton: React.FC = () => {
+  const { isFullscreen, isSupported, toggleFullscreen } = useGlobalFullscreen();
+  const [isLoading, setIsLoading] = React.useState(false);
+
+  if (!isSupported) return null;
+
+  const handleClick = async () => {
+    setIsLoading(true);
+    try {
+      await toggleFullscreen();
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const Icon = isFullscreen ? ArrowsPointingInIcon : ArrowsPointingOutIcon;
+  const label = isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen";
+
+  return (
+    <button
+      onClick={handleClick}
+      disabled={isLoading}
+      className={`${BUTTON_BASE} text-neutral-400 hover:text-white hover:bg-neutral-800 ${BUTTON_HOVER} disabled:opacity-50 disabled:cursor-not-allowed`}
+      aria-label={label}
+      title={label}
+    >
+      <Icon className="w-5 h-5 group-hover:scale-110 transition-transform duration-200" />
+      <Tooltip label={label} />
     </button>
   );
 };
@@ -223,19 +249,17 @@ export default function Navigation() {
 
   // Filter visible nav items based on auth state
   const visibleItems = NAV_ITEMS.filter(
-    (item) => !item.authRequired || isSignedIn
+    (item) => !item.authRequired || isSignedIn,
   );
+
+  const mainNav = visibleItems.filter((item) => item.label !== "About");
+  const bottomNav = visibleItems.filter((item) => item.label === "About");
 
   return (
     <>
-      {/* ============ MOBILE BOTTOM TAB BAR ============ */}
+      {/* MOBILE BOTTOM TAB BAR */}
       <nav
-        className="
-          sm:hidden fixed bottom-0 left-0 right-0 z-50
-          bg-neutral-900/95 backdrop-blur-lg
-          border-t border-neutral-800
-          safe-area-bottom
-        "
+        className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-neutral-900/95 backdrop-blur-lg border-t border-neutral-800 safe-area-bottom"
         role="navigation"
         aria-label="Main navigation"
       >
@@ -258,54 +282,45 @@ export default function Navigation() {
         </div>
       </nav>
 
-      {/* ============ DESKTOP LEFT SIDEBAR ============ */}
+      {/* DESKTOP LEFT SIDEBAR */}
       <aside
-        className="
-          hidden sm:flex fixed inset-y-0 left-0 z-40
-          w-16 flex-col items-center py-4
-          bg-neutral-900/95 backdrop-blur-lg
-          border-r border-neutral-800
-        "
+        className="hidden sm:flex fixed inset-y-0 left-0 z-40 w-16 flex-col items-center py-4 bg-neutral-900/95 backdrop-blur-lg border-r border-neutral-800"
         role="navigation"
         aria-label="Main navigation"
       >
-        {/* Logo */}
+        {/* Top section */}
+        <div className="flex flex-col items-center gap-2">
+          <FullscreenButton />
+        </div>
 
         {/* Main nav items */}
         <nav className="flex flex-col items-center gap-2 flex-1">
-          {visibleItems
-            .filter((item) => item.label !== "About")
-            .map((item) => (
-              <NavItem
-                key={item.href}
-                href={item.href}
-                label={item.label}
-                icon={item.icon}
-                iconActive={item.iconActive}
-                isActive={pathname === item.href}
-                variant="desktop"
-              />
-            ))}
+          {mainNav.map((item) => (
+            <NavItem
+              key={item.href}
+              href={item.href}
+              label={item.label}
+              icon={item.icon}
+              iconActive={item.iconActive}
+              isActive={pathname === item.href}
+              variant="desktop"
+            />
+          ))}
         </nav>
 
         {/* Bottom section */}
         <div className="flex flex-col items-center gap-2">
-          {/* About link */}
-          {visibleItems
-            .filter((item) => item.label === "About")
-            .map((item) => (
-              <NavItem
-                key={item.href}
-                href={item.href}
-                label={item.label}
-                icon={item.icon}
-                iconActive={item.iconActive}
-                isActive={pathname === item.href}
-                variant="desktop"
-              />
-            ))}
-
-          {/* Sign out */}
+          {bottomNav.map((item) => (
+            <NavItem
+              key={item.href}
+              href={item.href}
+              label={item.label}
+              icon={item.icon}
+              iconActive={item.iconActive}
+              isActive={pathname === item.href}
+              variant="desktop"
+            />
+          ))}
           {isSignedIn && (
             <SignOutButton variant="desktop" onClick={handleSignOut} />
           )}

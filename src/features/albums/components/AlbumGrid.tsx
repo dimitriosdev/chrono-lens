@@ -6,6 +6,9 @@ import {
   PencilSquareIcon,
   PlayIcon,
   TrashIcon,
+  MagnifyingGlassIcon,
+  XMarkIcon,
+  PlusIcon,
 } from "@heroicons/react/24/solid";
 import { Album } from "@/shared/types/album";
 import { getAlbums, deleteAlbum } from "@/shared/lib/firestore";
@@ -23,6 +26,10 @@ const AlbumGrid: React.FC<AlbumGridProps> = ({
 }) => {
   const [albums, setAlbums] = React.useState<Album[]>(providedAlbums || []);
   const [loading, setLoading] = React.useState(!providedAlbums); // Don't load if albums provided
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [selectedTags, setSelectedTags] = React.useState<Set<string>>(
+    new Set(),
+  );
   const [showDeleteAllModal, setShowDeleteAllModal] = React.useState(false);
   const [showDeleteModal, setShowDeleteModal] = React.useState(false);
   const [showResultModal, setShowResultModal] = React.useState(false);
@@ -35,9 +42,46 @@ const AlbumGrid: React.FC<AlbumGridProps> = ({
   const dragAlbumIndex = React.useRef<number | null>(null);
   const router = useRouter();
 
+  // Get all unique tags from albums
+  const allTags = React.useMemo(() => {
+    const tags = new Set<string>();
+    albums.forEach((album) => {
+      album.tags?.forEach((tag) => tags.add(tag));
+    });
+    return Array.from(tags).sort();
+  }, [albums]);
+
+  // Filter albums based on search query and selected tags
+  const filteredAlbums = React.useMemo(() => {
+    return albums.filter((album) => {
+      const matchesSearch =
+        searchQuery === "" ||
+        album.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        album.description?.toLowerCase().includes(searchQuery.toLowerCase());
+
+      const matchesTags =
+        selectedTags.size === 0 ||
+        (album.tags && album.tags.some((tag) => selectedTags.has(tag)));
+
+      return matchesSearch && matchesTags;
+    });
+  }, [albums, searchQuery, selectedTags]);
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags((prev) => {
+      const newTags = new Set(prev);
+      if (newTags.has(tag)) {
+        newTags.delete(tag);
+      } else {
+        newTags.add(tag);
+      }
+      return newTags;
+    });
+  };
+
   const handleDeleteClick = async (e: React.MouseEvent, idx: number) => {
     e.stopPropagation();
-    const album = albums[idx];
+    const album = filteredAlbums[idx];
     setAlbumToDelete({ album, index: idx });
     setShowDeleteModal(true);
   };
@@ -66,7 +110,7 @@ const AlbumGrid: React.FC<AlbumGridProps> = ({
           errorMessage = "Album not found. It may have already been deleted.";
           // Remove from UI anyway since it doesn't exist
           setAlbums((prev: Album[]) =>
-            prev.filter((a: Album) => a.id !== albumId)
+            prev.filter((a: Album) => a.id !== albumId),
           );
         } else if (error.message.includes("not authenticated")) {
           errorMessage = "Please log in to delete albums.";
@@ -101,7 +145,7 @@ const AlbumGrid: React.FC<AlbumGridProps> = ({
       if (result.success) {
         setAlbums([]);
         setResultMessage(
-          `Successfully deleted ${result.albumsDeleted} albums and ${result.filesDeleted} files!`
+          `Successfully deleted ${result.albumsDeleted} albums and ${result.filesDeleted} files!`,
         );
         setResultType("info");
         setShowResultModal(true);
@@ -146,11 +190,16 @@ const AlbumGrid: React.FC<AlbumGridProps> = ({
   }, [providedAlbums]);
 
   const handleAlbumClick = (idx: number) => {
-    router.push(`/albums/play?id=${albums[idx].id}`);
+    router.push(`/albums/play?id=${filteredAlbums[idx].id}`);
   };
+
+  const handleCreateAlbum = () => {
+    router.push("/albums/new");
+  };
+
   const handleEditClick = (e: React.MouseEvent, idx: number) => {
     e.stopPropagation();
-    router.push(`/albums/edit?id=${albums[idx].id}`);
+    router.push(`/albums/edit?id=${filteredAlbums[idx].id}`);
   };
   const handleDragStart = (idx: number) => {
     dragAlbumIndex.current = idx;
@@ -204,6 +253,87 @@ const AlbumGrid: React.FC<AlbumGridProps> = ({
   return (
     <section className="pt-4 sm:pt-8 pb-4 sm:pb-8 w-full flex flex-col items-center">
       <div className="w-full max-w-screen-xl px-3 sm:px-4 lg:px-0">
+        {/* Header with Title and Create Button */}
+        <div className="mb-6 flex items-center justify-between">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">
+            My Albums
+          </h1>
+          <button
+            onClick={handleCreateAlbum}
+            className="flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors shadow-lg hover:shadow-xl"
+          >
+            <PlusIcon className="w-5 h-5" />
+            <span className="hidden sm:inline">New</span>
+            <span className="sm:hidden">New</span>
+          </button>
+        </div>
+
+        {/* Search and Filter Section */}
+        <div className="mb-6 space-y-4">
+          {/* Search Bar */}
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Search albums by name or description..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-2 pl-10 rounded-lg bg-neutral-800 text-white placeholder-neutral-500 border border-neutral-700 focus:border-blue-500 focus:outline-none transition-colors"
+            />
+            <MagnifyingGlassIcon className="absolute left-3 top-2.5 h-5 w-5 text-neutral-500" />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-2.5 text-neutral-500 hover:text-white transition-colors"
+                aria-label="Clear search"
+              >
+                <XMarkIcon className="h-5 w-5" />
+              </button>
+            )}
+          </div>
+
+          {/* Tags Filter */}
+          {allTags.length > 0 && (
+            <div className="space-y-2">
+              <label className="text-sm text-neutral-400 font-medium">
+                Filter by tags:
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {allTags.map((tag) => (
+                  <button
+                    key={tag}
+                    onClick={() => toggleTag(tag)}
+                    className={`px-3 py-1.5 rounded-full text-sm font-medium transition-all ${
+                      selectedTags.has(tag)
+                        ? "bg-blue-600 text-white"
+                        : "bg-neutral-800 text-neutral-300 hover:bg-neutral-700"
+                    }`}
+                  >
+                    {tag}
+                  </button>
+                ))}
+                {selectedTags.size > 0 && (
+                  <button
+                    onClick={() => setSelectedTags(new Set())}
+                    className="px-3 py-1.5 rounded-full text-sm font-medium bg-neutral-700 text-neutral-300 hover:bg-neutral-600 transition-all"
+                  >
+                    Clear filters
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Results count */}
+          {albums.length > 0 && (
+            <div className="text-sm text-neutral-400">
+              {filteredAlbums.length} of {albums.length} album
+              {albums.length !== 1 ? "s" : ""}
+              {searchQuery && ` matching "${searchQuery}"`}
+              {selectedTags.size > 0 &&
+                ` with selected tag${selectedTags.size !== 1 ? "s" : ""}`}
+            </div>
+          )}
+        </div>
         {/* Discreet Delete All - only in development for user albums */}
         {showActions &&
           process.env.NODE_ENV === "development" &&
@@ -219,20 +349,54 @@ const AlbumGrid: React.FC<AlbumGridProps> = ({
           )}
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 justify-center">
-          {albums.length === 0 ? (
+          {filteredAlbums.length === 0 ? (
             <div className="col-span-full text-center text-gray-400 py-12">
-              No albums found.
+              {albums.length === 0 ? (
+                <div className="space-y-4">
+                  <p className="text-lg">No albums yet</p>
+                  <p className="text-sm text-gray-500">
+                    Create your first album to get started!
+                  </p>
+                  <button
+                    onClick={handleCreateAlbum}
+                    className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                  >
+                    <PlusIcon className="w-5 h-5" />
+                    Create Album
+                  </button>
+                </div>
+              ) : (
+                <div>
+                  <p className="text-lg">
+                    {searchQuery || selectedTags.size > 0
+                      ? "No albums match your search or filters."
+                      : "No albums found."}
+                  </p>
+                </div>
+              )}
             </div>
           ) : (
-            albums.map((album, idx) => (
+            filteredAlbums.map((album, idx) => (
               <article
                 key={album.id}
                 className="bg-gray-800 rounded-xl overflow-hidden shadow-lg flex flex-col justify-end relative w-full max-w-[340px] mx-auto cursor-pointer min-h-[220px] sm:min-h-[260px] group"
                 onClick={() => handleAlbumClick(idx)}
-                draggable
-                onDragStart={() => handleDragStart(idx)}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={() => handleDrop(idx)}
+                draggable={searchQuery === "" && selectedTags.size === 0}
+                onDragStart={() => {
+                  if (searchQuery === "" && selectedTags.size === 0) {
+                    handleDragStart(idx);
+                  }
+                }}
+                onDragOver={(e) => {
+                  if (searchQuery === "" && selectedTags.size === 0) {
+                    e.preventDefault();
+                  }
+                }}
+                onDrop={() => {
+                  if (searchQuery === "" && selectedTags.size === 0) {
+                    handleDrop(idx);
+                  }
+                }}
                 tabIndex={0}
                 aria-label={album.title}
               >
@@ -258,10 +422,22 @@ const AlbumGrid: React.FC<AlbumGridProps> = ({
                     </button>
                   </div>
                 )}
-                <div className="absolute left-0 top-0 w-full z-10 p-3 sm:p-4 flex items-start">
+                <div className="absolute left-0 top-0 w-full z-10 p-3 sm:p-4 flex flex-col items-start gap-2">
                   <span className="text-white text-base sm:text-lg font-semibold drop-shadow-lg text-shadow-md">
                     {album.title}
                   </span>
+                  {album.tags && album.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {album.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="inline-block bg-blue-600/80 text-white text-xs px-2 py-1 rounded-full font-medium drop-shadow"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </article>
             ))

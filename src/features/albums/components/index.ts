@@ -20,6 +20,7 @@ export { MultiPageLayoutStep } from "./MultiPageLayoutStep";
 
 // Page Components
 export { AlbumPageHeader, TitleValidationMessage } from "./AlbumPageHeader";
+export { default as TagsInput } from "./TagsInput";
 
 // Re-export types
 export type { MatImageProps, GridInfo } from "./MatImage";

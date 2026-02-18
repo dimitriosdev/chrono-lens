@@ -13,6 +13,7 @@ import {
   MultiPageLayoutStep,
   AlbumPageHeader,
   TitleValidationMessage,
+  TagsInput,
 } from "@/features/albums/components";
 import {
   processAlbumPages,
@@ -34,6 +35,7 @@ export default function NewAlbumPage() {
   const router = useRouter();
   const [isSaving, setIsSaving] = useState(false);
   const [title, setTitle] = useState("");
+  const [tags, setTags] = useState<string[]>([]);
   const [pages, setPages] = useState<AlbumPage[]>([]);
   const [cycleDuration, setCycleDuration] = useState(DEFAULT_CYCLE_DURATION);
 
@@ -84,7 +86,7 @@ export default function NewAlbumPage() {
         title: title.trim(),
         description: "",
         privacy: "private",
-        tags: [],
+        tags: tags,
         images: [],
         pages: [],
         cycleDuration,
@@ -138,7 +140,13 @@ export default function NewAlbumPage() {
 
         {/* Main Content */}
         <div className="min-h-0 flex-1 overflow-auto p-3 sm:p-4">
-          <div className="flex min-h-full flex-col rounded-lg bg-white p-3 shadow-sm sm:p-4">
+          <div className="flex min-h-full flex-col rounded-lg bg-white p-3 shadow-sm sm:p-4 gap-6">
+            {/* Tags Section */}
+            <div>
+              <TagsInput tags={tags} onTagsChange={setTags} />
+            </div>
+
+            {/* Layout Section */}
             <MultiPageLayoutStep
               onPagesChange={handlePagesChange}
               initialCycleDuration={DEFAULT_CYCLE_DURATION}
