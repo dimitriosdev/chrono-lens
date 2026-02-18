@@ -19,6 +19,8 @@ import {
   SignalIcon,
   ChevronUpIcon,
   ChevronDownIcon,
+  ArrowPathIcon,
+  ExclamationTriangleIcon,
 } from "@heroicons/react/24/solid";
 import { PlayIcon, PauseIcon } from "@heroicons/react/24/solid";
 import { UseRadioPlayerReturn } from "@/features/albums/hooks/useRadioPlayer";
@@ -173,6 +175,9 @@ StationSelector.displayName = "StationSelector";
 
 /** Derive the display label from current playback state */
 function getStatusLabel(radio: UseRadioPlayerReturn): string {
+  if (radio.isRetrying) {
+    return `Reconnecting (${radio.retryAttempt})...`;
+  }
   switch (radio.status) {
     case "loading":
       return "Connecting...";
@@ -204,7 +209,7 @@ const RadioPlayer: React.FC<RadioPlayerProps> = ({ radio }) => {
   const [stationPickerOpen, setStationPickerOpen] = React.useState(false);
   const containerRef = React.useRef<HTMLDivElement>(null);
 
-  const isActive = radio.isPlaying || radio.status === "loading";
+  const isActive = radio.isPlaying || radio.status === "loading" || radio.isRetrying;
 
   // Auto-hide behavior — collapses expanded panel after inactivity
   const { isMinimized, handleMouseEnter, handleMouseLeave } = useAutoHide();
@@ -239,7 +244,9 @@ const RadioPlayer: React.FC<RadioPlayerProps> = ({ radio }) => {
   const showMinimalIndicator = isMinimized && isActive;
 
   const handleMainButtonClick = React.useCallback(() => {
-    if (!expanded) {
+    if (radio.status === "error") {
+      radio.retry();
+    } else if (!expanded) {
       setExpanded(true);
     } else {
       radio.togglePlayback();
@@ -285,11 +292,32 @@ const RadioPlayer: React.FC<RadioPlayerProps> = ({ radio }) => {
             >
               {/* Station info */}
               <div className="flex items-center gap-1.5 min-w-0">
-                <EqualizerBars isPlaying={radio.isPlaying} />
-                <span className="text-white/80 text-[11px] font-medium truncate max-w-[100px]">
+                {radio.status === "error" ? (
+                  <ExclamationTriangleIcon className="w-3 h-3 text-amber-400 flex-shrink-0" />
+                ) : radio.isRetrying ? (
+                  <ArrowPathIcon className="w-3 h-3 text-amber-300 animate-spin flex-shrink-0" />
+                ) : (
+                  <EqualizerBars isPlaying={radio.isPlaying} />
+                )}
+                <span className={`text-[11px] font-medium truncate max-w-[120px] ${
+                  radio.status === "error" ? "text-amber-300" : "text-white/80"
+                }`}>
                   {getStatusLabel(radio)}
                 </span>
               </div>
+
+              {/* Retry button (only visible on error) */}
+              {radio.status === "error" && (
+                <button
+                  type="button"
+                  onClick={() => radio.retry()}
+                  className={`${INTERACTIVE_BASE} flex items-center gap-1 text-[10px] px-2 py-1 rounded-md bg-white/10 hover:bg-white/20 opacity-80 hover:opacity-100`}
+                  aria-label="Retry connection"
+                >
+                  <ArrowPathIcon className="w-3 h-3" />
+                  <span>Retry</span>
+                </button>
+              )}
 
               {/* Volume */}
               <VolumeControl
@@ -321,7 +349,9 @@ const RadioPlayer: React.FC<RadioPlayerProps> = ({ radio }) => {
                   : "Play radio"
             }
           >
-            {radio.status === "loading" ? (
+            {radio.status === "error" ? (
+              <ExclamationTriangleIcon className="w-5 h-5 text-amber-400" />
+            ) : radio.status === "loading" || radio.isRetrying ? (
               <div
                 className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"
                 aria-label="Loading"

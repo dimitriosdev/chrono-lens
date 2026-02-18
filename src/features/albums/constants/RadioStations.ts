@@ -21,6 +21,8 @@ export interface RadioStation {
   name: string;
   /** Direct MP3 stream URL (SRG SSR CDN) */
   streamUrl: string;
+  /** Fallback stream URLs to try if primary fails (tried in order) */
+  fallbackUrls: readonly string[];
   /** Music genre label */
   genre: string;
   /** Attribution URL (not used in UI, kept for reference) */
@@ -40,6 +42,10 @@ export const RADIO_STATIONS: readonly RadioStation[] = [
     id: "radio-swiss-jazz",
     name: "Radio Swiss Jazz",
     streamUrl: "https://stream.srg-ssr.ch/srgssr/rsj/mp3/128",
+    fallbackUrls: [
+      "https://stream.srg-ssr.ch/m/rsj/mp3_128",
+      "https://stream.srg-ssr.ch/m/rsj/aacp_96",
+    ],
     genre: "Jazz",
     attributionUrl: "https://tunein.com/radio/Radio-Swiss-Jazz-s6814/",
   },
@@ -47,6 +53,10 @@ export const RADIO_STATIONS: readonly RadioStation[] = [
     id: "radio-swiss-pop",
     name: "Radio Swiss Pop",
     streamUrl: "https://stream.srg-ssr.ch/srgssr/rsp/mp3/128",
+    fallbackUrls: [
+      "https://stream.srg-ssr.ch/m/rsp/mp3_128",
+      "https://stream.srg-ssr.ch/m/rsp/aacp_96",
+    ],
     genre: "Pop",
     attributionUrl: "https://tunein.com/radio/Radio-Swiss-Pop-s6828/",
   },
@@ -54,6 +64,10 @@ export const RADIO_STATIONS: readonly RadioStation[] = [
     id: "radio-swiss-classic",
     name: "Radio Swiss Classic",
     streamUrl: "https://stream.srg-ssr.ch/srgssr/rsc_de/mp3/128",
+    fallbackUrls: [
+      "https://stream.srg-ssr.ch/m/rsc_de/mp3_128",
+      "https://stream.srg-ssr.ch/m/rsc_de/aacp_96",
+    ],
     genre: "Classical",
     attributionUrl: "https://tunein.com/radio/Radio-Swiss-Classic-s6822/",
   },
