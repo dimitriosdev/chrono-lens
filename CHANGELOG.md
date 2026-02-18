@@ -1,3 +1,10 @@
+# [2.11.0](https://github.com/dimitriosdev/chrono-lens/compare/v2.10.0...v2.11.0) (2026-02-18)
+
+
+### Features
+
+* add drag-and-drop support for HEIC/HEIF image uploads and enhance file handling in TemplateEditor ([2dde2c2](https://github.com/dimitriosdev/chrono-lens/commit/2dde2c22acbc407087864875a86c4a873aa26c8e))
+
 # [2.10.0](https://github.com/dimitriosdev/chrono-lens/compare/v2.9.0...v2.10.0) (2025-12-30)
 
 
