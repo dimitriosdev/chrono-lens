@@ -1,3 +1,10 @@
+# [2.13.0](https://github.com/dimitriosdev/chrono-lens/compare/v2.12.0...v2.13.0) (2026-02-18)
+
+
+### Features
+
+* implement RadioPlayer component with auto-hide functionality and integrate radio streaming capabilities ([822b4c6](https://github.com/dimitriosdev/chrono-lens/commit/822b4c6ae292f4521b037b6453c2ab48a1e7c741))
+
 # [2.12.0](https://github.com/dimitriosdev/chrono-lens/compare/v2.11.1...v2.12.0) (2026-02-18)
 
 
