@@ -152,10 +152,6 @@ export function LayoutViewer({
                 />
               ))}
             </div>
-            {/* Play/pause indicator */}
-            <div className="rounded-full bg-black/30 px-2 py-1 text-xs text-white/70 backdrop-blur-sm">
-              {isAutoPlaying ? `${cycleDuration}s` : "Paused"}
-            </div>
           </div>
         )}
 

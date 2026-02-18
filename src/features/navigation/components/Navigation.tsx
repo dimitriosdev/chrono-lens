@@ -92,57 +92,52 @@ interface NavItemProps {
   onClick?: () => void;
 }
 
-const NavItem: React.FC<NavItemProps> = ({
-  href,
-  label,
-  icon: Icon,
-  iconActive: IconActive,
-  isActive,
-  variant,
-}) => {
-  const CurrentIcon = isActive ? IconActive : Icon;
+const NavItem: React.FC<NavItemProps> = React.memo(
+  ({ href, label, icon: Icon, iconActive: IconActive, isActive, variant }) => {
+    const CurrentIcon = isActive ? IconActive : Icon;
 
-  if (variant === "mobile") {
-    return (
-      <Link
-        href={href}
-        className={`
+    if (variant === "mobile") {
+      return (
+        <Link
+          href={href}
+          className={`
           relative flex flex-col items-center justify-center flex-1 py-2 min-w-0
           transition-colors duration-200
           ${isActive ? "text-blue-500" : "text-neutral-400"}
         `}
-        aria-label={label}
-        aria-current={isActive ? "page" : undefined}
-      >
-        <CurrentIcon
-          className={`w-6 h-6 ${
-            isActive ? "scale-110" : ""
-          } transition-transform duration-200`}
-        />
-        <span
-          className={`text-[10px] mt-0.5 font-medium ${
-            isActive ? "text-blue-500" : ""
-          }`}
+          aria-label={label}
+          aria-current={isActive ? "page" : undefined}
         >
-          {label}
-        </span>
-        {/* Active indicator */}
-        {isActive && (
-          <motion.div
-            layoutId="mobileActiveIndicator"
-            className="absolute -bottom-0.5 w-1 h-1 rounded-full bg-blue-500"
-            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+          <CurrentIcon
+            className={`w-6 h-6 ${
+              isActive ? "scale-110" : ""
+            } transition-transform duration-200`}
           />
-        )}
-      </Link>
-    );
-  }
+          <span
+            className={`text-[10px] mt-0.5 font-medium ${
+              isActive ? "text-blue-500" : ""
+            }`}
+          >
+            {label}
+          </span>
+          {/* Active indicator */}
+          {isActive && (
+            <motion.div
+              layoutId="mobileActiveIndicator"
+              className="absolute -bottom-0.5 w-1 h-1 rounded-full bg-blue-500"
+              initial={false}
+              transition={{ type: "spring", stiffness: 500, damping: 30 }}
+            />
+          )}
+        </Link>
+      );
+    }
 
-  // Desktop variant
-  return (
-    <Link
-      href={href}
-      className={`
+    // Desktop variant
+    return (
+      <Link
+        href={href}
+        className={`
         ${BUTTON_BASE} transition-all duration-200 ease-out
         ${
           isActive
@@ -150,31 +145,35 @@ const NavItem: React.FC<NavItemProps> = ({
             : "text-neutral-400 hover:text-white hover:bg-neutral-800"
         }
       `}
-      aria-label={label}
-      aria-current={isActive ? "page" : undefined}
-    >
-      <CurrentIcon
-        className={`w-5 h-5 transition-transform duration-200 ${
-          !isActive ? "group-hover:scale-110" : ""
-        }`}
-      />
-      <Tooltip label={label} />
-      {isActive && (
-        <motion.div
-          layoutId="desktopActiveIndicator"
-          className="absolute -right-0.5 w-1 h-5 bg-blue-400 rounded-full"
-          transition={{ type: "spring", stiffness: 500, damping: 30 }}
+        aria-label={label}
+        aria-current={isActive ? "page" : undefined}
+      >
+        <CurrentIcon
+          className={`w-5 h-5 transition-transform duration-200 ${
+            !isActive ? "group-hover:scale-110" : ""
+          }`}
         />
-      )}
-    </Link>
-  );
-};
+        <Tooltip label={label} />
+        {isActive && (
+          <motion.div
+            layoutId="desktopActiveIndicator"
+            className="absolute -right-0.5 w-1 h-5 bg-blue-400 rounded-full"
+            initial={false}
+            transition={{ type: "spring", stiffness: 500, damping: 30 }}
+          />
+        )}
+      </Link>
+    );
+  },
+);
+
+NavItem.displayName = "NavItem";
 
 // Sign out button component
 const SignOutButton: React.FC<{
   variant: "mobile" | "desktop";
   onClick: () => void;
-}> = ({ variant, onClick }) => {
+}> = React.memo(({ variant, onClick }) => {
   if (variant === "mobile") {
     return (
       <button
@@ -198,10 +197,12 @@ const SignOutButton: React.FC<{
       <Tooltip label="Sign Out" arrowColor="border-r-neutral-800" />
     </button>
   );
-};
+});
+
+SignOutButton.displayName = "SignOutButton";
 
 // Fullscreen button component
-const FullscreenButton: React.FC = () => {
+const FullscreenButton: React.FC = React.memo(() => {
   const { isFullscreen, isSupported, toggleFullscreen } = useGlobalFullscreen();
   const [isLoading, setIsLoading] = React.useState(false);
 
@@ -231,29 +232,84 @@ const FullscreenButton: React.FC = () => {
       <Tooltip label={label} />
     </button>
   );
-};
+});
+
+FullscreenButton.displayName = "FullscreenButton";
 
 // Main Navigation Component
 export default function Navigation() {
   const pathname = usePathname();
-  const { isSignedIn, setIsSignedIn } = useAuth();
+  const { isSignedIn, setIsSignedIn, loading } = useAuth();
+  const [mounted, setMounted] = React.useState(false);
 
-  const handleSignOut = async () => {
+  // Prevent SSR/hydration mismatch
+  React.useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const handleSignOut = React.useCallback(async () => {
     await signOutUser();
     if (typeof window !== "undefined") {
       localStorage.removeItem("isSignedIn");
       setIsSignedIn(false);
       window.location.href = "/";
     }
-  };
+  }, [setIsSignedIn]);
 
-  // Filter visible nav items based on auth state
-  const visibleItems = NAV_ITEMS.filter(
-    (item) => !item.authRequired || isSignedIn,
+  // Filter visible nav items based on auth state - memoized to prevent recalculation
+  const visibleItems = React.useMemo(
+    () => NAV_ITEMS.filter((item) => !item.authRequired || isSignedIn),
+    [isSignedIn],
   );
 
-  const mainNav = visibleItems.filter((item) => item.label !== "About");
-  const bottomNav = visibleItems.filter((item) => item.label === "About");
+  const mainNav = React.useMemo(
+    () => visibleItems.filter((item) => item.label !== "About"),
+    [visibleItems],
+  );
+
+  const bottomNav = React.useMemo(
+    () => visibleItems.filter((item) => item.label === "About"),
+    [visibleItems],
+  );
+
+  // Don't render until mounted and auth is loaded to prevent flickering
+  if (!mounted || loading) {
+    return (
+      <>
+        {/* MOBILE SKELETON */}
+        <nav
+          className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-neutral-900/95 backdrop-blur-lg border-t border-neutral-800 safe-area-bottom"
+          role="navigation"
+          aria-label="Main navigation"
+        >
+          <div className="flex items-end justify-around px-2 pb-1 pt-1">
+            {/* Show skeleton for About link (always visible) */}
+            <div className="flex flex-col items-center justify-center flex-1 py-2 min-w-0">
+              <div className="w-6 h-6 bg-neutral-800 rounded animate-pulse" />
+              <div className="w-8 h-2 mt-0.5 bg-neutral-800 rounded animate-pulse" />
+            </div>
+          </div>
+        </nav>
+
+        {/* DESKTOP SKELETON */}
+        <aside
+          className="hidden sm:flex fixed inset-y-0 left-0 z-40 w-16 flex-col items-center py-4 bg-neutral-900/95 backdrop-blur-lg border-r border-neutral-800"
+          role="navigation"
+          aria-label="Main navigation"
+        >
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-12 h-12 bg-neutral-800 rounded-xl animate-pulse" />
+          </div>
+          <nav className="flex flex-col items-center gap-2 flex-1">
+            <div className="w-12 h-12 bg-neutral-800 rounded-xl animate-pulse" />
+          </nav>
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-12 h-12 bg-neutral-800 rounded-xl animate-pulse" />
+          </div>
+        </aside>
+      </>
+    );
+  }
 
   return (
     <>

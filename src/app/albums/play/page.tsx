@@ -11,10 +11,18 @@ import { getAlbum } from "@/shared/lib/firestore";
 // Context and hooks
 import { useAuth } from "@/shared/context";
 import { useAsyncErrorHandler } from "@/shared/hooks/useErrorHandler";
-import { useSlideshow, useColorPreferences } from "@/features/albums/hooks";
+import {
+  useSlideshow,
+  useColorPreferences,
+  useRadioPlayer,
+} from "@/features/albums/hooks";
 
 // Components
-import { LayoutViewer, ColorPicker } from "@/features/albums/components";
+import {
+  LayoutViewer,
+  ColorPicker,
+  RadioPlayer,
+} from "@/features/albums/components";
 import SlideshowErrorBoundary from "@/features/albums/components/SlideshowErrorBoundary";
 
 /**
@@ -76,6 +84,7 @@ const SlideshowPageInner: React.FC = () => {
   // Custom hooks
   const slideshow = useSlideshow({ album });
   const colorPrefs = useColorPreferences(album);
+  const radio = useRadioPlayer();
   const { handleAsyncError } = useAsyncErrorHandler("Album Loading");
 
   // Load album data
@@ -244,6 +253,9 @@ const SlideshowPageInner: React.FC = () => {
           onNext={slideshow.goToNext}
           onPrevious={slideshow.goToPrevious}
         />
+
+        {/* Radio player */}
+        <RadioPlayer radio={radio} />
       </div>
     </SlideshowErrorBoundary>
   );

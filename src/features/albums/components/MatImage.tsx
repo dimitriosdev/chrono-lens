@@ -366,8 +366,9 @@ const MatImage: React.FC<MatImageProps> = ({
           onLoad={handleImgLoad}
           style={{ maxWidth: "100%", maxHeight: "100%", border: "none" }}
           fill
-          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+          sizes="(max-width: 768px) 100vw, 100vw"
           priority={!containerMode} // Prioritize slideshow images
+          loading={containerMode ? "lazy" : "eager"}
         />
 
         {/* Caption overlay */}

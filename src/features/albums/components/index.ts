@@ -22,6 +22,10 @@ export { MultiPageLayoutStep } from "./MultiPageLayoutStep";
 export { AlbumPageHeader, TitleValidationMessage } from "./AlbumPageHeader";
 export { default as TagsInput } from "./TagsInput";
 
+// Radio Player
+export { default as RadioPlayer } from "./RadioPlayer";
+export type { RadioPlayerProps } from "./RadioPlayer";
+
 // Re-export types
 export type { MatImageProps, GridInfo } from "./MatImage";
 export type { ColorPickerProps } from "./ColorPicker";
