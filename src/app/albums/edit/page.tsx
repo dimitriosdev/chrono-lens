@@ -82,7 +82,8 @@ export default function EditAlbumPage() {
                 frameColor: "#1a1a1a",
                 matWidth: fetchedAlbum.matConfig?.matWidth || 8,
                 matColor: fetchedAlbum.matConfig?.matColor || "#FFFFFF",
-                backgroundColor: fetchedAlbum.matConfig?.backgroundColor || "#f3f4f6",
+                backgroundColor:
+                  fetchedAlbum.matConfig?.backgroundColor || "#f3f4f6",
               };
               setInitialPages([page]);
             }
@@ -115,7 +116,8 @@ export default function EditAlbumPage() {
               frameColor: "#1a1a1a",
               matWidth: fetchedAlbum.matConfig?.matWidth || 8,
               matColor: fetchedAlbum.matConfig?.matColor || "#FFFFFF",
-              backgroundColor: fetchedAlbum.matConfig?.backgroundColor || "#f3f4f6",
+              backgroundColor:
+                fetchedAlbum.matConfig?.backgroundColor || "#f3f4f6",
             };
             setInitialPages([page]);
           }
