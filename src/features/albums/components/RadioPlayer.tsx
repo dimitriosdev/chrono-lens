@@ -5,6 +5,11 @@
  * Auto-hides after inactivity; reappears on hover/focus. Expands inline
  * to show volume and station controls.
  *
+ * Three playback modes:
+ *  1. audio-api — custom controls + HTML5 Audio (default)
+ *  2. native   — browser-native <audio controls> element
+ *  3. embed    — TuneIn iframe embed player
+ *
  * Sub-components (EqualizerBars, VolumeControl, StationSelector) are
  * co-located here since they're only used by RadioPlayer.
  */
@@ -188,6 +193,82 @@ function getStatusLabel(radio: UseRadioPlayerReturn): string {
   }
 }
 
+// ============ FALLBACK COMPONENTS ============
+
+/** Browser-native audio controls as fallback */
+const NativeFallback: React.FC<{
+  station: RadioStation;
+  onSwitchToEmbed: () => void;
+  onSwitchToAudioApi: () => void;
+}> = ({ station, onSwitchToEmbed, onSwitchToAudioApi }) => (
+  <div className={`${PANEL_SURFACE} p-3 flex flex-col gap-2 min-w-[220px]`}>
+    <div className="flex items-center justify-between">
+      <span className="text-white/80 text-xs font-medium">{station.name}</span>
+      <span className="text-white/40 text-[10px]">Native Player</span>
+    </div>
+    <audio
+      controls
+      src={station.streamUrl}
+      className="w-full h-8 rounded"
+      style={{ colorScheme: "dark" }}
+    />
+    <div className="flex gap-2 justify-end">
+      <button
+        type="button"
+        onClick={onSwitchToAudioApi}
+        className="text-[10px] text-white/50 hover:text-white/80 transition-colors"
+      >
+        Custom player
+      </button>
+      <button
+        type="button"
+        onClick={onSwitchToEmbed}
+        className="text-[10px] text-blue-400/80 hover:text-blue-300 transition-colors"
+      >
+        TuneIn player
+      </button>
+    </div>
+  </div>
+);
+
+/** TuneIn iframe embed as ultimate fallback */
+const EmbedFallback: React.FC<{
+  station: RadioStation;
+  onSwitchToNative: () => void;
+  onSwitchToAudioApi: () => void;
+}> = ({ station, onSwitchToNative, onSwitchToAudioApi }) => (
+  <div className={`${PANEL_SURFACE} p-3 flex flex-col gap-2 min-w-[280px]`}>
+    <div className="flex items-center justify-between">
+      <span className="text-white/80 text-xs font-medium">{station.name}</span>
+      <span className="text-white/40 text-[10px]">TuneIn</span>
+    </div>
+    <iframe
+      src={station.embedUrl}
+      title={`${station.name} — TuneIn`}
+      className="w-full rounded border-0"
+      style={{ height: "100px", colorScheme: "dark" }}
+      allow="autoplay; encrypted-media"
+      sandbox="allow-scripts allow-same-origin allow-popups"
+    />
+    <div className="flex gap-2 justify-end">
+      <button
+        type="button"
+        onClick={onSwitchToAudioApi}
+        className="text-[10px] text-white/50 hover:text-white/80 transition-colors"
+      >
+        Custom player
+      </button>
+      <button
+        type="button"
+        onClick={onSwitchToNative}
+        className="text-[10px] text-white/50 hover:text-white/80 transition-colors"
+      >
+        Native player
+      </button>
+    </div>
+  </div>
+);
+
 // ============ MAIN COMPONENT ============
 
 export interface RadioPlayerProps {
@@ -203,13 +284,15 @@ export interface RadioPlayerProps {
  * - When minimized + idle → hidden completely
  * - On hover/focus → reveals full controls
  * - Expand button reveals volume + station picker inline
+ * - Falls back to native/embed player when Audio API fails
  */
 const RadioPlayer: React.FC<RadioPlayerProps> = ({ radio }) => {
   const [expanded, setExpanded] = React.useState(false);
   const [stationPickerOpen, setStationPickerOpen] = React.useState(false);
   const containerRef = React.useRef<HTMLDivElement>(null);
 
-  const isActive = radio.isPlaying || radio.status === "loading" || radio.isRetrying;
+  const isActive =
+    radio.isPlaying || radio.status === "loading" || radio.isRetrying;
 
   // Auto-hide behavior — collapses expanded panel after inactivity
   const { isMinimized, handleMouseEnter, handleMouseLeave } = useAutoHide();
@@ -240,9 +323,6 @@ const RadioPlayer: React.FC<RadioPlayerProps> = ({ radio }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [expanded]);
 
-  // Visibility states
-  const showMinimalIndicator = isMinimized && isActive;
-
   const handleMainButtonClick = React.useCallback(() => {
     if (radio.status === "error") {
       radio.retry();
@@ -257,6 +337,38 @@ const RadioPlayer: React.FC<RadioPlayerProps> = ({ radio }) => {
     setStationPickerOpen((prev) => !prev);
   }, []);
 
+  // ---- Fallback modes: native or embed ----
+  const isFallbackMode =
+    radio.playbackMode === "native" || radio.playbackMode === "embed";
+
+  if (isFallbackMode) {
+    return (
+      <div
+        ref={containerRef}
+        className="absolute bottom-3 right-3 z-50 transition-opacity duration-500 opacity-100"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        role="region"
+        aria-label="Radio player"
+      >
+        {radio.playbackMode === "native" ? (
+          <NativeFallback
+            station={radio.station}
+            onSwitchToEmbed={radio.switchToEmbed}
+            onSwitchToAudioApi={radio.switchToAudioApi}
+          />
+        ) : (
+          <EmbedFallback
+            station={radio.station}
+            onSwitchToNative={radio.switchToNative}
+            onSwitchToAudioApi={radio.switchToAudioApi}
+          />
+        )}
+      </div>
+    );
+  }
+
+  // ---- Audio API mode (default) ----
   return (
     <div
       ref={containerRef}
@@ -266,7 +378,7 @@ const RadioPlayer: React.FC<RadioPlayerProps> = ({ radio }) => {
       role="region"
       aria-label="Radio player"
     >
-      {/* Minimized indicator: equalizer when playing, music note when idle */}
+      {/* Minimized indicator */}
       {isMinimized && !expanded && (
         <button
           type="button"
@@ -287,52 +399,78 @@ const RadioPlayer: React.FC<RadioPlayerProps> = ({ radio }) => {
         <>
           {/* Expanded controls panel */}
           {expanded && (
-            <div
-              className={`${PANEL_SURFACE} px-3 py-2 flex items-center gap-3`}
-            >
-              {/* Station info */}
-              <div className="flex items-center gap-1.5 min-w-0">
-                {radio.status === "error" ? (
-                  <ExclamationTriangleIcon className="w-3 h-3 text-amber-400 flex-shrink-0" />
-                ) : radio.isRetrying ? (
-                  <ArrowPathIcon className="w-3 h-3 text-amber-300 animate-spin flex-shrink-0" />
-                ) : (
-                  <EqualizerBars isPlaying={radio.isPlaying} />
+            <div className={`${PANEL_SURFACE} px-3 py-2 flex flex-col gap-2`}>
+              <div className="flex items-center gap-3">
+                {/* Station info */}
+                <div className="flex items-center gap-1.5 min-w-0">
+                  {radio.status === "error" ? (
+                    <ExclamationTriangleIcon className="w-3 h-3 text-amber-400 flex-shrink-0" />
+                  ) : radio.isRetrying ? (
+                    <ArrowPathIcon className="w-3 h-3 text-amber-300 animate-spin flex-shrink-0" />
+                  ) : (
+                    <EqualizerBars isPlaying={radio.isPlaying} />
+                  )}
+                  <span
+                    className={`text-[11px] font-medium truncate max-w-[120px] ${
+                      radio.status === "error"
+                        ? "text-amber-300"
+                        : "text-white/80"
+                    }`}
+                  >
+                    {getStatusLabel(radio)}
+                  </span>
+                </div>
+
+                {/* Retry button (only visible on error) */}
+                {radio.status === "error" && (
+                  <button
+                    type="button"
+                    onClick={() => radio.retry()}
+                    className={`${INTERACTIVE_BASE} flex items-center gap-1 text-[10px] px-2 py-1 rounded-md bg-white/10 hover:bg-white/20 opacity-80 hover:opacity-100`}
+                    aria-label="Retry connection"
+                  >
+                    <ArrowPathIcon className="w-3 h-3" />
+                    <span>Retry</span>
+                  </button>
                 )}
-                <span className={`text-[11px] font-medium truncate max-w-[120px] ${
-                  radio.status === "error" ? "text-amber-300" : "text-white/80"
-                }`}>
-                  {getStatusLabel(radio)}
-                </span>
+
+                {/* Volume */}
+                <VolumeControl
+                  volume={radio.volume}
+                  onVolumeChange={radio.setVolume}
+                />
+
+                {/* Station selector */}
+                <StationSelector
+                  stations={radio.stations}
+                  currentStationId={radio.station.id}
+                  onSwitch={radio.switchStation}
+                  isOpen={stationPickerOpen}
+                  onToggle={handleStationPickerToggle}
+                />
               </div>
 
-              {/* Retry button (only visible on error) */}
+              {/* Fallback options — shown when there's an error */}
               {radio.status === "error" && (
-                <button
-                  type="button"
-                  onClick={() => radio.retry()}
-                  className={`${INTERACTIVE_BASE} flex items-center gap-1 text-[10px] px-2 py-1 rounded-md bg-white/10 hover:bg-white/20 opacity-80 hover:opacity-100`}
-                  aria-label="Retry connection"
-                >
-                  <ArrowPathIcon className="w-3 h-3" />
-                  <span>Retry</span>
-                </button>
+                <div className="flex items-center gap-2 pt-1 border-t border-white/10">
+                  <span className="text-[10px] text-white/40">Try:</span>
+                  <button
+                    type="button"
+                    onClick={radio.switchToNative}
+                    className="text-[10px] text-blue-400/80 hover:text-blue-300 transition-colors"
+                  >
+                    Native player
+                  </button>
+                  <span className="text-[10px] text-white/20">|</span>
+                  <button
+                    type="button"
+                    onClick={radio.switchToEmbed}
+                    className="text-[10px] text-blue-400/80 hover:text-blue-300 transition-colors"
+                  >
+                    TuneIn embed
+                  </button>
+                </div>
               )}
-
-              {/* Volume */}
-              <VolumeControl
-                volume={radio.volume}
-                onVolumeChange={radio.setVolume}
-              />
-
-              {/* Station selector */}
-              <StationSelector
-                stations={radio.stations}
-                currentStationId={radio.station.id}
-                onSwitch={radio.switchStation}
-                isOpen={stationPickerOpen}
-                onToggle={handleStationPickerToggle}
-              />
             </div>
           )}
 

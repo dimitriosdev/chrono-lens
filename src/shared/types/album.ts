@@ -62,7 +62,7 @@ export interface WallLayoutPreset {
 export interface ImagePosition {
   x: number; // Percentage offset (-50 to 50)
   y: number; // Percentage offset (-50 to 50)
-  zoom: number; // Scale factor (0.5 to 2.0)
+  zoom: number; // Scale factor (0.3 to 3.0)
 }
 
 // Template slot for the new UX

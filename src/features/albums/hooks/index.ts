@@ -20,6 +20,7 @@ export type {
 export { useRadioPlayer } from "./useRadioPlayer";
 export type {
   RadioPlaybackStatus,
+  PlaybackMode,
   RadioPlayerState,
   RadioPlayerActions,
   UseRadioPlayerReturn,

@@ -23,6 +23,8 @@ export interface RadioStation {
   streamUrl: string;
   /** Fallback stream URLs to try if primary fails (tried in order) */
   fallbackUrls: readonly string[];
+  /** TuneIn embed URL — last-resort fallback when Audio API fails entirely */
+  embedUrl: string;
   /** Music genre label */
   genre: string;
   /** Attribution URL (not used in UI, kept for reference) */
@@ -32,20 +34,20 @@ export interface RadioStation {
 /**
  * Available radio stations for slideshow background music.
  *
- * All streams are 128kbps MP3 via SRG SSR infrastructure.
+ * All streams are via SRG SSR infrastructure.
  * IMPORTANT: Use the `/srgssr/` path, NOT the `/m/` shorthand.
  * The `/m/` URLs redirect HTTPS → HTTP, which browsers block as mixed content.
  * The `/srgssr/` URLs redirect HTTPS → HTTPS (to a load-balanced node).
+ *
+ * Fallback URLs use AAC 96kbps format (also via `/srgssr/`, HTTPS-safe).
  */
 export const RADIO_STATIONS: readonly RadioStation[] = [
   {
     id: "radio-swiss-jazz",
     name: "Radio Swiss Jazz",
     streamUrl: "https://stream.srg-ssr.ch/srgssr/rsj/mp3/128",
-    fallbackUrls: [
-      "https://stream.srg-ssr.ch/m/rsj/mp3_128",
-      "https://stream.srg-ssr.ch/m/rsj/aacp_96",
-    ],
+    fallbackUrls: ["https://stream.srg-ssr.ch/srgssr/rsj/aac/96"],
+    embedUrl: "https://tunein.com/embed/player/s6814/",
     genre: "Jazz",
     attributionUrl: "https://tunein.com/radio/Radio-Swiss-Jazz-s6814/",
   },
@@ -53,10 +55,8 @@ export const RADIO_STATIONS: readonly RadioStation[] = [
     id: "radio-swiss-pop",
     name: "Radio Swiss Pop",
     streamUrl: "https://stream.srg-ssr.ch/srgssr/rsp/mp3/128",
-    fallbackUrls: [
-      "https://stream.srg-ssr.ch/m/rsp/mp3_128",
-      "https://stream.srg-ssr.ch/m/rsp/aacp_96",
-    ],
+    fallbackUrls: ["https://stream.srg-ssr.ch/srgssr/rsp/aac/96"],
+    embedUrl: "https://tunein.com/embed/player/s6828/",
     genre: "Pop",
     attributionUrl: "https://tunein.com/radio/Radio-Swiss-Pop-s6828/",
   },
@@ -64,10 +64,8 @@ export const RADIO_STATIONS: readonly RadioStation[] = [
     id: "radio-swiss-classic",
     name: "Radio Swiss Classic",
     streamUrl: "https://stream.srg-ssr.ch/srgssr/rsc_de/mp3/128",
-    fallbackUrls: [
-      "https://stream.srg-ssr.ch/m/rsc_de/mp3_128",
-      "https://stream.srg-ssr.ch/m/rsc_de/aacp_96",
-    ],
+    fallbackUrls: ["https://stream.srg-ssr.ch/srgssr/rsc_de/aac/96"],
+    embedUrl: "https://tunein.com/embed/player/s6822/",
     genre: "Classical",
     attributionUrl: "https://tunein.com/radio/Radio-Swiss-Classic-s6822/",
   },

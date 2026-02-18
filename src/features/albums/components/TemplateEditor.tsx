@@ -21,6 +21,21 @@ import {
 } from "@/shared/types/album";
 import { processImage } from "../utils/imageProcessing";
 
+/**
+ * Calculate scale factor from object-contain to object-cover.
+ */
+function calcCoverScale(
+  imgW: number,
+  imgH: number,
+  containerAspect: number,
+): number {
+  const imgAspect = imgW / imgH;
+  if (Math.abs(imgAspect - containerAspect) < 0.01) return 1;
+  return imgAspect > containerAspect
+    ? imgAspect / containerAspect
+    : containerAspect / imgAspect;
+}
+
 interface TemplateEditorProps {
   template: LayoutTemplate;
   slots: TemplateSlot[];
@@ -48,6 +63,20 @@ export function TemplateEditor({
   const fileInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
   const containerRef = useRef<HTMLDivElement>(null);
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const [imageDims, setImageDims] = useState<
+    Record<string, { w: number; h: number }>
+  >({});
+
+  const handleImageLoad = useCallback(
+    (slotId: string, e: React.SyntheticEvent<HTMLImageElement>) => {
+      const img = e.currentTarget;
+      setImageDims((prev) => ({
+        ...prev,
+        [slotId]: { w: img.naturalWidth, h: img.naturalHeight },
+      }));
+    },
+    [],
+  );
 
   const handleFileSelect = useCallback(
     async (slotId: string, file: File) => {
@@ -274,7 +303,7 @@ export function TemplateEditor({
       const updatedSlots = slots.map((slot) => {
         if (slot.id !== slotId) return slot;
         const currentZoom = slot.position?.zoom || 1;
-        const newZoom = Math.max(0.5, Math.min(3, currentZoom + delta));
+        const newZoom = Math.max(0.3, Math.min(3, currentZoom + delta));
         return {
           ...slot,
           position: {
@@ -322,6 +351,11 @@ export function TemplateEditor({
           : slot,
       );
       onSlotsChange(updatedSlots);
+      setImageDims((prev) => {
+        const next = { ...prev };
+        delete next[slotId];
+        return next;
+      });
       if (selectedSlotId === slotId) {
         setSelectedSlotId(null);
       }
@@ -395,6 +429,11 @@ export function TemplateEditor({
           {slots.map((slot) => {
             const isSelected = selectedSlotId === slot.id;
             const position = slot.position || { x: 0, y: 0, zoom: 1 };
+            const slotAspect = (slot.width / slot.height) * (16 / 9);
+            const dims = imageDims[slot.id];
+            const coverScale = dims
+              ? calcCoverScale(dims.w, dims.h, slotAspect)
+              : 1;
 
             return (
               <div
@@ -437,7 +476,7 @@ export function TemplateEditor({
                         onTouchStart={(e) => handleTouchStart(slot.id, e)}
                         onWheel={(e) => handleWheel(slot.id, e)}
                         style={{
-                          transform: `translate(${position.x}%, ${position.y}%) scale(${position.zoom})`,
+                          transform: `translate(${position.x}%, ${position.y}%) scale(${coverScale * position.zoom})`,
                           transformOrigin: "center center",
                         }}
                       >
@@ -445,7 +484,8 @@ export function TemplateEditor({
                           src={slot.imageId}
                           alt={`Slot ${slot.id}`}
                           fill
-                          className="pointer-events-none object-cover"
+                          className={`pointer-events-none ${dims ? "object-contain" : "object-cover"}`}
+                          onLoad={(e) => handleImageLoad(slot.id, e)}
                           draggable={false}
                         />
                       </div>
